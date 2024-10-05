@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  mssql-db:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: mssql-db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=GEAFADsuaifl1ur3453345421
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
+volumes:
+  mssql-data:

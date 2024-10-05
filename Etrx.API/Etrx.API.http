@@ -1,0 +1,6 @@
+@Etrx.API_HostAddress = http://localhost:5298
+
+GET {{Etrx.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

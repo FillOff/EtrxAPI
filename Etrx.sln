@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Etrx.API", "Etrx.API\Etrx.API.csproj", "{01565282-6FA2-4F2A-B9A4-2674F0F05511}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Etrx.Domain", "Etrx.Domain\Etrx.Domain.csproj", "{8B5A66B5-5E1A-44C7-989E-6354B5082A94}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Etrx.Application", "Etrx.Application\Etrx.Application.csproj", "{8A4196D7-D618-4B0A-81C3-082E8486A374}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Etrx.Persistence", "Etrx.Persistence\Etrx.Persistence.csproj", "{96D42CDC-DAF2-49A6-BDD3-D6F643DA527F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{01565282-6FA2-4F2A-B9A4-2674F0F05511}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01565282-6FA2-4F2A-B9A4-2674F0F05511}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01565282-6FA2-4F2A-B9A4-2674F0F05511}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01565282-6FA2-4F2A-B9A4-2674F0F05511}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B5A66B5-5E1A-44C7-989E-6354B5082A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B5A66B5-5E1A-44C7-989E-6354B5082A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B5A66B5-5E1A-44C7-989E-6354B5082A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B5A66B5-5E1A-44C7-989E-6354B5082A94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A4196D7-D618-4B0A-81C3-082E8486A374}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A4196D7-D618-4B0A-81C3-082E8486A374}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A4196D7-D618-4B0A-81C3-082E8486A374}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A4196D7-D618-4B0A-81C3-082E8486A374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96D42CDC-DAF2-49A6-BDD3-D6F643DA527F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96D42CDC-DAF2-49A6-BDD3-D6F643DA527F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96D42CDC-DAF2-49A6-BDD3-D6F643DA527F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96D42CDC-DAF2-49A6-BDD3-D6F643DA527F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9DA6014B-BB52-44F4-8D61-27AF8FA9E51F}
+	EndGlobalSection
+EndGlobal
