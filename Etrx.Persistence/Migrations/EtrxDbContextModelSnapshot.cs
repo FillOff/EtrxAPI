@@ -47,6 +47,9 @@ namespace Etrx.Persistence.Migrations
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 
+                    b.Property<int>("SolvedCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");

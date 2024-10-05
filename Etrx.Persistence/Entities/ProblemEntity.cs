@@ -13,11 +13,13 @@ namespace Etrx.Persistence.Entities
 
         public string Name { get; set; } = string.Empty;
 
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
         public double? Points { get; set; }
 
         public int? Rating { get; set; }
+
+        public int SolvedCount { get; set; }
 
         public string[] Tags { get; set; } = null!;
     }

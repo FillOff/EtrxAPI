@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Etrx.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("")]
     public class CodeforcesController : ControllerBase
     {
         private readonly IProblemsService _problemsService;
@@ -16,7 +16,7 @@ namespace Etrx.API.Controllers
             _problemsService = problemsService;
         }
 
-        [HttpGet]
+        [HttpGet("api/[controller]/Problems")]
         public async Task<IActionResult> UpdateProblems()
         {
             HttpClient client = new HttpClient();
@@ -28,6 +28,7 @@ namespace Etrx.API.Controllers
             var jsonDocument = JsonDocument.Parse(content);
 
             var problems = jsonDocument.RootElement.GetProperty("result").GetProperty("problems").EnumerateArray();
+            var statistics = jsonDocument.RootElement.GetProperty("result").GetProperty("problemStatistics").EnumerateArray().ToList();
 
             foreach (var problem in problems)
             {
@@ -39,7 +40,12 @@ namespace Etrx.API.Controllers
                 int? rating = problem.TryGetProperty("rating", out var ratingProperty) ? ratingProperty.GetInt32() : (int?)null;
                 string[] tags = problem.GetProperty("tags").EnumerateArray().Select(tag => tag.GetString()).ToArray()!;
 
-                Problem newProblem = Domain.Models.Problem.Create(0, contestId, index, name, type, points, rating, tags);
+                var solvedStat = statistics.First(stat =>
+                    stat.GetProperty("contestId").GetInt32() == contestId &&
+                    stat.GetProperty("index").GetString() == index);
+                int solvedCount = solvedStat.GetProperty("solvedCount").GetInt32();
+
+                Problem newProblem = Domain.Models.Problem.Create(0, contestId, index, name, type, points, rating, solvedCount, tags);
 
                 await _problemsService.CreateProblem(newProblem);
             }

@@ -28,9 +28,9 @@ namespace Etrx.Application.Services
             return await _problemsRepository.Create(problem);
         }
 
-        public async Task<int> UpdateProblem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, string[] tags)
+        public async Task<int> UpdateProblem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
         {
-            return await _problemsRepository.Update(problemId, contestId, index, name, type, points, rating, tags);
+            return await _problemsRepository.Update(problemId, contestId, index, name, type, points, rating, solvedCount, tags);
         }
 
         public async Task<int> DeleteProblem(int problemId)

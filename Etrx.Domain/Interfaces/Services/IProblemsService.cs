@@ -1,5 +1,4 @@
-﻿using Etrx.Domain.Enums;
-using Etrx.Domain.Models;
+﻿using Etrx.Domain.Models;
 
 namespace Etrx.Domain.Interfaces.Services
 {
@@ -9,6 +8,6 @@ namespace Etrx.Domain.Interfaces.Services
         Task<int> DeleteProblem(int problemId);
         Task<IEnumerable<Problem>> GetAllProblems();
         Task<Problem> getProblemById(int problemId);
-        Task<int> UpdateProblem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, string[] tags);
+        Task<int> UpdateProblem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags);
     }
 }

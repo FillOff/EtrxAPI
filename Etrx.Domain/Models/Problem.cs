@@ -2,7 +2,7 @@ namespace Etrx.Domain.Models;
 
 public class Problem
 {
-    private Problem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, string[] tags)
+    private Problem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
     {
         ProblemId = problemId;
         ContestId = contestId;
@@ -11,6 +11,7 @@ public class Problem
         Type = type;
         Points = points;
         Rating = rating;
+        SolvedCount = solvedCount;
         Tags = tags;
     }
 
@@ -28,10 +29,12 @@ public class Problem
     
     public int? Rating { get; }
 
+    public int SolvedCount { get; set; }
+
     public string[] Tags { get; } = null!;
 
-    public static Problem Create(int problemId, int contestId, string index, string name, string type, double? points, int? rating, string[] tags)
+    public static Problem Create(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
     {
-        return new Problem(problemId, contestId, index, name, type, points, rating, tags);
+        return new Problem(problemId, contestId, index, name, type, points, rating, solvedCount, tags);
     }
 }

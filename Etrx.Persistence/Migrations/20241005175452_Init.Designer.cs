@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Etrx.Persistence.Migrations
 {
     [DbContext(typeof(EtrxDbContext))]
-    [Migration("20241005153124_init")]
-    partial class init
+    [Migration("20241005175452_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,6 +48,9 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("float");
 
                     b.Property<int?>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SolvedCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Tags")

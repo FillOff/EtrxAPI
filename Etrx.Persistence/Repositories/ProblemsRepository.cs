@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Etrx.Core.Interfaces.Repositories;
-using Etrx.Domain.Enums;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +52,7 @@ namespace Etrx.Persistence.Repositories
             return 0;
         }
 
-        public async Task<int> Update(int problemId, int? contestId, string index, string name, string type, double? points, int? rating, string[] tags)
+        public async Task<int> Update(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
         {
             await _context.Problems
                 .Where(p => p.ProblemId == problemId)
@@ -64,6 +63,7 @@ namespace Etrx.Persistence.Repositories
                     .SetProperty(p => p.Type, type)
                     .SetProperty(p => p.Points, points)
                     .SetProperty(p => p.Rating, rating)
+                    .SetProperty(p => p.SolvedCount, solvedCount)
                     .SetProperty(p => p.Tags, tags)
                 );
 

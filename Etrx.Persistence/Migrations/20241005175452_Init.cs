@@ -5,7 +5,7 @@
 namespace Etrx.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,6 +22,7 @@ namespace Etrx.Persistence.Migrations
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Points = table.Column<double>(type: "float", nullable: true),
                     Rating = table.Column<int>(type: "int", nullable: true),
+                    SolvedCount = table.Column<int>(type: "int", nullable: false),
                     Tags = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
