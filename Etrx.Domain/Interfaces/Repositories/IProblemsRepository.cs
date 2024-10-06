@@ -5,9 +5,9 @@ namespace Etrx.Core.Interfaces.Repositories
     public interface IProblemsRepository
     {
         Task<int> Create(Problem problem);
-        Task<int> Delete(int problemId);
+        Task<int> Delete(int id);
         Task<IEnumerable<Problem>> Get();
-        Task<Problem> GetById(int problemId);
-        Task<int> Update(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags);
+        Task<Problem?> GetByContestIdAndIndex(int contestId, string index);
+        Task<int> Update(Problem problem);
     }
 }

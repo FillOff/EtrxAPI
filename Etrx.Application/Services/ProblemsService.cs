@@ -18,24 +18,27 @@ namespace Etrx.Application.Services
             return await _problemsRepository.Get();
         }
 
-        public async Task<Problem> getProblemById(int problemId)
-        {
-            return await _problemsRepository.GetById(problemId);
-        }
-
         public async Task<int> CreateProblem(Problem problem)
         {
-            return await _problemsRepository.Create(problem);
+            if (await _problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) == null)
+            {
+                return await _problemsRepository.Create(problem);
+            }
+            return -1;
         }
 
-        public async Task<int> UpdateProblem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
+        public async Task<int> UpdateProblem(Problem problem)
         {
-            return await _problemsRepository.Update(problemId, contestId, index, name, type, points, rating, solvedCount, tags);
+            if (await _problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) != null)
+            {
+                return await _problemsRepository.Update(problem);
+            }
+            return -1;
         }
 
-        public async Task<int> DeleteProblem(int problemId)
+        public async Task<int> DeleteProblem(int id)
         {
-            return await _problemsRepository.Delete(problemId);
+            return await _problemsRepository.Delete(id);
         }
     }
 }

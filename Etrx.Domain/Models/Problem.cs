@@ -2,9 +2,9 @@ namespace Etrx.Domain.Models;
 
 public class Problem
 {
-    private Problem(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
+    public Problem(int id, int contestId, string index, string name, string type, double? points, int? rating, int? solvedCount, string[] tags)
     {
-        ProblemId = problemId;
+        Id = id; 
         ContestId = contestId;
         Index = index;
         Name = name;
@@ -14,27 +14,21 @@ public class Problem
         SolvedCount = solvedCount;
         Tags = tags;
     }
+    public int Id { get; set; }
 
-    public int ProblemId { get; }
+    public int ContestId { get; set; }
 
-    public int ContestId { get; }
-    
-    public string Index { get; }
-    
-    public string Name { get; } = string.Empty;
-    
-    public string Type { get; }
-    
-    public double? Points { get; }
-    
-    public int? Rating { get; }
+    public string Index { get; set; } = string.Empty;
 
-    public int SolvedCount { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string[] Tags { get; } = null!;
+    public string Type { get; set; } = string.Empty;
 
-    public static Problem Create(int problemId, int contestId, string index, string name, string type, double? points, int? rating, int solvedCount, string[] tags)
-    {
-        return new Problem(problemId, contestId, index, name, type, points, rating, solvedCount, tags);
-    }
+    public double? Points { get; set; }
+
+    public int? Rating { get; set; }
+
+    public int? SolvedCount { get; set; }
+
+    public string[] Tags { get; set; } = null!;
 }

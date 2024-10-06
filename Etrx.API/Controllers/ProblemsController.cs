@@ -20,7 +20,7 @@ namespace Etrx.API.Controllers
         {
             var problems = await _problemsService.GetAllProblems();
 
-            var response = problems.Select(p => new ProblemsResponse(p.ProblemId, p.ContestId, p.Index, p.Name));
+            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name));
 
             return Ok(response);
         }

@@ -1,4 +1,5 @@
-﻿using Etrx.Persistence.Entities;
+﻿using Etrx.Domain.Models;
+using Etrx.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Persistence
@@ -10,6 +11,13 @@ namespace Etrx.Persistence
         {
         }
 
-        public DbSet<ProblemEntity> Problems { get; set; }
+        public DbSet<Problem> Problems { get; set; }
+        public DbSet<Contest> Contests { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfiguration(new ProblemConfiguration());
+            modelBuilder.ApplyConfiguration(new ContestConfiguration());
+        }
     }
 }
