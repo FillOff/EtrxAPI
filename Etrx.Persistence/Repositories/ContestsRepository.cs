@@ -1,6 +1,6 @@
 ﻿using Etrx.Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using Etrx.Core.Interfaces.Repositories;
+using Etrx.Domain.Interfaces.Repositories;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -13,22 +13,11 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Contest>> Get()
+        public IQueryable<Contest> Get()
         {
-            var contests = await _context.Contests
-                .AsNoTracking()
-                .ToListAsync();
+            var contests = _context.Contests.AsNoTracking();
 
             return contests;
-        }
-
-        public async Task<Contest?> GetById(int id)
-        {
-            var contest = await _context.Contests
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            return contest;
         }
 
         public async Task<int> Create(Contest contest)
@@ -36,16 +25,15 @@ namespace Etrx.Persistence.Repositories
             await _context.Contests.AddAsync(contest);
             await _context.SaveChangesAsync();
 
-            return contest.Id;
+            return contest.ContestId;
         }
 
         public async Task<int> Update(Contest contest)
         {
             await _context.Contests
-                .Where(c => c.Id == contest.Id)
+                .Where(c => c.ContestId == contest.ContestId)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(c => c.Name, contest.Name)
-                    .SetProperty(c => c.ContestId, contest.ContestId)
                     .SetProperty(c => c.Type, contest.Type)
                     .SetProperty(c => c.Phase, contest.Phase)
                     .SetProperty(c => c.Frozen, contest.Frozen)
@@ -64,16 +52,16 @@ namespace Etrx.Persistence.Repositories
                     .SetProperty(c => c.Gym, contest.Gym)
                 );
 
-            return contest.Id;
+            return contest.ContestId;
         }
 
-        public async Task<int> Delete(int id)
+        public async Task<int> Delete(int contestId)
         {
             await _context.Contests
-                .Where(c => c.Id == id)
+                .Where(c => c.ContestId == contestId)
                 .ExecuteDeleteAsync();
 
-            return id;
+            return contestId;
         }
     }
 }

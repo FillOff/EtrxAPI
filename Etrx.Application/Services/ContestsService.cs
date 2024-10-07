@@ -1,4 +1,4 @@
-﻿using Etrx.Core.Interfaces.Repositories;
+﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 
@@ -13,14 +13,14 @@ namespace Etrx.Application.Services
             _contestsRepository = contestsRepository;
         }
 
-        public async Task<IEnumerable<Contest>> GetAllContests()
+        public IEnumerable<Contest> GetAllContests()
         {
-            return await _contestsRepository.Get();
+            return _contestsRepository.Get();
         }
 
         public async Task<int> CreateContest(Contest contest)
         {
-            if (await _contestsRepository.GetById(contest.Id) == null)
+            if (_contestsRepository.Get().FirstOrDefault(c => c.ContestId == contest.ContestId) == null)
             {
                 return await _contestsRepository.Create(contest);
             }

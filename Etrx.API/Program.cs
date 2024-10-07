@@ -1,5 +1,5 @@
 using Etrx.Application.Services;
-using Etrx.Core.Interfaces.Repositories;
+using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Persistence;
 using Etrx.Persistence.Repositories;
@@ -21,6 +21,8 @@ builder.Services.AddScoped<IProblemsService, ProblemsService>();
 builder.Services.AddScoped<IProblemsRepository, ProblemsRepository>();
 builder.Services.AddScoped<IContestsService, ContestsService>();
 builder.Services.AddScoped<IContestsRepository, ContestsRepository>();
+builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
 var app = builder.Build();
 

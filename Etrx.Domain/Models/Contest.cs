@@ -2,12 +2,26 @@
 
 public class Contest
 {
-    public Contest(int id, int contestId, string name, string type, string phase, bool frozen, int durationSeconds,
-                   DateTime? startTime, int? relativeTimeSeconds, string? preparedBy, string? websiteUrl,
-                   string? description, int? difficulty, string? kind, string? icpcRegion,
-                   string? country, string? city, string? season, bool gym)
+    public Contest(
+        int contestId, 
+        string name, 
+        string type, 
+        string phase, 
+        bool frozen, 
+        int durationSeconds,
+        DateTime? startTime, 
+        int? relativeTimeSeconds, 
+        string? preparedBy, 
+        string? websiteUrl,
+        string? description, 
+        int? difficulty, 
+        string? kind, 
+        string? icpcRegion,
+        string? country, 
+        string? city, 
+        string? season, 
+        bool gym)
     {
-        Id = id;
         ContestId = contestId;
         Name = name;
         Type = type;
@@ -27,8 +41,6 @@ public class Contest
         Season = season;
         Gym = gym;
     }
-
-    public int Id { get; set; }
 
     public int ContestId { get; set; }
 
@@ -65,4 +77,6 @@ public class Contest
     public string? Season { get; set; }
 
     public bool Gym { get; set; }
+
+    public IQueryable<Problem> Problems { get; set; } = null!;
 }

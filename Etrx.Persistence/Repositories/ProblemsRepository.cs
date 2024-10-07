@@ -1,4 +1,4 @@
-﻿using Etrx.Core.Interfaces.Repositories;
+﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,22 +13,11 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<Problem>> Get()
+        public IQueryable<Problem> Get()
         {
-            var problems = await _context.Problems
-                .AsNoTracking()
-                .ToListAsync();
+            var problems = _context.Problems.AsNoTracking();
 
             return problems;
-        }
-
-        public async Task<Problem?> GetByContestIdAndIndex(int contestId, string index)
-        {
-            var problem = await _context.Problems
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
-
-            return problem;
         }
 
         public async Task<int> Create(Problem problem)

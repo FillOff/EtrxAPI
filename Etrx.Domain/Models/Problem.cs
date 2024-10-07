@@ -2,7 +2,16 @@ namespace Etrx.Domain.Models;
 
 public class Problem
 {
-    public Problem(int id, int contestId, string index, string name, string type, double? points, int? rating, int? solvedCount, string[] tags)
+    public Problem(
+        int id, 
+        int contestId, 
+        string index, 
+        string name, 
+        string type, 
+        double? points, 
+        int? rating, 
+        int? solvedCount, 
+        string[] tags)
     {
         Id = id; 
         ContestId = contestId;
@@ -17,6 +26,8 @@ public class Problem
     public int Id { get; set; }
 
     public int ContestId { get; set; }
+
+    public Contest Contest { get; set; } = null!;
 
     public string Index { get; set; } = string.Empty;
 

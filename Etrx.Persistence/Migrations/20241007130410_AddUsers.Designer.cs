@@ -4,6 +4,7 @@ using Etrx.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Etrx.Persistence.Migrations
 {
     [DbContext(typeof(EtrxDbContext))]
-    partial class EtrxDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007130410_AddUsers")]
+    partial class AddUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -138,6 +141,7 @@ namespace Etrx.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Avatar")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
@@ -158,7 +162,7 @@ namespace Etrx.Persistence.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("FriendOfCount")
+                    b.Property<int>("FriendOfCount")
                         .HasColumnType("int");
 
                     b.Property<int?>("Grade")
@@ -171,13 +175,14 @@ namespace Etrx.Persistence.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("LastOnlineTimeSeconds")
+                    b.Property<long>("LastOnlineTimeSeconds")
                         .HasColumnType("bigint");
 
                     b.Property<string>("MaxRank")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("MaxRating")
+                    b.Property<int>("MaxRating")
                         .HasColumnType("int");
 
                     b.Property<string>("OpenId")
@@ -187,15 +192,17 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Rank")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Rating")
+                    b.Property<int>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<long?>("RegistrationTimeSeconds")
+                    b.Property<long>("RegistrationTimeSeconds")
                         .HasColumnType("bigint");
 
                     b.Property<string>("TitlePhoto")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VkId")

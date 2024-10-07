@@ -1,6 +1,9 @@
-﻿namespace Etrx.API.Contracts.Contests
+﻿using Etrx.Domain.Models;
+
+namespace Etrx.API.Contracts.Contests
 {
     public record ContestsResponse(
-        int Id,
-        string Name);
+        int ContestId,
+        string Name,
+        DateTime? StartTime);
 }

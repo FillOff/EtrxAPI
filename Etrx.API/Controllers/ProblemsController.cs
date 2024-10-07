@@ -15,14 +15,36 @@ namespace Etrx.API.Controllers
             _problemsService = problemsService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProblemsResponse>>> GetProblems()
+        /*[HttpGet("GetAllProblems")]
+        public ActionResult<IEnumerable<ProblemsResponse>> GetAllProblems()
         {
-            var problems = await _problemsService.GetAllProblems();
+            var problems = _problemsService.GetAllProblems();
 
-            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name));
+            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags));
 
             return Ok(response);
+        }*/
+
+        [HttpGet("GetProblemsByContestId")]
+        public ActionResult<IEnumerable<ProblemsResponse>> GetProblemsByContestId([FromQuery] int contestId)
+        {
+            var problems = _problemsService.GetProblemsByContestId(contestId);
+
+            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags));
+
+            return Ok(response);
+        }
+
+        [HttpGet("GetProblemsByPage")]
+        public ActionResult<IEnumerable<ProblemsResponse>> GetProblemsByPage([FromQuery] int page, int pageSize)
+        {
+            var problems = _problemsService.GetAllProblems()
+                .Skip((page-1) * pageSize)
+                .Take(pageSize);
+
+            var problemsResponse = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags));
+
+            return Ok(problemsResponse);
         }
     }
 }

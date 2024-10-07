@@ -1,5 +1,8 @@
 ﻿using Etrx.API.Contracts.Contests;
+using Etrx.API.Contracts.Problems;
+using Etrx.Application.Services;
 using Etrx.Domain.Interfaces.Services;
+using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers
@@ -15,14 +18,27 @@ namespace Etrx.API.Controllers
             _contestsService = contestsService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<ContestsResponse>>> GetContests()
+        /*[HttpGet("GetAllContests")]
+        public ActionResult<IEnumerable<ContestsResponse>> GetAllContests()
         {
-            var contests = await _contestsService.GetAllContests();
+            var contests = _contestsService.GetAllContests();
 
-            var response = contests.Select(c => new ContestsResponse(c.Id, c.Name));
+            var contestsResponse = contests.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime));
 
-            return Ok(response);
+            return Ok(contestsResponse);
+        }*/
+
+        [HttpGet("GetContestsByPage")]
+        public ActionResult<IEnumerable<ProblemsResponse>> GetContestsByPage([FromQuery] int page, int pageSize, bool gym)
+        {
+            var contests = _contestsService.GetAllContests()
+                .Where(c => c.Gym == gym)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            var contestsResponse = contests.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime));
+
+            return Ok(contestsResponse);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Etrx.Core.Interfaces.Repositories;
+﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Services;
 
@@ -13,14 +13,19 @@ namespace Etrx.Application.Services
             _problemsRepository = problemsRepository;
         }
 
-        public async Task<IEnumerable<Problem>> GetAllProblems()
+        public IEnumerable<Problem> GetAllProblems()
         {
-            return await _problemsRepository.Get();
+            return _problemsRepository.Get().AsEnumerable();
+        }
+
+        public IEnumerable<Problem> GetProblemsByContestId(int contestId)
+        {
+            return _problemsRepository.Get().Where(p => p.ContestId == contestId).ToList();
         }
 
         public async Task<int> CreateProblem(Problem problem)
         {
-            if (await _problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) == null)
+            if (_problemsRepository.Get().FirstOrDefault(p => p.ContestId == problem.ContestId && p.Index == problem.Index) == null)
             {
                 return await _problemsRepository.Create(problem);
             }
@@ -29,7 +34,7 @@ namespace Etrx.Application.Services
 
         public async Task<int> UpdateProblem(Problem problem)
         {
-            if (await _problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) != null)
+            if (_problemsRepository.Get().FirstOrDefault(p => p.ContestId == problem.ContestId && p.Index == problem.Index) != null)
             {
                 return await _problemsRepository.Update(problem);
             }

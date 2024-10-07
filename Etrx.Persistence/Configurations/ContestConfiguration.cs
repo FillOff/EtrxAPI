@@ -8,6 +8,13 @@ public class ContestConfiguration : IEntityTypeConfiguration<Contest>
 {
     public void Configure(EntityTypeBuilder<Contest> builder)
     {
-        builder.HasKey(c => c.Id);
+        builder.HasKey(c => c.ContestId);
+
+        builder.Property(c => c.ContestId)
+            .ValueGeneratedNever();
+
+        builder.HasMany(c => c.Problems)
+            .WithOne(p => p.Contest)
+            .HasForeignKey(p => p.ContestId);
     }
 }

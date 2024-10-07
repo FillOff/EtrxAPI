@@ -1,13 +1,12 @@
 ﻿using Etrx.Domain.Models;
 
-namespace Etrx.Core.Interfaces.Repositories
+namespace Etrx.Domain.Interfaces.Repositories
 {
     public interface IProblemsRepository
     {
         Task<int> Create(Problem problem);
         Task<int> Delete(int id);
-        Task<IEnumerable<Problem>> Get();
-        Task<Problem?> GetByContestIdAndIndex(int contestId, string index);
+        IQueryable<Problem> Get();
         Task<int> Update(Problem problem);
     }
 }
