@@ -20,6 +20,11 @@ namespace Etrx.Persistence.Repositories
             return users;
         }
 
+        public User? GetByHandle(string handle)
+        {
+            return _context.Users.FirstOrDefault(u => u.Handle == handle);
+        }
+
         public async Task<int> Create(User user)
         {
             await _context.Users.AddAsync(user);
@@ -31,9 +36,8 @@ namespace Etrx.Persistence.Repositories
         public async Task<int> Update(User user)
         {
             await _context.Users
-                .Where(u => u.Id == user.Id)
+                .Where(u => u.Handle == user.Handle)
                 .ExecuteUpdateAsync(s => s
-                    .SetProperty(u => u.Handle, user.Handle)
                     .SetProperty(u => u.Email, user.Email)
                     .SetProperty(u => u.VkId, user.VkId)
                     .SetProperty(u => u.OpenId, user.OpenId)
@@ -53,8 +57,6 @@ namespace Etrx.Persistence.Repositories
                     .SetProperty(u => u.Avatar, user.Avatar)
                     .SetProperty(u => u.TitlePhoto, user.TitlePhoto)
                     .SetProperty(u => u.Grade, user.Grade)
-                    .SetProperty(u => u.DlId, user.DlId)
-                    .SetProperty(u => u.Watch, user.Watch)
                 );
 
             return user.Id;

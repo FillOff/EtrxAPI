@@ -13,14 +13,19 @@ namespace Etrx.Application.Services
             _contestsRepository = contestsRepository;
         }
 
-        public IEnumerable<Contest> GetAllContests()
+        public IQueryable<Contest> GetAllContests()
         {
             return _contestsRepository.Get();
         }
 
+        public Contest? GetContestById(int contestId)
+        {
+            return _contestsRepository.GetById(contestId);
+        }
+
         public async Task<int> CreateContest(Contest contest)
         {
-            if (_contestsRepository.Get().FirstOrDefault(c => c.ContestId == contest.ContestId) == null)
+            if (_contestsRepository.GetById(contest.ContestId) == null)
             {
                 return await _contestsRepository.Create(contest);
             }

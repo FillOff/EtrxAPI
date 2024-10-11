@@ -4,7 +4,8 @@ namespace Etrx.Domain.Interfaces.Services
 {
     public interface IUsersService
     {
-        IEnumerable<User> GetAllUsers();
+        IQueryable<User> GetAllUsers();
         Task<int> CreateUser(User user);
+        User? GetUserByHandle(string handle);
     }
 }

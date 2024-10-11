@@ -13,14 +13,19 @@ namespace Etrx.Application.Services
             _usersRepository = usersRepository;
         }
 
-        public IEnumerable<User> GetAllUsers()
+        public IQueryable<User> GetAllUsers()
         {
-            return _usersRepository.Get().AsEnumerable();
+            return _usersRepository.Get();
+        }
+
+        public User? GetUserByHandle(string handle)
+        {
+            return _usersRepository.GetByHandle(handle);
         }
 
         public async Task<int> CreateUser(User user)
         {
-            if (_usersRepository.Get().FirstOrDefault(c => c.Id == user.Id) == null)
+            if (_usersRepository.GetByHandle(user.Handle) == null)
             {
                 return await _usersRepository.Create(user);
             }

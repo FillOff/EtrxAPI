@@ -5,6 +5,7 @@ namespace Etrx.Domain.Interfaces.Services
     public interface IContestsService
     {
         Task<int> CreateContest(Contest contest);
-        IEnumerable<Contest> GetAllContests();
+        IQueryable<Contest> GetAllContests();
+        Contest? GetContestById(int contestId);
     }
 }

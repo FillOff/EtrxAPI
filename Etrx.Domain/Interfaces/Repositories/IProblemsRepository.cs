@@ -8,5 +8,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         Task<int> Delete(int id);
         IQueryable<Problem> Get();
         Task<int> Update(Problem problem);
+        Problem? GetByContestIdAndIndex(int contestId, string index);
     }
 }

@@ -23,6 +23,9 @@ builder.Services.AddScoped<IContestsService, ContestsService>();
 builder.Services.AddScoped<IContestsRepository, ContestsRepository>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IJsonService, JsonService>();
+builder.Services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
+builder.Services.AddScoped<ISubmissionsService, SubmissionsService>();
 
 var app = builder.Build();
 

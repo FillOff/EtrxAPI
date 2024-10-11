@@ -7,6 +7,7 @@ namespace Etrx.Domain.Interfaces.Repositories
         Task<int> Create(User user);
         Task<int> Delete(int id);
         IQueryable<User> Get();
+        User? GetByHandle(string handle);
         Task<int> Update(User user);
     }
 }

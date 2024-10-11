@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Etrx.Persistence.Migrations
 {
     [DbContext(typeof(EtrxDbContext))]
-    [Migration("20241007130410_AddUsers")]
-    partial class AddUsers
+    [Migration("20241010190042_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,57 @@ namespace Etrx.Persistence.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("Etrx.Core.Models.Submission", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .HasColumnType("decimal(20,0)");
+
+                    b.Property<int?>("ContestId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreationTimeSeconds")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Handle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Index")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("MemoryConsumedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PassedTestCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProgrammingLanguage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RelativeTimeSeconds")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Testset")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TimeConsumedMillis")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Verdict")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Submissions");
+                });
 
             modelBuilder.Entity("Etrx.Domain.Models.Contest", b =>
                 {
@@ -68,8 +119,8 @@ namespace Etrx.Persistence.Migrations
                     b.Property<string>("PreparedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RelativeTimeSeconds")
-                        .HasColumnType("int");
+                    b.Property<long?>("RelativeTimeSeconds")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Season")
                         .HasColumnType("nvarchar(max)");
@@ -141,7 +192,6 @@ namespace Etrx.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Avatar")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
@@ -153,16 +203,13 @@ namespace Etrx.Persistence.Migrations
                     b.Property<string>("Country")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("DlId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FriendOfCount")
+                    b.Property<int?>("FriendOfCount")
                         .HasColumnType("int");
 
                     b.Property<int?>("Grade")
@@ -175,14 +222,13 @@ namespace Etrx.Persistence.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("LastOnlineTimeSeconds")
-                        .HasColumnType("bigint");
+                    b.Property<DateTime?>("LastOnlineTimeSeconds")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("MaxRank")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("MaxRating")
+                    b.Property<int?>("MaxRating")
                         .HasColumnType("int");
 
                     b.Property<string>("OpenId")
@@ -192,24 +238,19 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Rank")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Rating")
+                    b.Property<int?>("Rating")
                         .HasColumnType("int");
 
-                    b.Property<long>("RegistrationTimeSeconds")
-                        .HasColumnType("bigint");
+                    b.Property<DateTime?>("RegistrationTimeSeconds")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("TitlePhoto")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VkId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool?>("Watch")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 

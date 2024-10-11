@@ -20,6 +20,11 @@ namespace Etrx.Persistence.Repositories
             return problems;
         }
 
+        public Problem? GetByContestIdAndIndex(int contestId, string index)
+        {
+            return _context.Problems.AsNoTracking().FirstOrDefault(p => p.ContestId == contestId && p.Index == index);
+        }
+
         public async Task<int> Create(Problem problem)
         {
             await _context.Problems.AddAsync(problem);

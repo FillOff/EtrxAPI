@@ -20,6 +20,11 @@ namespace Etrx.Persistence.Repositories
             return contests;
         }
 
+        public Contest? GetById(int contestId)
+        {
+            return _context.Contests.AsNoTracking().FirstOrDefault(c => c.ContestId == contestId);
+        }
+
         public async Task<int> Create(Contest contest)
         {
             await _context.Contests.AddAsync(contest);

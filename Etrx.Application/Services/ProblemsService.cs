@@ -1,6 +1,7 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Services;
+using System;
 
 namespace Etrx.Application.Services
 {
@@ -13,19 +14,24 @@ namespace Etrx.Application.Services
             _problemsRepository = problemsRepository;
         }
 
-        public IEnumerable<Problem> GetAllProblems()
+        public IQueryable<Problem> GetAllProblems()
         {
-            return _problemsRepository.Get().AsEnumerable();
+            return _problemsRepository.Get();
         }
 
-        public IEnumerable<Problem> GetProblemsByContestId(int contestId)
+        public Problem? GetProblemByContestIdAndIndex(int contestId, string index)
         {
-            return _problemsRepository.Get().Where(p => p.ContestId == contestId).ToList();
+            return _problemsRepository.GetByContestIdAndIndex(contestId, index);
+        }
+
+        public IQueryable<Problem> GetProblemsByContestId(int contestId)
+        {
+            return _problemsRepository.Get().Where(p => p.ContestId == contestId);
         }
 
         public async Task<int> CreateProblem(Problem problem)
         {
-            if (_problemsRepository.Get().FirstOrDefault(p => p.ContestId == problem.ContestId && p.Index == problem.Index) == null)
+            if (_problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) == null)
             {
                 return await _problemsRepository.Create(problem);
             }
@@ -34,7 +40,7 @@ namespace Etrx.Application.Services
 
         public async Task<int> UpdateProblem(Problem problem)
         {
-            if (_problemsRepository.Get().FirstOrDefault(p => p.ContestId == problem.ContestId && p.Index == problem.Index) != null)
+            if (_problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) != null)
             {
                 return await _problemsRepository.Update(problem);
             }
