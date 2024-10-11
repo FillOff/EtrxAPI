@@ -1,5 +1,7 @@
-﻿using Etrx.Domain.Interfaces.Services;
+﻿using Etrx.Core.Models;
+using Etrx.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.API.Controllers
 {
@@ -14,10 +16,12 @@ namespace Etrx.API.Controllers
             _submissionsService = submissionsService;
         }
 
-        /*[HttpGet("GetSubmissionsByContestId")]
-        public IActionResult GetSubmissionsByContestId(int contestId)
+        [HttpGet("GetSubmissionsByContestId")]
+        public async Task<ActionResult<Submission>> GetSubmissionsByContestId(int contestId)
         {
+            var submissions = await _submissionsService.GetAllSubmissions().Where(s => s.ContestId == contestId).ToArrayAsync();
 
-        }*/
+            return Ok(submissions);
+        }
     }
 }

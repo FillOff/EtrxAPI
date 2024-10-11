@@ -10,6 +10,7 @@ namespace Etrx.Persistence
         public EtrxDbContext(DbContextOptions<EtrxDbContext> options)
             : base(options)
         {
+            Database.EnsureCreated();
         }
 
         public DbSet<Problem> Problems { get; set; }
