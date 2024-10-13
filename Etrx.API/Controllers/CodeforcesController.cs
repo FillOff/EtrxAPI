@@ -1,9 +1,5 @@
-﻿using Azure;
-using Etrx.Application.Services;
-using Etrx.Domain.Interfaces.Services;
-using Etrx.Domain.Models;
+﻿using Etrx.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Text.Json;
 
 namespace Etrx.API.Controllers

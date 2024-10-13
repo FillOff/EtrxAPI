@@ -100,12 +100,12 @@ namespace Etrx.Application.Services
             string programmingLanguage = jsonSubmission.GetProperty("programmingLanguage").ToString()!;
             string? verdict = jsonSubmission.TryGetProperty("verdict", out var verdictProp) ? verdictProp.ValueKind != JsonValueKind.Null ? verdictProp.ToString() : null : null;
             string testset = jsonSubmission.GetProperty("testset").ToString()!;
+            string participantType = jsonSubmission.GetProperty("author").GetProperty("participantType").ToString()!;
             int passedTestCount = jsonSubmission.GetProperty("passedTestCount").GetInt32();
             int timeConsumedMillis = jsonSubmission.GetProperty("timeConsumedMillis").GetInt32();
             long memoryConsumedBytes = jsonSubmission.GetProperty("memoryConsumedBytes").GetInt64();
 
             var handles = jsonSubmission.GetProperty("author").GetProperty("members").EnumerateArray();
-            string name;
 
             foreach (var jsonHandle in handles)
             {
@@ -113,9 +113,9 @@ namespace Etrx.Application.Services
                 var user = _usersRepository.GetByHandle(handle);
                 if (user != null)
                 {
-                    name = $"{user.FirstName} {user.LastName}";
                     var submission = new Submission(id, contestId, index, creationTimeSeconds, relativeTimeSeconds, programmingLanguage,
-                                                    handle, name, verdict, testset, passedTestCount, timeConsumedMillis, memoryConsumedBytes);
+                                                    handle, user.FirstName!, user.LastName!, participantType, verdict, testset, passedTestCount, 
+                                                    timeConsumedMillis, memoryConsumedBytes);
 
                     return submission;
                 }

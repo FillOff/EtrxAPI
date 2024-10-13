@@ -2,14 +2,16 @@
 {
     public class Submission
     {
-        public Submission(ulong id, 
+        public Submission(ulong id,
                           int? contestId,
                           string index,
                           DateTime creationTimeSeconds,
                           DateTime relativeTimeSeconds,
                           string programmingLanguage,
                           string handle,
-                          string name,
+                          string firstName,
+                          string lastName,
+                          string participantType,
                           string? verdict,
                           string testset, 
                           int passedTestCount, 
@@ -22,7 +24,9 @@
             CreationTimeSeconds = creationTimeSeconds;
             RelativeTimeSeconds = relativeTimeSeconds;
             Handle = handle;
-            Name = name;
+            FirstName = firstName;
+            LastName = lastName;
+            ParticipantType = participantType;
             ProgrammingLanguage = programmingLanguage;
             Verdict = verdict;
             Testset = testset;
@@ -37,7 +41,9 @@
         public DateTime CreationTimeSeconds { get; set; }
         public DateTime RelativeTimeSeconds { get; set; }
         public string Handle { get; set; }
-        public string Name { get; set; } = string.Empty;
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string ParticipantType { get; set; } = string.Empty;
         public string ProgrammingLanguage { get; set; } = string.Empty;
         public string? Verdict { get; set; }
         public string Testset { get; set; } = string.Empty;

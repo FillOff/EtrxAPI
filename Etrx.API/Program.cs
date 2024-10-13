@@ -29,6 +29,8 @@ builder.Services.AddScoped<ISubmissionsService, SubmissionsService>();
 
 var app = builder.Build();
 
+//app.Environment.EnvironmentName = "Production";
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -40,5 +42,12 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors(options =>
+{
+    options.WithHeaders().AllowAnyHeader();
+    options.WithOrigins().AllowAnyOrigin();
+    options.WithMethods().AllowAnyMethod();
+});
 
 app.Run();

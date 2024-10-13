@@ -1,9 +1,19 @@
-version: "3.9"
+version: '3.4'
 
 services:
-  mssql-db:
+  etrx.api:
+    image: ${DOCKER_REGISTRY-}etrxapi
+    container_name: etrx.api
+    build:
+      context: .
+      dockerfile: Etrx.API/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+
+  mssql.db:
     image: mcr.microsoft.com/mssql/server:latest
-    container_name: mssql-db
+    container_name: mssql.db
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=GEAFADsuaifl1ur3453345421

@@ -2,6 +2,11 @@
 {
     public record UsersResponse(
         int Id,
-        string Handle
+        string Handle,
+        string? FirstName,
+        string? LastName,
+        string? Organisation,
+        string? City,
+        int? Grade
         );
 }

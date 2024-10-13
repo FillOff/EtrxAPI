@@ -1,10 +1,7 @@
 ﻿using Etrx.API.Contracts.Contests;
-using Etrx.API.Contracts.Problems;
-using Etrx.Application.Services;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 
 namespace Etrx.API.Controllers
 {
