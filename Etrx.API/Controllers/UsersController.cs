@@ -1,5 +1,7 @@
-﻿using Etrx.API.Contracts.Users;
+﻿using AutoMapper;
+using Etrx.API.Contracts.Users;
 using Etrx.Domain.Interfaces.Services;
+using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers
@@ -10,25 +12,21 @@ namespace Etrx.API.Controllers
     {
         private readonly IUsersService _usersService;
         private readonly IJsonService _jsonService;
+        private readonly IMapper _mapper;
 
-        public UsersController(IUsersService usersService, IJsonService jsonService)
+        public UsersController(IUsersService usersService, IJsonService jsonService, IMapper mapper)
         {
             _usersService = usersService;
             _jsonService = jsonService;
+            _mapper = mapper;
         }
 
         [HttpGet("GetAllUsers")]
         public ActionResult<IEnumerable<UsersResponse>> GetAllUsers()
         {
             var users = _usersService.GetAllUsers()
-                                     .Select(u => new UsersResponse(u.Id,
-                                                                    u.Handle,
-                                                                    u.FirstName,
-                                                                    u.LastName,
-                                                                    u.Organization,
-                                                                    u.City,
-                                                                    u.Grade))
-                                     .AsEnumerable();
+                .Select(user => _mapper.Map<UsersResponse>(user))
+                .AsEnumerable();
 
             return Ok(users);
         }
@@ -43,13 +41,7 @@ namespace Etrx.API.Controllers
                 return NotFound($"User {handle} not found");
             }
 
-            var response = new UsersResponse(user.Id, 
-                                             user.Handle,
-                                             user.FirstName,
-                                             user.LastName,
-                                             user.Organization,
-                                             user.City,
-                                             user.Grade);
+            var response = _mapper.Map<UsersResponse>(user);
 
             return Ok(response);
         }

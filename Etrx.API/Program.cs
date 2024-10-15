@@ -8,7 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(typeof(ProblemsProfile));
+builder.Services.AddAutoMapper(typeof(ProblemsProfile), 
+                               typeof(ContestsProfile), 
+                               typeof(UsersProfile));
 
 builder.Services.AddDbContext<EtrxDbContext>();
 
@@ -16,8 +18,6 @@ builder.Services.AddApplicationServices();
 builder.Services.AddRepositories();
 
 var app = builder.Build();
-
-//app.Environment.EnvironmentName = "Production";
 
 if (app.Environment.IsDevelopment())
 {

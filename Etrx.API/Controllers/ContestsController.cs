@@ -1,4 +1,6 @@
-﻿using Etrx.API.Contracts.Contests;
+﻿using AutoMapper;
+using Etrx.API.Contracts.Contests;
+using Etrx.API.Contracts.Users;
 using Etrx.Application.Services;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
@@ -12,10 +14,12 @@ namespace Etrx.API.Controllers
     public class ContestsController : ControllerBase
     {
         private readonly IContestsService _contestsService;
+        private readonly IMapper _mapper;
 
-        public ContestsController(IContestsService contestsService)
+        public ContestsController(IContestsService contestsService, IMapper mapper)
         {
             _contestsService = contestsService;
+            _mapper = mapper;
         }
 
         [HttpGet("GetContestById")]
@@ -25,7 +29,7 @@ namespace Etrx.API.Controllers
 
             if (contest != null)
             {
-                var response = new ContestsResponse(contest.ContestId, contest.Name, contest.StartTime);
+                var response = _mapper.Map<ContestsResponse>(contest);
                 return Ok(response);
             }
             else
@@ -50,13 +54,13 @@ namespace Etrx.API.Controllers
             }
 
             var sortedContests = contests
-                                    .OrderBy($"{field} {order}")
-                                    .Skip((page - 1) * pageSize)
-                                    .Take(pageSize);
+                .OrderBy($"{field} {order}")
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
 
             ContestsWithPropsResponse response = new ContestsWithPropsResponse
             (
-                Contests: sortedContests.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime)),
+                Contests: sortedContests.Select(contest => _mapper.Map<ContestsResponse>(contest)).AsEnumerable(),
                 Properties: ["ContestId", "Name", "StartTime"]
             );
 
@@ -66,7 +70,7 @@ namespace Etrx.API.Controllers
         [HttpGet("GetCountOfPagesContests")]
         public int GetCountOfPagesContests(int pageCount)
         {
-            return _contestsService.GetAllContests().Count() / pageCount;
+            return _contestsService.GetAllContests().Count() / pageCount + 1;
         }
     }
 }

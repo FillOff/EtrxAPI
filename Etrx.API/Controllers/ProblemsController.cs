@@ -67,7 +67,7 @@ namespace Etrx.API.Controllers
         [HttpGet("GetCountOfPagesProblems")]
         public int GetCountOfPagesProblems(int pageCount)
         {
-            return _problemsService.GetAllProblems().Count() / pageCount;
+            return _problemsService.GetAllProblems().Count() / pageCount + 1;
         }
 
         [HttpGet("GetTagsList")]
