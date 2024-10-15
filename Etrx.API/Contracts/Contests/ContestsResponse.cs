@@ -1,6 +1,4 @@
-﻿using Etrx.Domain.Models;
-
-namespace Etrx.API.Contracts.Contests
+﻿namespace Etrx.API.Contracts.Contests
 {
     public record ContestsResponse(
         int ContestId,

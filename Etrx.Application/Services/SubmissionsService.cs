@@ -1,8 +1,6 @@
-﻿using Etrx.Core.Models;
+﻿using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
-using Etrx.Domain.Models;
-using System;
 
 namespace Etrx.Application.Services
 {

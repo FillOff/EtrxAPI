@@ -10,8 +10,8 @@ public class Problem
         string type, 
         double? points, 
         int? rating, 
-        int? solvedCount, 
-        string[] tags)
+        int? solvedCount,
+        List<string> tags)
     {
         Id = id; 
         ContestId = contestId;
@@ -25,12 +25,11 @@ public class Problem
     }
     public int Id { get; set; }
     public int ContestId { get; set; }
-    public Contest Contest { get; set; } = null!;
     public string Index { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public double? Points { get; set; }
     public int? Rating { get; set; }
     public int? SolvedCount { get; set; }
-    public string[] Tags { get; set; } = null!;
+    public List<string> Tags { get; set; } = null!;
 }

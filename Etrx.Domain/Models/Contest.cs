@@ -60,5 +60,4 @@ public class Contest
     public string? City { get; set; }
     public string? Season { get; set; }
     public bool Gym { get; set; }
-    public IQueryable<Problem> Problems { get; set; } = null!;
 }

@@ -1,4 +1,4 @@
-﻿namespace Etrx.Core.Models
+﻿namespace Etrx.Domain.Models
 {
     public class Submission
     {

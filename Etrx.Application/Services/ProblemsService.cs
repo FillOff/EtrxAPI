@@ -1,7 +1,6 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Services;
-using System;
 
 namespace Etrx.Application.Services
 {

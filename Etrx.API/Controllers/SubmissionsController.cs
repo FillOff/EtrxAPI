@@ -65,5 +65,11 @@ namespace Etrx.API.Controllers
             var response = new SubmissionsResponseWithProblems(submissionsResponses, indexes);
             return Ok(response);
         }
+
+        [HttpGet("")]
+        public ActionResult<IEnumerable<SubmissionsResponse>> Get()
+        {
+            return Ok();
+        }
     }
 }

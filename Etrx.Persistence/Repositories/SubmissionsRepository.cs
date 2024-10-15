@@ -1,5 +1,6 @@
-﻿using Etrx.Core.Models;
+﻿using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Repositories;
+using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Persistence.Repositories

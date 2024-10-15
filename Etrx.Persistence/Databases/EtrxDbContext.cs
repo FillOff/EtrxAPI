@@ -1,15 +1,18 @@
-﻿using Etrx.Core.Models;
-using Etrx.Domain.Models;
+﻿using Etrx.Domain.Models;
 using Etrx.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace Etrx.Persistence
+namespace Etrx.Persistence.Databases
 {
     public class EtrxDbContext : DbContext
     {
-        public EtrxDbContext(DbContextOptions<EtrxDbContext> options)
-            : base(options)
+        private readonly IConfiguration _configuration;
+
+        public EtrxDbContext(IConfiguration configuration)
         {
+            _configuration = configuration;
+
             Database.EnsureCreated();
         }
 
@@ -24,6 +27,11 @@ namespace Etrx.Persistence
             modelBuilder.ApplyConfiguration(new ContestConfiguration());
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new SubmissionConfiguration());
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(_configuration.GetConnectionString(nameof(EtrxDbContext)));
         }
     }
 }

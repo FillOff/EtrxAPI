@@ -1,7 +1,9 @@
 ﻿using Etrx.API.Contracts.Contests;
+using Etrx.Application.Services;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.API.Controllers
 {
@@ -14,16 +16,6 @@ namespace Etrx.API.Controllers
         public ContestsController(IContestsService contestsService)
         {
             _contestsService = contestsService;
-        }
-
-        [HttpGet("GetAllContests")]
-        public ActionResult<IEnumerable<ContestsResponse>> GetAllContests()
-        {
-            var contests = _contestsService.GetAllContests();
-
-            var contestsResponse = contests.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime));
-
-            return Ok(contestsResponse);
         }
 
         [HttpGet("GetContestById")]
@@ -43,42 +35,38 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("GetContestsByPageWithSort")]
-        public ActionResult<ContestsWithPropsResponse> GetContestsByPage([FromQuery] int page, int pageSize, bool? gym, string? sortByProp, bool? sortOrder)
+        public ActionResult<ContestsWithPropsResponse> GetContestsByPage([FromQuery] int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true)
         {
-            sortOrder ??= true;
-            sortByProp ??= "contestid";
-            
-            var contests = _contestsService.GetAllContests();
+            var contests = gym != null 
+                                ? _contestsService.GetAllContests().Where(c => c.Gym == gym) 
+                                : _contestsService.GetAllContests();
 
-            IQueryable<Contest> contestsG;
-            if (gym != null)
-                contestsG = contests.Where(c => c.Gym == gym);
-            else
-                contestsG = contests;
+            string order = sortOrder == true ? "asc" : "desc";
+            string field = sortField.ToLower();
 
-            var res = contestsG;
-            switch (sortByProp.ToLower())
+            if (string.IsNullOrEmpty(field) || !typeof(Problem).GetProperties().Any(p => p.Name.Equals(field, System.StringComparison.InvariantCultureIgnoreCase)))
             {
-                case "contestid":
-                    res = sortOrder == true ? contestsG.OrderBy(c => c.ContestId) : contestsG.OrderByDescending(c => c.ContestId);
-                    break;
-                case "name":
-                    res = sortOrder == true ? contestsG.OrderBy(c => c.Name) : contestsG.OrderByDescending(c => c.Name);
-                    break;
-                case "starttime":
-                    res = sortOrder == true ? contestsG.OrderBy(c => c.StartTime) : contestsG.OrderByDescending(c => c.StartTime);
-                    break;
+                return BadRequest($"Invalid field: {field}");
             }
 
-            var contestsResponse = res.Skip((page - 1) * pageSize).Take(pageSize);
+            var sortedContests = contests
+                                    .OrderBy($"{field} {order}")
+                                    .Skip((page - 1) * pageSize)
+                                    .Take(pageSize);
 
             ContestsWithPropsResponse response = new ContestsWithPropsResponse
             (
-                Contests: contestsResponse.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime)),
+                Contests: sortedContests.Select(c => new ContestsResponse(c.ContestId, c.Name, c.StartTime)),
                 Properties: ["ContestId", "Name", "StartTime"]
             );
 
             return Ok(response);
+        }
+
+        [HttpGet("GetCountOfPagesContests")]
+        public int GetCountOfPagesContests(int pageCount)
+        {
+            return _contestsService.GetAllContests().Count() / pageCount;
         }
     }
 }

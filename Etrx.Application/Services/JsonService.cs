@@ -1,8 +1,6 @@
-﻿using Etrx.Core.Models;
-using Etrx.Domain.Interfaces.Repositories;
+﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
-using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace Etrx.Application.Services
@@ -24,7 +22,7 @@ namespace Etrx.Application.Services
             string type = jsonProblem.GetProperty("type").GetString()!;
             double? points = jsonProblem.TryGetProperty("points", out var pointsProperty) ? pointsProperty.ValueKind != JsonValueKind.Null ? pointsProperty.GetDouble() : null : null;
             int? rating = jsonProblem.TryGetProperty("rating", out var ratingProperty) ? ratingProperty.ValueKind != JsonValueKind.Null ? ratingProperty.GetInt32() : null : null;
-            string[] tags = jsonProblem.GetProperty("tags").EnumerateArray().Select(tag => tag.GetString()).ToArray()!;
+            var tags = jsonProblem.GetProperty("tags").EnumerateArray().Select(tag => tag.GetString()).ToList()!;
 
             int? solvedCount = statistics.First(stat =>
                     stat.GetProperty("contestId").GetInt32() == contestId &&

@@ -1,6 +1,10 @@
-﻿using Etrx.API.Contracts.Problems;
+﻿using AutoMapper;
+using Etrx.API.Contracts.Problems;
 using Etrx.Domain.Interfaces.Services;
+using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.API.Controllers
 {
@@ -9,20 +13,12 @@ namespace Etrx.API.Controllers
     public class ProblemsController : ControllerBase
     {
         private readonly IProblemsService _problemsService;
+        private readonly IMapper _mapper;
 
-        public ProblemsController(IProblemsService problemsService)
+        public ProblemsController(IProblemsService problemsService, IMapper mapper)
         {
             _problemsService = problemsService;
-        }
-
-        [HttpGet("GetAllProblems")]
-        public ActionResult<IEnumerable<ProblemsResponse>> GetAllProblems()
-        {
-            var problems = _problemsService.GetAllProblems();
-
-            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags)).AsEnumerable();
-
-            return Ok(response);
+            _mapper = mapper;
         }
 
         [HttpGet("GetProblemsByContestId")]
@@ -30,63 +26,61 @@ namespace Etrx.API.Controllers
         {
             var problems = _problemsService.GetProblemsByContestId(contestId);
 
-            var response = problems.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags)).AsEnumerable();
+            var response = problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable();
 
             return Ok(response);
         }
 
         [HttpGet("GetProblemsByPageWithSortAndFilterTags")]
-        public ActionResult<ProblemsWithPropResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page, int pageSize, string? sortByProp, bool? sortOrder, string? tags)
+        public ActionResult<ProblemsWithPropResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page, int pageSize, string? tags, string sortField = "id", bool sortOrder = true)
         {
             var problems = _problemsService.GetAllProblems();
 
-            sortOrder ??= true;
-            sortByProp ??= "id";
+            string order = sortOrder == true ? "asc" : "desc";
+            string field = sortField.ToLower();
 
-
-            var res = problems;
-            switch (sortByProp.ToLower())
+            if (string.IsNullOrEmpty(field) || !typeof(Problem).GetProperties().Any(p => p.Name.Equals(field, System.StringComparison.InvariantCultureIgnoreCase)))
             {
-                case "id":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Id) : problems.OrderByDescending(p => p.Id);
-                    break;
-                case "contestid":
-                    res = sortOrder == true ? problems.OrderBy(p => p.ContestId) : problems.OrderByDescending(p => p.ContestId);
-                    break;
-                case "index":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Index) : problems.OrderByDescending(p => p.Index);
-                    break;
-                case "name":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Name) : problems.OrderByDescending(p => p.Name);
-                    break;
-                case "points":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Points) : problems.OrderByDescending(p => p.Points);
-                    break;
-                case "rating":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Rating) : problems.OrderByDescending(p => p.Rating);
-                    break;
-                case "tags":
-                    res = sortOrder == true ? problems.OrderBy(p => p.Tags) : problems.OrderByDescending(p => p.Tags);
-                    break;
+                return BadRequest($"Invalid field: {field}");
             }
 
-            var problemsFilter = res;
+            var sortedProblems = problems.OrderBy($"{field} {order}");
+
+            var problemsFilter = sortedProblems.AsQueryable();
             if (tags != null)
             {
                 var tagsFilter = tags.Split(';');
-                problemsFilter = res.Where(p => tagsFilter.All(tag => p.Tags.Contains(tag)));
+                problemsFilter = sortedProblems.AsQueryable().Where(p => tagsFilter.All(tag => p.Tags.Contains(tag)));
             }
 
             var problemsSort = problemsFilter.Skip((page - 1) * pageSize).Take(pageSize);
 
-
             ProblemsWithPropResponse response = new ProblemsWithPropResponse
             (
-                Problems: problemsSort.Select(p => new ProblemsResponse(p.Id, p.ContestId, p.Index, p.Name, p.Points, p.Rating, p.Tags)).AsEnumerable(),
+                Problems: problemsSort.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
                 Properties: ["Id", "ContestId", "Index", "Name", "Points", "Rating", "Tags"]
             );
 
             return Ok(response);
+        }
+
+        [HttpGet("GetCountOfPagesProblems")]
+        public int GetCountOfPagesProblems(int pageCount)
+        {
+            return _problemsService.GetAllProblems().Count() / pageCount;
+        }
+
+        [HttpGet("GetTagsList")]
+        public async  Task<ActionResult<List<string>>> GetTagsList()
+        {
+            var problems = await _problemsService.GetAllProblems().ToListAsync();
+
+            var tags = problems
+                .SelectMany(problem => problem.Tags)
+                .Distinct()
+                .ToList();
+
+            return Ok(tags);
         }
     }
 }

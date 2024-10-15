@@ -156,8 +156,6 @@ namespace Etrx.API.Controllers
         [HttpPost("PostSubmissionsFromCodeforces")]
         public async Task<IActionResult> PostSubmissionsFromCodeforces()
         {
-            var startTime = DateTime.UtcNow;
-
             string[] handles = _usersService.GetAllUsers().Select(u => u.Handle).ToArray();
 
             using HttpClient client = new HttpClient();
@@ -186,9 +184,43 @@ namespace Etrx.API.Controllers
                     await _submissionsService.CreateSubmission(submission);
                 }
             }
-            var duration = DateTime.UtcNow - startTime;
-            Console.WriteLine(duration.TotalMinutes);
+
             return Ok("Submissions added successfully!");
         }
+
+        /*[HttpPost("PostSubmissionsFromCodeforcesByContestId")]
+        public async Task<IActionResult> PostSubmissionsFromCodeforcesByContestId(int contestId)
+        {
+            string[] handles = _submissionsService.GetAllSubmissions().Where(s => s.ContestId == contestId).Select(s => s.Handle).Distinct().ToArray();
+
+            using HttpClient client = new HttpClient();
+
+            foreach (var handle in handles)
+            {
+                var response = await client.GetAsync($"https://codeforces.com/api/user.status?handle={handle}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
+                }
+
+                var submissions = await response.Content.ReadAsStringAsync();
+
+                if (submissions[0] == '<')
+                {
+                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
+                }
+
+                var submissionsArray = JsonDocument.Parse(submissions).RootElement.GetProperty("result").EnumerateArray();
+
+                foreach (var submissioncf in submissionsArray)
+                {
+                    var submission = _jsonService.JsonToSubmission(submissioncf);
+                    await _submissionsService.CreateSubmission(submission);
+                }
+            }
+
+            return Ok("Submissions added successfully!");
+        }*/
     }
 }
