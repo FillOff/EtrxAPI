@@ -1,6 +1,7 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Services;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Application.Services
 {
@@ -30,25 +31,52 @@ namespace Etrx.Application.Services
 
         public async Task<int> CreateProblem(Problem problem)
         {
-            if (_problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) == null)
-            {
-                return await _problemsRepository.Create(problem);
-            }
-            return -1;
+            return await _problemsRepository.Create(problem);
         }
 
         public async Task<int> UpdateProblem(Problem problem)
         {
-            if (_problemsRepository.GetByContestIdAndIndex(problem.ContestId, problem.Index) != null)
-            {
-                return await _problemsRepository.Update(problem);
-            }
-            return -1;
+            return await _problemsRepository.Update(problem);
         }
 
         public async Task<int> DeleteProblem(int id)
         {
             return await _problemsRepository.Delete(id);
+        }
+
+        public List<string?>? GetAllTags()
+        {
+            var problems = _problemsRepository.Get().ToList();
+
+            var tags = problems
+                .SelectMany(problem => problem.Tags)
+                .Distinct()
+                .ToList();
+
+            return tags;
+        }
+
+        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField = "id", bool sortOrder = true)
+        {
+            var problems = _problemsRepository.Get();
+
+            string order = sortOrder == true ? "asc" : "desc";
+
+            problems = problems.OrderBy($"{sortField} {order}");
+
+            if (tags != null)
+            {
+                var tagsFilter = tags.Split(';');
+                problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            }
+
+            int pageCount = problems.Count() % pageSize == 0
+                ? problems.Count() / pageSize
+                : problems.Count() / pageSize + 1;
+
+            problems = problems.Skip((page - 1) * pageSize).Take(pageSize);
+
+            return (problems, pageCount);
         }
     }
 }

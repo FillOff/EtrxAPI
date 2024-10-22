@@ -1,4 +1,6 @@
-﻿using Etrx.Domain.Interfaces.Services;
+﻿using AutoMapper.Configuration.Annotations;
+using Etrx.Domain.Interfaces.Services;
+using Etrx.Domain.Parsing_models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -8,219 +10,103 @@ namespace Etrx.API.Controllers
     [Route("api/[controller]")]
     public class CodeforcesController : ControllerBase
     {
-        private readonly IProblemsService _problemsService;
-        private readonly IContestsService _contestsService;
         private readonly IUsersService _usersService;
-        private readonly IJsonService _jsonService;
-        private readonly ISubmissionsService _submissionsService;
+        private readonly ICodeforcesService _codeforcesService;
+        private readonly IExternalApiService _externalApiService;
 
-        public CodeforcesController(IProblemsService problemsService, 
-                                    IContestsService contestsService, 
-                                    IUsersService usersService, 
-                                    IJsonService jsonService,
-                                    ISubmissionsService submissionsService)
+        public CodeforcesController(IUsersService usersService,
+                                    ICodeforcesService codeforcesService,
+                                    IExternalApiService externalApiService)
         {
-            _problemsService = problemsService;
-            _contestsService = contestsService;
             _usersService = usersService;
-            _jsonService = jsonService;
-            _submissionsService = submissionsService;
+            _codeforcesService = codeforcesService;
+            _externalApiService = externalApiService;
         }
 
-        [HttpPost("Problems/PostProblemsFromCodeforces")]
-        public async Task<IActionResult> PostProblemsFromCodeforces()
+        [HttpPost("Problems/PostAndUpdateProblemsFromCodeforces")]
+        public async Task<IActionResult> PostAndUpdateProblemsFromCodeforces()
         {
-            using HttpClient client = new HttpClient();
+            var response = await _externalApiService.GetCodeforcesProblemsAsync();
 
-            var response = await client.GetAsync("https://codeforces.com/api/problemset.problems");
+            if (!string.IsNullOrEmpty(response.Error))
+                return StatusCode(StatusCodes.Status502BadGateway, response.Error);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
-
-            var content = await response.Content.ReadAsStringAsync();
-
-            if (content[0] == '<')
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
-
-            var jsonDocument = JsonDocument.Parse(content);
-
-            var problems = jsonDocument.RootElement.GetProperty("result").GetProperty("problems").EnumerateArray();
-            var statistics = jsonDocument.RootElement.GetProperty("result").GetProperty("problemStatistics").EnumerateArray();
-
-            foreach (var problem in problems)
-            {
-                var newProblem = _jsonService.JsonToProblem(problem, statistics);
-                await _problemsService.CreateProblem(newProblem);
-            }
+            await _codeforcesService.PostProblemsFromCodeforces(response.Problems!, response.ProblemStatistics!);
 
             return Ok("Problems added successfully");
         }
 
-        [HttpPost("Contests/PostContestsFromCodeforces")]
-        public async Task<IActionResult> PostContestsFromCodeforces()
+        [HttpPost("Contests/PostAndUpdateContestsFromCodeforces")]
+        public async Task<IActionResult> PostAndUpdateContestsFromCodeforces()
         {
-            using HttpClient client = new HttpClient();
-            var response = await client.GetAsync("https://codeforces.com/api/contest.list?gym=false");
+            var response = await _externalApiService.GetCodeforcesContestsAsync(false);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
+            if (!string.IsNullOrEmpty(response.Error))
+                return StatusCode(StatusCodes.Status502BadGateway, response.Error);
 
-            var content = await response.Content.ReadAsStringAsync();
+            await _codeforcesService.PostContestsFromCodeforces(response.Contests!, false);
 
-            if (content[0] == '<')
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
+            response = await _externalApiService.GetCodeforcesContestsAsync(true);
 
-            var contestsArray = JsonDocument.Parse(content).RootElement.GetProperty("result").EnumerateArray();
+            if (!string.IsNullOrEmpty(response.Error))
+                return StatusCode(StatusCodes.Status502BadGateway, response.Error);
 
-            foreach (var contest in contestsArray)
-            {
-                var newContest = _jsonService.JsonToContest(contest, false);
-                await _contestsService.CreateContest(newContest);
-            }
-
-            response = await client.GetAsync("https://codeforces.com/api/contest.list?gym=true");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
-
-            content = await response.Content.ReadAsStringAsync();
-            contestsArray = JsonDocument.Parse(content).RootElement.GetProperty("result").EnumerateArray();
-
-            foreach (var contest in contestsArray)
-            {
-                var newContest = _jsonService.JsonToContest(contest, true);
-                await _contestsService.CreateContest(newContest);
-            }
+            await _codeforcesService.PostContestsFromCodeforces(response.Contests!, true);
 
             return Ok("Contests added successfully");
         }
 
-        [HttpPost("Users/PostUsersFromDlCodeforces")]
-        public async Task<IActionResult> PostUsersFromDlCodeforces()
+        [HttpPost("Users/PostAndUpdateUsersFromDlCodeforces")]
+        public async Task<IActionResult> PostAndUpdateUsersFromDlCodeforces()
         {
-            using HttpClient client = new HttpClient();
-            var responseDl = await client.GetAsync("https://dl.gsu.by/codeforces/api/students");
+            var dlUsers = await _externalApiService.GetDlUsersAsync();
 
-            if (!responseDl.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Dl.");
-            }
+            if (!string.IsNullOrEmpty(dlUsers.Error))
+                return StatusCode(StatusCodes.Status502BadGateway, dlUsers.Error);
 
-            var usersDl = await responseDl.Content.ReadAsStringAsync();
-            var usersDlArray = JsonDocument.Parse(usersDl).RootElement.EnumerateArray();
+            string handlesString = string.Join(';', dlUsers.Users!.Select(user => user.Handle.ToLower()));
+            var CodeforcesUsers = await _externalApiService.GetCodeforcesUsersAsync(handlesString);
 
-            string handlesString = String.Join(';', usersDlArray.Select(userDl => userDl.GetProperty("nick_name").ToString().ToLower()));
+            if (!string.IsNullOrEmpty(CodeforcesUsers.Error))
+                return StatusCode(StatusCodes.Status502BadGateway, CodeforcesUsers.Error);
 
-            var handles = usersDlArray.Select(u => u.GetProperty("nick_name").ToString().ToLower()).ToArray();
-            var firstNames = usersDlArray.Select(u => u.TryGetProperty("first_name", out var firstName1) ? firstName1.ToString() : null).ToArray();
-            var lastNames = usersDlArray.Select(u => u.TryGetProperty("last_name", out var lastName1) ? lastName1.ToString() : null).ToArray();
-            var grades = usersDlArray.Select(u => u.TryGetProperty("grade", out var grade1) ? grade1.GetInt32() : (int?)null).ToArray();
-
-            var responseCodeforces = await client.GetAsync($"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
-
-            if (!responseCodeforces.IsSuccessStatusCode)
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
-
-            var usersCodeforces = await responseCodeforces.Content.ReadAsStringAsync();
-
-            if (usersCodeforces[0] == '<')
-            {
-                return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-            }
-
-            var usersCodeforcesArray = JsonDocument.Parse(usersCodeforces).RootElement.GetProperty("result").EnumerateArray();
-
-            for (int i = 0; i < usersCodeforcesArray.Count(); i++)
-            {
-                var newUser = _jsonService.JsonToUser(handles[i], firstNames[i], lastNames[i], grades[i],
-                                                      usersCodeforcesArray.First(u => u.GetProperty("handle").ToString().ToLower() == handles[i]));
-
-                await _usersService.CreateUser(newUser);
-            }
+            await _codeforcesService.PostUsersFromDlCodeforces(dlUsers.Users!, CodeforcesUsers.Users!);
 
             return Ok("Dl users added successfully");
         }
 
-        [HttpPost("PostSubmissionsFromCodeforces")]
+        [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforces")]
         public async Task<IActionResult> PostSubmissionsFromCodeforces()
         {
             string[] handles = _usersService.GetAllUsers().Select(u => u.Handle).ToArray();
 
-            using HttpClient client = new HttpClient();
-
             foreach (var handle in handles)
             {
-                var response = await client.GetAsync($"https://codeforces.com/api/user.status?handle={handle}");
+                var response = await _externalApiService.GetCodeforcesSubmissionsAsync(handle);
+                if (!string.IsNullOrEmpty(response.Error))
+                    return StatusCode(StatusCodes.Status502BadGateway, response.Error);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-                }
-
-                var submissions = await response.Content.ReadAsStringAsync();
-
-                if (submissions[0] == '<')
-                {
-                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-                }
-
-                var submissionsArray = JsonDocument.Parse(submissions).RootElement.GetProperty("result").EnumerateArray();
-
-                foreach (var submissioncf in submissionsArray)
-                {
-                    var submission = _jsonService.JsonToSubmission(submissioncf);
-                    await _submissionsService.CreateSubmission(submission);
-                }
+                await _codeforcesService.PostSubmissionsFromCodeforces(response.Submissions!, handle);
             }
 
             return Ok("Submissions added successfully!");
         }
 
-        /*[HttpPost("PostSubmissionsFromCodeforcesByContestId")]
+        [HttpPost("PostSubmissionsFromCodeforcesByContestId")]
         public async Task<IActionResult> PostSubmissionsFromCodeforcesByContestId(int contestId)
         {
-            string[] handles = _submissionsService.GetAllSubmissions().Where(s => s.ContestId == contestId).Select(s => s.Handle).Distinct().ToArray();
-
-            using HttpClient client = new HttpClient();
+            string[] handles = _usersService.GetAllUsers().Select(u => u.Handle).ToArray();
 
             foreach (var handle in handles)
             {
-                var response = await client.GetAsync($"https://codeforces.com/api/user.status?handle={handle}");
+                var response = await _externalApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
+                if (!string.IsNullOrEmpty(response.Error))
+                    return StatusCode(StatusCodes.Status502BadGateway, response.Error);
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-                }
-
-                var submissions = await response.Content.ReadAsStringAsync();
-
-                if (submissions[0] == '<')
-                {
-                    return StatusCode(StatusCodes.Status502BadGateway, "Couldn't get data from Codeforces.");
-                }
-
-                var submissionsArray = JsonDocument.Parse(submissions).RootElement.GetProperty("result").EnumerateArray();
-
-                foreach (var submissioncf in submissionsArray)
-                {
-                    var submission = _jsonService.JsonToSubmission(submissioncf);
-                    await _submissionsService.CreateSubmission(submission);
-                }
+                await _codeforcesService.PostSubmissionsFromCodeforces(response.Submissions!, handle);
             }
 
-            return Ok("Submissions added successfully!");
-        }*/
+            return Ok($"Submissions of contest {contestId} added successfully!");
+        }
     }
 }

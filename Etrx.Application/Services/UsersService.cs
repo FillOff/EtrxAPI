@@ -25,11 +25,12 @@ namespace Etrx.Application.Services
 
         public async Task<int> CreateUser(User user)
         {
-            if (_usersRepository.GetByHandle(user.Handle) == null)
-            {
-                return await _usersRepository.Create(user);
-            }
-            return -1;
+            return await _usersRepository.Create(user);
+        }
+
+        public async Task<int> UpdateUser(User user)
+        {
+            return await _usersRepository.Update(user);
         }
     }
 }

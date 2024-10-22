@@ -2,5 +2,6 @@
 {
     public record ProblemsWithPropResponse(
         IEnumerable<ProblemsResponse> Problems,
-        string[] Properties);
+        string[] Properties,
+        int pageCount);
 }

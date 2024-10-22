@@ -2,5 +2,6 @@
 {
     public record ContestsWithPropsResponse(
         IEnumerable<ContestsResponse> Contests,
-        string[] Properties);
+        string[] Properties,
+        int PageCount);
 }

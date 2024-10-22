@@ -1,5 +1,7 @@
 using Etrx.API.Profiles;
 using Etrx.Application;
+using Etrx.Application.Services;
+using Etrx.Domain.Interfaces.Services;
 using Etrx.Persistence;
 using Etrx.Persistence.Databases;
 
@@ -14,6 +16,8 @@ builder.Services.AddAutoMapper(typeof(ProblemsProfile),
 
 builder.Services.AddDbContext<EtrxDbContext>();
 
+
+builder.Services.AddHttpClient<IExternalApiService, ExternalApiService>();
 builder.Services.AddApplicationServices();
 builder.Services.AddRepositories();
 

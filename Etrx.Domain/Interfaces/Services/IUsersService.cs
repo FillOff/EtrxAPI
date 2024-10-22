@@ -6,6 +6,7 @@ namespace Etrx.Domain.Interfaces.Services
     {
         IQueryable<User> GetAllUsers();
         Task<int> CreateUser(User user);
+        Task<int> UpdateUser(User user);
         User? GetUserByHandle(string handle);
     }
 }

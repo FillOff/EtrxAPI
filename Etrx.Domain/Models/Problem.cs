@@ -11,7 +11,7 @@ public class Problem
         double? points, 
         int? rating, 
         int? solvedCount,
-        List<string> tags)
+        List<string?>? tags)
     {
         Id = id; 
         ContestId = contestId;
@@ -31,5 +31,5 @@ public class Problem
     public double? Points { get; set; }
     public int? Rating { get; set; }
     public int? SolvedCount { get; set; }
-    public List<string> Tags { get; set; } = null!;
+    public List<string?>? Tags { get; set; } = null!;
 }

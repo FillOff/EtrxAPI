@@ -18,7 +18,7 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("GetSubmissionsByContestId")]
-        public ActionResult<IEnumerable<SubmissionsResponseWithProblems>> GetSubmissionsByContestId(int contestId)
+        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestId(int contestId)
         {
 
             var contestSubmissions = _submissionsService.GetAllSubmissions().Where(s => s.ContestId == contestId);
@@ -55,21 +55,15 @@ namespace Etrx.API.Controllers
                     }
                     i++;
                 }
-                var user = users.FirstOrDefault(u => u.Handle.ToLower() == handle.ToLower());
+                var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
                 SubmissionsResponse sub = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
                                                                     user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
                 submissionsResponses[j] = sub;
                 j++;
             }
 
-            var response = new SubmissionsResponseWithProblems(submissionsResponses, indexes);
+            var response = new SubmissionsWithProblemsResponse(submissionsResponses, indexes);
             return Ok(response);
-        }
-
-        [HttpGet("")]
-        public ActionResult<IEnumerable<SubmissionsResponse>> Get()
-        {
-            return Ok();
         }
     }
 }

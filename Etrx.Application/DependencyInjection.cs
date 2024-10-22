@@ -13,6 +13,7 @@ namespace Etrx.Application
             services.AddScoped<IUsersService, UsersService>();
             services.AddScoped<IJsonService, JsonService>();
             services.AddScoped<ISubmissionsService, SubmissionsService>();
+            services.AddScoped<ICodeforcesService, CodeforcesService>();
 
             return services;
         }

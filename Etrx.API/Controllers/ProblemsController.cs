@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
+using Etrx.API.Contracts.Contests;
 using Etrx.API.Contracts.Problems;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
 namespace Etrx.API.Controllers
@@ -34,53 +34,31 @@ namespace Etrx.API.Controllers
         [HttpGet("GetProblemsByPageWithSortAndFilterTags")]
         public ActionResult<ProblemsWithPropResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page, int pageSize, string? tags, string sortField = "id", bool sortOrder = true)
         {
-            var problems = _problemsService.GetAllProblems();
-
-            string order = sortOrder == true ? "asc" : "desc";
-            string field = sortField.ToLower();
-
-            if (string.IsNullOrEmpty(field) || !typeof(Problem).GetProperties().Any(p => p.Name.Equals(field, System.StringComparison.InvariantCultureIgnoreCase)))
+            if (string.IsNullOrEmpty(sortField) || 
+                !typeof(Problem).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
             {
-                return BadRequest($"Invalid field: {field}");
+                return BadRequest($"Invalid field: {sortField}");
             }
 
-            var sortedProblems = problems.OrderBy($"{field} {order}");
-
-            var problemsFilter = sortedProblems.AsQueryable();
-            if (tags != null)
-            {
-                var tagsFilter = tags.Split(';');
-                problemsFilter = sortedProblems.AsQueryable().Where(p => tagsFilter.All(tag => p.Tags.Contains(tag)));
-            }
-
-            var problemsSort = problemsFilter.Skip((page - 1) * pageSize).Take(pageSize);
+            var result = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, sortField, sortOrder);
+            
 
             ProblemsWithPropResponse response = new ProblemsWithPropResponse
             (
-                Problems: problemsSort.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
-                Properties: ["Id", "ContestId", "Index", "Name", "Points", "Rating", "Tags"]
+                Problems: result.Problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
+                Properties: typeof(ProblemsResponse).GetProperties().Select(p => p.Name).ToArray()!,
+                pageCount: result.PageCount
             );
 
             return Ok(response);
         }
 
-        [HttpGet("GetCountOfPagesProblems")]
-        public int GetCountOfPagesProblems(int pageCount)
-        {
-            return _problemsService.GetAllProblems().Count() / pageCount + 1;
-        }
-
         [HttpGet("GetTagsList")]
-        public async  Task<ActionResult<List<string>>> GetTagsList()
+        public ActionResult<List<string>> GetTagsList()
         {
-            var problems = await _problemsService.GetAllProblems().ToListAsync();
+            var response = _problemsService.GetAllTags();
 
-            var tags = problems
-                .SelectMany(problem => problem.Tags)
-                .Distinct()
-                .ToList();
-
-            return Ok(tags);
+            return Ok(response);
         }
     }
 }
