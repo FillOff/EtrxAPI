@@ -14,7 +14,8 @@ namespace Etrx.API.Controllers
         private readonly IContestsService _contestsService;
         private readonly IMapper _mapper;
 
-        public ContestsController(IContestsService contestsService, IMapper mapper)
+        public ContestsController(IContestsService contestsService, 
+                                  IMapper mapper)
         {
             _contestsService = contestsService;
             _mapper = mapper;
@@ -37,7 +38,7 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("GetContestsByPageWithSort")]
-        public ActionResult<ContestsWithPropsResponse> GetContestsByPage([FromQuery] int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true)
+        public ActionResult<ContestsWithPropsResponse> GetContestsByPageWithSort([FromQuery] int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true)
         {
             if (string.IsNullOrEmpty(sortField) || 
                 !typeof(Contest).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -45,13 +46,13 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var result = _contestsService.GetContestsByPageWithSort(page, pageSize, gym, sortField, sortOrder);
+            var (Contests, PageCount) = _contestsService.GetContestsByPageWithSort(page, pageSize, gym, sortField, sortOrder);
 
             ContestsWithPropsResponse response = new ContestsWithPropsResponse
             (
-                Contests: result.Contests.Select(contest => _mapper.Map<ContestsResponse>(contest)).AsEnumerable(),
-                Properties: typeof(ContestsResponse).GetProperties().Select(p => p.Name).ToArray()!,
-                PageCount: result.PageCount
+                Contests: Contests.Select(contest => _mapper.Map<ContestsResponse>(contest)).AsEnumerable(),
+                Properties: typeof(ContestsResponse).GetProperties().Select(p => p.Name).ToArray(),
+                PageCount: PageCount
             );
 
             return Ok(response);

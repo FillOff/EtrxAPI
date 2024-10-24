@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Etrx.API.Contracts.Contests;
 using Etrx.API.Contracts.Problems;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
@@ -32,7 +31,11 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("GetProblemsByPageWithSortAndFilterTags")]
-        public ActionResult<ProblemsWithPropResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page, int pageSize, string? tags, string sortField = "id", bool sortOrder = true)
+        public ActionResult<ProblemsWithPropsResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page,
+                                                                                              [FromQuery] int pageSize,
+                                                                                              [FromQuery] string? tags,
+                                                                                              [FromQuery] string sortField = "id", 
+                                                                                              [FromQuery] bool sortOrder = true)
         {
             if (string.IsNullOrEmpty(sortField) || 
                 !typeof(Problem).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -40,14 +43,14 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var result = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, sortField, sortOrder);
+            var (Problems, PageCount) = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, sortField, sortOrder);
             
 
-            ProblemsWithPropResponse response = new ProblemsWithPropResponse
+            ProblemsWithPropsResponse response = new ProblemsWithPropsResponse
             (
-                Problems: result.Problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
+                Problems: Problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
                 Properties: typeof(ProblemsResponse).GetProperties().Select(p => p.Name).ToArray()!,
-                pageCount: result.PageCount
+                PageCount: PageCount
             );
 
             return Ok(response);

@@ -18,5 +18,8 @@ namespace Etrx.Domain.Parsing_models
 
         [JsonProperty("school_name")]
         public string? Organization { get; set; }
+
+        [JsonProperty("city")]
+        public string? City { get; set; }
     }
 }

@@ -20,25 +20,24 @@ namespace Etrx.Application.Services
 
         public async Task<ulong> CreateSubmission(Submission submission)
         {
-            if (_submissionsRepository.Get().FirstOrDefault(s => s.Id == submission.Id) == null)
-            {
-                return await _submissionsRepository.Create(submission);
-            }
-            return 0;
+            return await _submissionsRepository.Create(submission);
         }
 
         public async Task<ulong> UpdateSubmission(Submission submission)
         {
-            if (_submissionsRepository.GetByContestAndIndex(submission.ContestId, submission.Index) != null)
-            {
-                return await _submissionsRepository.Update(submission);
-            }
-            return 0;
+            return await _submissionsRepository.Update(submission);
         }
 
         public async Task<ulong> DeleteSubmission(ulong id)
         {
             return await _submissionsRepository.Delete(id);
+        }
+
+        public IQueryable<Submission> GetSubmissionsByContestId(int contestId)
+        {
+            return _submissionsRepository
+                .Get()
+                .Where(s => s.ContestId == contestId);
         }
     }
 }

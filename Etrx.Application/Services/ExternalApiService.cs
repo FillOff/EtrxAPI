@@ -3,7 +3,6 @@ using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json;
 using System.Text.Json;
 using Etrx.Core.Parsing_models;
-using Etrx.Domain.Models;
 
 namespace Etrx.Application.Services
 {

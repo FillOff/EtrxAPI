@@ -11,7 +11,6 @@ namespace Etrx.Application
             services.AddScoped<IProblemsService, ProblemsService>();
             services.AddScoped<IContestsService, ContestsService>();
             services.AddScoped<IUsersService, UsersService>();
-            services.AddScoped<IJsonService, JsonService>();
             services.AddScoped<ISubmissionsService, SubmissionsService>();
             services.AddScoped<ICodeforcesService, CodeforcesService>();
 

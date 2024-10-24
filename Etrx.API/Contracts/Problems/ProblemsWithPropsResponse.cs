@@ -1,7 +1,7 @@
 ﻿namespace Etrx.API.Contracts.Problems
 {
-    public record ProblemsWithPropResponse(
+    public record ProblemsWithPropsResponse(
         IEnumerable<ProblemsResponse> Problems,
         string[] Properties,
-        int pageCount);
+        int PageCount);
 }

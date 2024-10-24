@@ -8,5 +8,6 @@ namespace Etrx.Domain.Interfaces.Services
         Task<ulong> DeleteSubmission(ulong id);
         IQueryable<Submission> GetAllSubmissions();
         Task<ulong> UpdateSubmission(Submission submission);
+        IQueryable<Submission> GetSubmissionsByContestId(int contestId);
     }
 }

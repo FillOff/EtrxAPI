@@ -56,7 +56,7 @@ namespace Etrx.Application.Services
             return tags;
         }
 
-        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField = "id", bool sortOrder = true)
+        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField, bool sortOrder)
         {
             var problems = _problemsRepository.Get();
 

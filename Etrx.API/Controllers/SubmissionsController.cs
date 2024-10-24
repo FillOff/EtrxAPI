@@ -11,29 +11,36 @@ namespace Etrx.API.Controllers
         private readonly ISubmissionsService _submissionsService;
         private readonly IUsersService _usersService;
 
-        public SubmissionsController(ISubmissionsService submissionsService, IUsersService usersService)
+        public SubmissionsController(ISubmissionsService submissionsService, 
+                                     IUsersService usersService)
         {
             _submissionsService = submissionsService;
             _usersService = usersService;
         }
 
         [HttpGet("GetSubmissionsByContestId")]
-        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestId(int contestId)
+        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestId([FromQuery] int contestId)
         {
 
-            var contestSubmissions = _submissionsService.GetAllSubmissions().Where(s => s.ContestId == contestId);
+            var submissions = _submissionsService.GetSubmissionsByContestId(contestId);
             
-            var handles = contestSubmissions.Select(s => s.Handle).Distinct().ToArray();
+            var handles = submissions
+                .Select(s => s.Handle)
+                .Distinct()
+                .ToArray();
             var users = handles.Select(_usersService.GetUserByHandle);
             
             SubmissionsResponse[] submissionsResponses = new SubmissionsResponse[handles.Length];
 
-            var indexes = contestSubmissions.Select(s => s.Index).Distinct().ToArray();
+            var indexes = submissions
+                .Select(s => s.Index)
+                .Distinct()
+                .ToArray();
             
             int j = 0;
             foreach (var handle in handles)
             {
-                var userSubmissions = contestSubmissions.Where(s => s.Handle == handle);
+                var userSubmissions = submissions.Where(s => s.Handle == handle);
 
                 int solvedCount = 0;
                 int[] tries = new int[indexes.Length];
@@ -55,8 +62,9 @@ namespace Etrx.API.Controllers
                     }
                     i++;
                 }
+
                 var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
-                SubmissionsResponse sub = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
+                var sub = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
                                                                     user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
                 submissionsResponses[j] = sub;
                 j++;

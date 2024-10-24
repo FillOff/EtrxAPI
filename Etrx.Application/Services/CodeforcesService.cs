@@ -3,7 +3,6 @@ using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Etrx.Core.Parsing_models;
-using System;
 
 namespace Etrx.Application.Services
 {
@@ -43,7 +42,7 @@ namespace Etrx.Application.Services
                                            dlUsersList[i].FirstName,
                                            dlUsersList[i].LastName,
                                            user.Country,
-                                           user.City,
+                                           dlUsersList[i].City,
                                            dlUsersList[i].Organization,
                                            user.Contribution,
                                            user.Rank,
