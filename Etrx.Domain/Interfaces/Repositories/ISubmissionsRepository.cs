@@ -7,7 +7,7 @@ namespace Etrx.Domain.Interfaces.Repositories
         Task<ulong> Create(Submission submission);
         Task<ulong> Delete(ulong id);
         IQueryable<Submission> Get();
-        Submission? GetByContestAndIndex(int? contestId, string index);
+        Submission? GetById(ulong id);
         Task<ulong> Update(Submission submission);
     }
 }

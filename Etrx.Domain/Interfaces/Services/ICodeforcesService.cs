@@ -1,5 +1,4 @@
-﻿using Etrx.Core.Parsing_models;
-using Etrx.Domain.Parsing_models;
+﻿using Etrx.Domain.Parsing_models;
 
 namespace Etrx.Domain.Interfaces.Services
 {

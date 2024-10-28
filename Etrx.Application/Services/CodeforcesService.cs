@@ -2,7 +2,6 @@
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
-using Etrx.Core.Parsing_models;
 
 namespace Etrx.Application.Services
 {
@@ -149,7 +148,7 @@ namespace Etrx.Application.Services
                                                    submission.TimeConsumedMillis,
                                                    submission.MemoryConsumedBytes);
 
-                if (_submissionsRepository.GetByContestAndIndex(submission.ContestId, submission.Problem.Index) == null)
+                if (_submissionsRepository.GetById(submission.Id) == null)
                     await _submissionsRepository.Create(newSubmission);
                 else
                     await _submissionsRepository.Update(newSubmission);

@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System.Text.Json.Serialization;
 
-namespace Etrx.Core.Parsing_models
+namespace Etrx.Domain.Parsing_models
 {
     public class CodeforcesSubmission
     {

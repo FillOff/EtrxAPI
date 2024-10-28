@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Core.Parsing_models
+namespace Etrx.Domain.Parsing_models
 {
     public class SubmissionAuthor
     {

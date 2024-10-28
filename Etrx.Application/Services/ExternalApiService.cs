@@ -2,7 +2,6 @@
 using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json;
 using System.Text.Json;
-using Etrx.Core.Parsing_models;
 
 namespace Etrx.Application.Services
 {
@@ -29,7 +28,7 @@ namespace Etrx.Application.Services
         {
             var response = await _httpClient.GetAsync($"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
             if (!response.IsSuccessStatusCode)
-                return (null, "Couldn't get data from Codeforces.");
+                return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
             string json = await response.Content.ReadAsStringAsync();
             if (json.StartsWith('<'))
@@ -44,7 +43,7 @@ namespace Etrx.Application.Services
         {
             var response = await _httpClient.GetAsync("https://codeforces.com/api/problemset.problems");
             if (!response.IsSuccessStatusCode)
-                return (null, null, "Couldn't get data from Codeforces.");
+                return (null, null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
             string json = await response.Content.ReadAsStringAsync();
             if (json.StartsWith('<'))
@@ -62,7 +61,7 @@ namespace Etrx.Application.Services
         {
             var response = await _httpClient.GetAsync($"https://codeforces.com/api/contest.list?gym={gym}");
             if (!response.IsSuccessStatusCode)
-                return (null, "Couldn't get data from Codeforces.");
+                return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
             string json = await response.Content.ReadAsStringAsync();
             if (json.StartsWith('<'))
@@ -78,7 +77,7 @@ namespace Etrx.Application.Services
         {
             var response = await _httpClient.GetAsync($"https://codeforces.com/api/user.status?handle={handle}");
             if (!response.IsSuccessStatusCode)
-                return (null, "Couldn't get data from Codeforces.");
+                return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
             string json = await response.Content.ReadAsStringAsync();
             if (json.StartsWith('<'))
@@ -92,9 +91,10 @@ namespace Etrx.Application.Services
 
         public async Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
         {
+            await Task.Delay(2000);
             var response = await _httpClient.GetAsync($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
             if (!response.IsSuccessStatusCode)
-                return (null, "Couldn't get data from Codeforces.");
+                return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
             string json = await response.Content.ReadAsStringAsync();
             if (json.StartsWith('<'))
@@ -104,6 +104,39 @@ namespace Etrx.Application.Services
 
             return (JsonConvert.DeserializeObject<List<CodeforcesSubmission>>(submissions),
                 string.Empty);
+        }
+
+        public async Task<(List<string> Handles, string Error)> GetCoodeforcesContestUsersAsync(string[] handles, int contestId)
+        {
+            var handlesString = string.Join(";", handles);
+
+            var response = await _httpClient.GetAsync($"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
+            if (!response.IsSuccessStatusCode)
+                return ([], JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
+
+            string json = await response.Content.ReadAsStringAsync();
+            if (json.StartsWith('<'))
+                return ([], "Couldn't get data from Codeforces.");
+
+            string rowsJson = JsonDocument.Parse(json).RootElement.GetProperty("result").GetProperty("rows").ToString();
+            var rows = JsonConvert.DeserializeObject<List<CodeforcesRanklistRow>>(rowsJson)!;
+
+            List<string> newHandles = [];
+            if (rows.Count != 0)
+            {
+                newHandles = rows
+                    .SelectMany(row => row.Party.Members)
+                    .Where(handle => handles.Contains(handle.Handle) && !newHandles.Contains(handle.Handle))
+                    .Select(handle => handle.Handle)
+                    .Distinct()
+                    .ToList();
+
+                return (newHandles, string.Empty);
+            }
+            else
+            {
+                return (newHandles, $"There are not users who solve contest {contestId}.");
+            }
         }
     }
 }

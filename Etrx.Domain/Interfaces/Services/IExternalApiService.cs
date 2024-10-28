@@ -1,5 +1,4 @@
-﻿using Etrx.Core.Parsing_models;
-using Etrx.Domain.Parsing_models;
+﻿using Etrx.Domain.Parsing_models;
 
 namespace Etrx.Domain.Interfaces.Services
 {
@@ -11,5 +10,6 @@ namespace Etrx.Domain.Interfaces.Services
         Task<(List<CodeforcesContest>? Contests, string Error)> GetCodeforcesContestsAsync(bool gym);
         Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesSubmissionsAsync(string handle);
         Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesContestSubmissionsAsync(string handle, int contestId);
+        Task<(List<string> Handles, string Error)> GetCoodeforcesContestUsersAsync(string[] handles, int contestId);
     }
 }

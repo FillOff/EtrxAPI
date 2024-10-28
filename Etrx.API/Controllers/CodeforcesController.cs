@@ -1,5 +1,7 @@
 ﻿using Etrx.Domain.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Etrx.API.Controllers
 {
@@ -92,7 +94,11 @@ namespace Etrx.API.Controllers
         [HttpPost("Submissions/PostSubmissionsFromCodeforcesByContestId")]
         public async Task<IActionResult> PostSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
         {
-            string[] handles = _usersService.GetUsersHandle();
+            var (handles, error) = await _externalApiService.GetCoodeforcesContestUsersAsync(_usersService.GetUsersHandle(), contestId);
+            if (!string.IsNullOrEmpty(error))
+                return StatusCode(StatusCodes.Status502BadGateway, error);
+
+            Console.WriteLine(string.Join(';', handles));
 
             foreach (var handle in handles)
             {

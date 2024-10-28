@@ -21,9 +21,9 @@ namespace Etrx.Persistence.Repositories
             return submissions;
         }
 
-        public Submission? GetByContestAndIndex(int? contestId, string index)
+        public Submission? GetById(ulong id)
         {
-            return _context.Submissions.FirstOrDefault(s => s.ContestId == contestId && s.Index == index);
+            return _context.Submissions.FirstOrDefault(s => s.Id == id);
         }
 
         public async Task<ulong> Create(Submission submission)
