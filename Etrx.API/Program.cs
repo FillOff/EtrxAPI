@@ -16,7 +16,6 @@ builder.Services.AddAutoMapper(typeof(ProblemsProfile),
 
 builder.Services.AddDbContext<EtrxDbContext>();
 
-
 builder.Services.AddHttpClient<IExternalApiService, ExternalApiService>();
 builder.Services.AddHostedService<UpdateDataService>();
 builder.Services.AddApplicationServices();

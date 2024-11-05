@@ -20,8 +20,9 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("GetUsersWithSort")]
-        public ActionResult<IEnumerable<UsersResponse>> GetUsersWithSort([FromQuery] string sortField = "id",
-                                                                            [FromQuery] bool sortOrder = true)
+        public ActionResult<IEnumerable<UsersResponse>> GetUsersWithSort(
+            [FromQuery] string sortField = "id",
+            [FromQuery] bool sortOrder = true)
         {
             if (string.IsNullOrEmpty(sortField) ||
                 !typeof(User).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -36,14 +37,13 @@ namespace Etrx.API.Controllers
 
             var response = new UsersWithPropsResponse(
                 Users: users,
-                Properties: typeof(UsersResponse).GetProperties().Select(p => p.Name).ToArray(),
-                PageCount: 1);
+                Properties: typeof(UsersResponse).GetProperties().Select(p => p.Name).ToArray());
 
             return Ok(response);
         }
 
         [HttpGet("GetUserByHandle")]
-        public ActionResult<UsersResponse> GetUserByHandle(string handle)
+        public ActionResult<UsersResponse> GetUserByHandle([FromQuery] string handle)
         {
             var user = _usersService.GetUserByHandle(handle);
 

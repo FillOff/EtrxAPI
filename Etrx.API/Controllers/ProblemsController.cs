@@ -26,16 +26,16 @@ namespace Etrx.API.Controllers
             var problems = _problemsService.GetProblemsByContestId(contestId);
 
             var response = problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable();
-
             return Ok(response);
         }
 
         [HttpGet("GetProblemsByPageWithSortAndFilterTags")]
-        public ActionResult<ProblemsWithPropsResponse> GetProblemsByPageWithSortAndFilterTags([FromQuery] int page,
-                                                                                              [FromQuery] int pageSize,
-                                                                                              [FromQuery] string? tags,
-                                                                                              [FromQuery] string sortField = "id", 
-                                                                                              [FromQuery] bool sortOrder = true)
+        public ActionResult<ProblemsWithPropsResponse> GetProblemsByPageWithSortAndFilterTags(
+            [FromQuery] int page,
+            [FromQuery] int pageSize,
+            [FromQuery] string? tags,
+            [FromQuery] string sortField = "id", 
+            [FromQuery] bool sortOrder = true)
         {
             if (string.IsNullOrEmpty(sortField) || 
                 !typeof(Problem).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -45,7 +45,6 @@ namespace Etrx.API.Controllers
 
             var (Problems, PageCount) = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, sortField, sortOrder);
             
-
             ProblemsWithPropsResponse response = new ProblemsWithPropsResponse
             (
                 Problems: Problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),

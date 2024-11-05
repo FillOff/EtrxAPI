@@ -1,5 +1,6 @@
 ﻿using Etrx.API.Contracts.Submissions;
 using Etrx.Domain.Interfaces.Services;
+using System.Linq.Dynamic.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers
@@ -18,59 +19,57 @@ namespace Etrx.API.Controllers
             _usersService = usersService;
         }
 
-        [HttpGet("GetSubmissionsByContestId")]
-        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestId([FromQuery] int contestId)
+        [HttpGet("GetSubmissionsByContestIdWithSort")]
+        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestIdWithSort(
+            [FromQuery] int contestId,
+            [FromQuery] string sortField = "solvedCount",
+            [FromQuery] bool sortOrder = true)
         {
+            if (string.IsNullOrEmpty(sortField) ||
+                !typeof(SubmissionsResponse).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return BadRequest($"Invalid field: {sortField}");
+            }
+            string order = sortOrder == true ? "asc" : "desc";
 
             var submissions = _submissionsService.GetSubmissionsByContestId(contestId);
-            
+
             var handles = submissions
                 .Select(s => s.Handle)
                 .Distinct()
                 .ToArray();
             var users = handles.Select(_usersService.GetUserByHandle);
             
-            SubmissionsResponse[] submissionsResponses = new SubmissionsResponse[handles.Length];
+            List<SubmissionsResponse> submissionsResponses = [];
 
             var indexes = submissions
                 .Select(s => s.Index)
                 .Distinct()
                 .ToArray();
-            
-            int j = 0;
+
             foreach (var handle in handles)
             {
                 var userSubmissions = submissions.Where(s => s.Handle == handle);
 
-                int solvedCount = 0;
-                int[] tries = new int[indexes.Length];
-                int i = 0;
-                foreach (var index in indexes)
-                {
-                    var indexSubmissions = userSubmissions.Where(s => s.Index == index);
-
-                    int tryCount = indexSubmissions.Count();
-
-                    if (indexSubmissions.Any(s => s.Verdict == "Ok"))
-                    {
-                        solvedCount++;
-                        tries[i] = tryCount;
-                    }
-                    else
-                    {
-                        tries[i] = -tryCount;
-                    }
-                    i++;
-                }
+                var (solvedCount, tries) = _submissionsService.GetTriesAndSolvedCountByHandle(handle, userSubmissions, indexes);
 
                 var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
-                var sub = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
-                                                                    user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
-                submissionsResponses[j] = sub;
-                j++;
+                var submissionResponse = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
+                                                                 user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
+
+                submissionsResponses.Add(submissionResponse);
             }
 
-            var response = new SubmissionsWithProblemsResponse(submissionsResponses, indexes);
+            submissionsResponses = submissionsResponses
+                .AsQueryable()
+                .OrderBy($"{sortField} {order}")
+                .ToList();
+
+            var response = new SubmissionsWithProblemsResponse(
+                Submissions: submissionsResponses,
+                ProblemIndexes: indexes,
+                Properties: typeof(SubmissionsResponse).GetProperties().Select(p => p.Name).ToArray());
+
             return Ok(response);
         }
     }

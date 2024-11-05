@@ -14,6 +14,9 @@ namespace Etrx.Application
             services.AddScoped<ISubmissionsService, SubmissionsService>();
             services.AddScoped<ICodeforcesService, CodeforcesService>();
 
+            services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
+            services.AddSingleton<IUpdateDataService, UpdateDataService>();
+
             return services;
         }
     }

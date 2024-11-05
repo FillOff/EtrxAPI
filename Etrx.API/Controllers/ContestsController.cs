@@ -26,19 +26,20 @@ namespace Etrx.API.Controllers
         {
             var contest = _contestsService.GetContestById(contestId);
 
-            if (contest != null)
-            {
-                var response = _mapper.Map<ContestsResponse>(contest);
-                return Ok(response);
-            }
-            else
-            {
+            if (contest == null)
                 return NotFound($"Contest {contestId} not fount");
-            }
+
+            var response = _mapper.Map<ContestsResponse>(contest);
+            return Ok(response);
         }
 
         [HttpGet("GetContestsByPageWithSort")]
-        public ActionResult<ContestsWithPropsResponse> GetContestsByPageWithSort([FromQuery] int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true)
+        public ActionResult<ContestsWithPropsResponse> GetContestsByPageWithSort(
+            [FromQuery] int page,
+            [FromQuery] int pageSize,
+            [FromQuery] bool? gym,
+            [FromQuery] string sortField = "contestid",
+            [FromQuery] bool sortOrder = true)
         {
             if (string.IsNullOrEmpty(sortField) || 
                 !typeof(Contest).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -48,7 +49,7 @@ namespace Etrx.API.Controllers
 
             var (Contests, PageCount) = _contestsService.GetContestsByPageWithSort(page, pageSize, gym, sortField, sortOrder);
 
-            ContestsWithPropsResponse response = new ContestsWithPropsResponse
+            var response = new ContestsWithPropsResponse
             (
                 Contests: Contests.Select(contest => _mapper.Map<ContestsResponse>(contest)).AsEnumerable(),
                 Properties: typeof(ContestsResponse).GetProperties().Select(p => p.Name).ToArray(),

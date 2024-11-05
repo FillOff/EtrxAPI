@@ -34,11 +34,18 @@ namespace Etrx.Application.Services
             return await _contestsRepository.Update(contest);
         }
 
-        public (IQueryable<Contest> Contests, int PageCount) GetContestsByPageWithSort(int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true)
+        public (IQueryable<Contest> Contests, int PageCount) GetContestsByPageWithSort(
+            int page, 
+            int pageSize, 
+            bool? gym, 
+            string sortField = "contestid", 
+            bool sortOrder = true)
         {
             var contests = gym != null
-                                ? _contestsRepository.Get().Where(c => c.Gym == gym)
-                                : _contestsRepository.Get();
+                ? _contestsRepository.Get().Where(c => c.Gym == gym)
+                : _contestsRepository.Get();
+
+            contests = contests.Where(c => c.Phase != "BEFORE");
 
             int pageCount = contests.Count() % pageSize == 0
                 ? contests.Count() / pageSize

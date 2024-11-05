@@ -2,6 +2,5 @@
 {
     public record UsersWithPropsResponse(
         IEnumerable<UsersResponse> Users,
-        string[] Properties,
-        int PageCount);
+        string[] Properties);
 }

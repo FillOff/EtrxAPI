@@ -5,19 +5,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services
 {
-    public class UpdateDataService : BackgroundService
+    public class UpdateDataService : BackgroundService, IUpdateDataService
     {
         private readonly ILogger<UpdateDataService> _logger;
         private readonly IExternalApiService _externalApiService;
+        private readonly ILastUpdateTimeService _lastTimeUpdateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private DateTime _nextRunTime;
 
-        public UpdateDataService(ILogger<UpdateDataService> logger, 
-                                 IExternalApiService externalApiService, 
+        public UpdateDataService(ILogger<UpdateDataService> logger,
+                                 IExternalApiService externalApiService,
+                                 ILastUpdateTimeService lastTimeUpdateService,
                                  IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _externalApiService = externalApiService;
+            _lastTimeUpdateService = lastTimeUpdateService;
             _serviceScopeFactory = serviceScopeFactory;
             _nextRunTime = CalculateNextRunTime();
         }
@@ -40,14 +43,10 @@ namespace Etrx.Application.Services
 
                 await Task.Delay(delay, stoppingToken);
 
-                using var scope = _serviceScopeFactory.CreateScope();
-
-                var _codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-
                 bool success = false;
-                success = await UpdateProblems(_codeforcesService);
-                success = await UpdateContests(_codeforcesService);
-                success = await UpdateUsers(_codeforcesService);
+                success = (await UpdateProblems()).Success;
+                success = (await UpdateContests()).Success;
+                success = (await UpdateUsers()).Success;
 
                 if (success)
                 {
@@ -75,56 +74,68 @@ namespace Etrx.Application.Services
             return targetTime;
         }
 
-        protected async Task<bool> UpdateProblems(ICodeforcesService codeforcesService)
+        public async Task<(bool Success, string Error)> UpdateProblems()
         {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+
             var (Problems, ProblemStatistics, Error) = await _externalApiService.GetCodeforcesProblemsAsync();
 
             if (!string.IsNullOrEmpty(Error))
-                return false;
+                return (false, Error);
 
             await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!);
 
             _logger.LogInformation($"Problems updated successfully.");
-            return true;
+            _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
+            return (true, string.Empty);
         }
 
-        protected async Task<bool> UpdateContests(ICodeforcesService codeforcesService)
+        public async Task<(bool Success, string Error)> UpdateContests()
         {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+
             var (Contests, Error) = await _externalApiService.GetCodeforcesContestsAsync(false);
 
             if (!string.IsNullOrEmpty(Error))
-                return false;
+                return (false, Error);
 
             await codeforcesService.PostContestsFromCodeforces(Contests!, false);
 
             (Contests, Error) = await _externalApiService.GetCodeforcesContestsAsync(true);
 
             if (!string.IsNullOrEmpty(Error))
-                return false;
+                return (false, Error);
 
             await codeforcesService.PostContestsFromCodeforces(Contests!, true);
 
             _logger.LogInformation($"Contests updated successfully.");
-            return true;
+            _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));
+            return (true, string.Empty);
         }
 
-        protected async Task<bool> UpdateUsers(ICodeforcesService codeforcesService)
+        public async Task<(bool Success, string Error)> UpdateUsers()
         {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+
             var dlUsers = await _externalApiService.GetDlUsersAsync();
 
             if (!string.IsNullOrEmpty(dlUsers.Error))
-                return false;
+                return (false, dlUsers.Error);
 
             string handlesString = string.Join(';', dlUsers.Users!.Select(user => user.Handle.ToLower()));
             var (Users, Error) = await _externalApiService.GetCodeforcesUsersAsync(handlesString);
 
             if (!string.IsNullOrEmpty(Error))
-                return false;
+                return (false, Error);
 
             await codeforcesService.PostUsersFromDlCodeforces(dlUsers.Users!, Users!);
 
             _logger.LogInformation($"Dl users updated successfully.");
-            return true;
+            _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
+            return (true, string.Empty);
         }
     }
 }

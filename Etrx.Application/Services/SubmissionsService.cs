@@ -1,6 +1,7 @@
 ﻿using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
+using System;
 
 namespace Etrx.Application.Services
 {
@@ -38,6 +39,32 @@ namespace Etrx.Application.Services
             return _submissionsRepository
                 .Get()
                 .Where(s => s.ContestId == contestId);
+        }
+
+        public (int SolvedCount, int[] Tries) GetTriesAndSolvedCountByHandle(string handle, IQueryable<Submission> userSubmissions, string[] indexes)
+        {
+            int solvedCount = 0;
+            int[] tries = new int[indexes.Length];
+            int i = 0;
+            foreach (var index in indexes)
+            {
+                var indexSubmissions = userSubmissions.Where(s => s.Index == index);
+
+                int tryCount = indexSubmissions.Count();
+
+                if (indexSubmissions.Any(s => s.Verdict == "Ok"))
+                {
+                    solvedCount++;
+                    tries[i] = tryCount;
+                }
+                else
+                {
+                    tries[i] = -tryCount;
+                }
+                i++;
+            }
+
+            return (solvedCount, tries);
         }
     }
 }
