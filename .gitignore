@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider configs
 .idea/
+
+# NuGet local packages folder
+packages/

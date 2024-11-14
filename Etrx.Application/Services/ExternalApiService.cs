@@ -2,6 +2,7 @@
 using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json;
 using System.Text.Json;
+using System.Net;
 
 namespace Etrx.Application.Services
 {
@@ -26,17 +27,34 @@ namespace Etrx.Application.Services
 
         public async Task<(List<CodeforcesUser>? Users, string Error)> GetCodeforcesUsersAsync(string handlesString)
         {
-            var response = await _httpClient.GetAsync($"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
-            if (!response.IsSuccessStatusCode)
-                return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
-            string json = await response.Content.ReadAsStringAsync();
-            if (json.StartsWith('<'))
-                return (null, "Couldn't get data from Codeforces.");
+            var proxy = new WebProxy()
+            {
+                Address = new Uri("http://proxy.gsu.by:800"),
+                Credentials = new NetworkCredential("main\\dlupdate", "3sd4y-K8yf3"),
+                UseDefaultCredentials = false
+            };
+            var handler = new HttpClientHandler()
+            {
+                Proxy = proxy,
+                UseProxy = true,
+                UseDefaultCredentials = false,
+            };
 
-            string content = JsonDocument.Parse(json).RootElement.GetProperty("result").ToString();
+            using (var hhh = new HttpClient(handler))
+            {
+                var response = await hhh.GetAsync($"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
+                if (!response.IsSuccessStatusCode)
+                    return (null, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
 
-            return (JsonConvert.DeserializeObject<List<CodeforcesUser>>(content), string.Empty);
+                string json = await response.Content.ReadAsStringAsync();
+                if (json.StartsWith('<'))
+                    return (null, "Couldn't get data from Codeforces.");
+
+                string content = JsonDocument.Parse(json).RootElement.GetProperty("result").ToString();
+
+                return (JsonConvert.DeserializeObject<List<CodeforcesUser>>(content), string.Empty);
+            }
         }
 
         public async Task<(List<CodeforcesProblem>? Problems, List<CodeforcesProblemStatistics>? ProblemStatistics, string Error)> GetCodeforcesProblemsAsync()
