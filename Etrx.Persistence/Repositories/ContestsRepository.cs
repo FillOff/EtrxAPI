@@ -16,7 +16,8 @@ namespace Etrx.Persistence.Repositories
 
         public IQueryable<Contest> Get()
         {
-            var contests = _context.Contests.AsNoTracking();
+            var contests = _context.Contests
+                .AsNoTracking();
 
             return contests;
         }

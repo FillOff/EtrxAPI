@@ -44,9 +44,17 @@ namespace Etrx.Application.Services
                 await Task.Delay(delay, stoppingToken);
 
                 bool success = false;
-                success = (await UpdateProblems()).Success;
-                success = (await UpdateContests()).Success;
-                success = (await UpdateUsers()).Success;
+                try
+                {
+                    success = (await UpdateProblems()).Success;
+                    success = (await UpdateContests()).Success;
+                    success = (await UpdateUsers()).Success;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Task failed: {ex.Message}");
+                    success = false;
+                }
 
                 if (success)
                 {

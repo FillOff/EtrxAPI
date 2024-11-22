@@ -3,6 +3,7 @@ using Etrx.API.Contracts.Users;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Dynamic;
 
 namespace Etrx.API.Controllers
 {
