@@ -10,13 +10,13 @@ namespace Etrx.API.Controllers
         private readonly IUsersService _usersService;
         private readonly ICodeforcesService _codeforcesService;
         private readonly IUpdateDataService _updateDataService;
-        private readonly IExternalApiService _externalApiService;
+        private readonly ICodeforcesApiService _externalApiService;
 
         public CodeforcesController(
             IUsersService usersService,
             ICodeforcesService codeforcesService,
             IUpdateDataService updateDataService,
-            IExternalApiService externalApiService)
+            ICodeforcesApiService externalApiService)
         {
             _usersService = usersService;
             _codeforcesService = codeforcesService;

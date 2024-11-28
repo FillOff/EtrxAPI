@@ -8,13 +8,13 @@ namespace Etrx.Application.Services
     public class UpdateDataService : BackgroundService, IUpdateDataService
     {
         private readonly ILogger<UpdateDataService> _logger;
-        private readonly IExternalApiService _externalApiService;
+        private readonly ICodeforcesApiService _externalApiService;
         private readonly ILastUpdateTimeService _lastTimeUpdateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private DateTime _nextRunTime;
 
         public UpdateDataService(ILogger<UpdateDataService> logger,
-                                 IExternalApiService externalApiService,
+                                 ICodeforcesApiService externalApiService,
                                  ILastUpdateTimeService lastTimeUpdateService,
                                  IServiceScopeFactory serviceScopeFactory)
         {

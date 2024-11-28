@@ -9,12 +9,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Etrx.API/Etrx.API.csproj", "Etrx.API/"]
-COPY ["Etrx.Application/Etrx.Application.csproj", "Etrx.Application/"]
-COPY ["Etrx.Domain/Etrx.Domain.csproj", "Etrx.Domain/"]
-COPY ["Etrx.Persistence/Etrx.Persistence.csproj", "Etrx.Persistence/"]
-RUN dotnet restore "./Etrx.API/Etrx.API.csproj"
 COPY . .
+RUN dotnet nuget disable source nuget.org
+RUN dotnet nuget add source /src/packages
+RUN dotnet restore "./Etrx.API/Etrx.API.csproj"
 WORKDIR "/src/Etrx.API"
 RUN dotnet build "./Etrx.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 

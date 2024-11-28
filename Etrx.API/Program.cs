@@ -17,7 +17,7 @@ builder.Services.AddAutoMapper(typeof(ProblemsProfile),
 
 builder.Services.AddDbContext<EtrxDbContext>();
 
-builder.Services.AddHttpClient<IExternalApiService, ExternalApiService>();
+builder.Services.AddHttpClient<ICodeforcesApiService, CodeforcesApiService>();
 builder.Services.AddHostedService<UpdateDataService>();
 builder.Services.AddApplicationServices();
 builder.Services.AddRepositories();
@@ -30,7 +30,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
