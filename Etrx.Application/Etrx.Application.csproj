@@ -8,9 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+    <PackageReference Include="EFCore.BulkExtensions.SqlServer" Version="8.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.6" />
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.4.9" />
   </ItemGroup>
 
   <ItemGroup>

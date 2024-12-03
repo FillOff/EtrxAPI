@@ -23,7 +23,7 @@ namespace Etrx.Persistence.Repositories
 
         public Submission? GetById(ulong id)
         {
-            return _context.Submissions.FirstOrDefault(s => s.Id == id);
+            return _context.Submissions.AsNoTracking().FirstOrDefault(s => s.Id == id);
         }
 
         public async Task<ulong> Create(Submission submission)

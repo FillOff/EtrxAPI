@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Persistence.Databases;
+using EFCore.BulkExtensions;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -20,6 +21,11 @@ namespace Etrx.Persistence.Repositories
                 .AsNoTracking();
 
             return contests;
+        }
+
+        public async Task InsertOrUpdateAsync(List<Contest> contests)
+        {
+            await _context.BulkInsertOrUpdateAsync(contests);
         }
 
         public Contest? GetById(int contestId)

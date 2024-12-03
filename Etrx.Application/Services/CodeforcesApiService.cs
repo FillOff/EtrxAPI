@@ -2,6 +2,9 @@
 using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json;
 using System.Text.Json;
+using Etrx.Domain.Models;
+using System.Net.Http;
+using System.Diagnostics;
 
 namespace Etrx.Application.Services
 {
@@ -62,18 +65,40 @@ namespace Etrx.Application.Services
 
         public async Task<(List<CodeforcesContest>? Contests, string Error)> GetCodeforcesContestsAsync(bool gym)
         {
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                $"https://codeforces.com/api/contest.list?gym={gym}",
-                "codeforces.com");
+            using var response = await _httpClient.GetAsync($"https://codeforces.com/api/contest.list?gym={gym}", HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
 
-            if (!isCorrectResponse)
-                return (null, content);
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var streamReader = new StreamReader(stream);
+            using var jsonReader = new JsonTextReader(streamReader);
 
-            string contests = JsonDocument.Parse(content).RootElement.GetProperty("result").ToString();
+            var serializer = new Newtonsoft.Json.JsonSerializer();
 
-            return (JsonConvert.DeserializeObject<List<CodeforcesContest>>(contests),
-                    string.Empty);
+            List<CodeforcesContest> contests = [];
+            while (jsonReader.Read())
+            {
+                if (jsonReader.TokenType == JsonToken.PropertyName && jsonReader.Value?.ToString() == "result")
+                {
+                    jsonReader.Read();
+                    if (jsonReader.TokenType == JsonToken.StartArray)
+                    {
+                        while (jsonReader.Read())
+                        {
+                            if (jsonReader.TokenType == JsonToken.StartObject)
+                            {
+                                var contest = serializer.Deserialize<CodeforcesContest>(jsonReader);
+                                contests.Add(contest!);
+                            }
+                            else if (jsonReader.TokenType == JsonToken.EndArray)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+            return (contests, string.Empty);
         }
 
         public async Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesSubmissionsAsync(string handle)

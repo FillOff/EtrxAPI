@@ -104,19 +104,19 @@ namespace Etrx.Application.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
 
-            var (Contests, Error) = await _externalApiService.GetCodeforcesContestsAsync(false);
+            var (contests, error) = await _externalApiService.GetCodeforcesContestsAsync(false);
 
-            if (!string.IsNullOrEmpty(Error))
-                return (false, Error);
+            if (!string.IsNullOrEmpty(error))
+                return (false, error);
 
-            await codeforcesService.PostContestsFromCodeforces(Contests!, false);
+            await codeforcesService.PostContestsFromCodeforces(contests!, false);
 
-            (Contests, Error) = await _externalApiService.GetCodeforcesContestsAsync(true);
+            (contests, error) = await _externalApiService.GetCodeforcesContestsAsync(true);
 
-            if (!string.IsNullOrEmpty(Error))
-                return (false, Error);
+            if (!string.IsNullOrEmpty(error))
+                return (false, error);
 
-            await codeforcesService.PostContestsFromCodeforces(Contests!, true);
+            await codeforcesService.PostContestsFromCodeforces(contests!, true);
 
             _logger.LogInformation($"Contests updated successfully.");
             _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));

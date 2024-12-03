@@ -98,6 +98,7 @@ namespace Etrx.Application.Services
 
         public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym)
         {
+            List<Contest> newContests = [];
             for (int i = 0; i < contests.Count; i++)
             {
                 var contest = contests[i];
@@ -128,11 +129,10 @@ namespace Etrx.Application.Services
                     contest.Season,
                     gym);
 
-                if (_contestsRepository.GetById(newContest.ContestId) == null)
-                    await _contestsRepository.Create(newContest);
-                else
-                    await _contestsRepository.Update(newContest);
+                newContests.Add(newContest);
             }
+
+            await _contestsRepository.InsertOrUpdateAsync(newContests);
         }
 
         public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
