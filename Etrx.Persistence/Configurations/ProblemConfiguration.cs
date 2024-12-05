@@ -8,7 +8,7 @@ namespace Etrx.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Problem> builder)
         {
-            builder.HasKey(p => p.Id);
+            builder.HasKey(p => new { p.ContestId, p.Index });
         }
     }
 }

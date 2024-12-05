@@ -9,8 +9,6 @@
                           DateTime relativeTimeSeconds,
                           string programmingLanguage,
                           string handle,
-                          string firstName,
-                          string lastName,
                           string participantType,
                           string? verdict,
                           string testset, 
@@ -24,8 +22,6 @@
             CreationTimeSeconds = creationTimeSeconds;
             RelativeTimeSeconds = relativeTimeSeconds;
             Handle = handle;
-            FirstName = firstName;
-            LastName = lastName;
             ParticipantType = participantType;
             ProgrammingLanguage = programmingLanguage;
             Verdict = verdict;
@@ -41,8 +37,6 @@
         public DateTime CreationTimeSeconds { get; set; }
         public DateTime RelativeTimeSeconds { get; set; }
         public string Handle { get; set; }
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
         public string ParticipantType { get; set; } = string.Empty;
         public string ProgrammingLanguage { get; set; } = string.Empty;
         public string? Verdict { get; set; }

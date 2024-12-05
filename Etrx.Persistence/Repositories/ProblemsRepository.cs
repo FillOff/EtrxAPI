@@ -1,4 +1,5 @@
-﻿using Etrx.Domain.Interfaces.Repositories;
+﻿using EFCore.BulkExtensions;
+using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,11 @@ namespace Etrx.Persistence.Repositories
             var problems = _context.Problems.AsNoTracking();
 
             return problems;
+        }
+
+        public async Task InsertOrUpdateAsync(List<Problem> problems)
+        {
+            await _context.BulkInsertOrUpdateAsync(problems);
         }
 
         public Problem? GetByContestIdAndIndex(int contestId, string index)

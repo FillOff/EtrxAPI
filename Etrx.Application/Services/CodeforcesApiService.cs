@@ -1,202 +1,98 @@
 ﻿using Etrx.Domain.Parsing_models;
 using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json;
-using System.Text.Json;
-using Etrx.Domain.Models;
-using System.Net.Http;
-using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace Etrx.Application.Services
 {
-    public class CodeforcesApiService : ICodeforcesApiService
+    public class CodeforcesApiService(HttpClient httpClient) : ICodeforcesApiService
     {
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _httpClient = httpClient;
 
-        public CodeforcesApiService(HttpClient httpClient)
+        public async Task<List<DlUser>> GetDlUsersAsync()
+            => await GetApiDataAsync<List<DlUser>>("https://dl.gsu.by/codeforces/api/students");
+
+        public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
         {
-            _httpClient = httpClient;
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.info?handles={handlesString}");
+
+            var users = result["result"]?.ToObject<List<CodeforcesUser>>()
+                        ?? throw new InvalidOperationException("Unable to deserialize 'result' to List<CodeforcesUser>.");
+
+            return users;
         }
 
-        public async Task<(List<DlUser>? Users, string Error)> GetDlUsersAsync()
+        public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync()
         {
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                "https://dl.gsu.by/codeforces/api/students",
-                "dl.gsu.by");
+            var result = await GetApiDataAsync<JObject>("https://codeforces.com/api/problemset.problems");
 
-            if (!isCorrectResponse)
-                return (null, content);
+            var resultData = result["result"] ?? throw new InvalidOperationException("API response does not contain a 'result' field.");
 
-            return (JsonConvert.DeserializeObject<List<DlUser>>(content), string.Empty);
+            var problems = resultData["problems"]?.ToObject<List<CodeforcesProblem>>() ?? [];
+            var problemStatistics = resultData["problemStatistics"]?.ToObject<List<CodeforcesProblemStatistics>>() ?? [];
+
+            return (problems, problemStatistics);
         }
 
-        public async Task<(List<CodeforcesUser>? Users, string Error)> GetCodeforcesUsersAsync(string handlesString)
+        public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym)
         {
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                $"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru",
-                "codeforces.com");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.list?gym={gym}");
 
-            if (!isCorrectResponse)
-                return (null, content);
-
-            string users = JsonDocument.Parse(content).RootElement.GetProperty("result").ToString();
-
-            return (JsonConvert.DeserializeObject<List<CodeforcesUser>>(users), string.Empty);
+            return result["result"]?.ToObject<List<CodeforcesContest>>() ?? [];
         }
 
-        public async Task<(List<CodeforcesProblem>? Problems, List<CodeforcesProblemStatistics>? ProblemStatistics, string Error)> GetCodeforcesProblemsAsync()
+        public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
         {
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                "https://codeforces.com/api/problemset.problems",
-                "codeforces.com");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.status?handle={handle}");
 
-            if (!isCorrectResponse)
-                return (null, null, content);
-
-            string problems = JsonDocument.Parse(content).RootElement.GetProperty("result").GetProperty("problems").ToString();
-            string problemStatistics = JsonDocument.Parse(content).RootElement.GetProperty("result").GetProperty("problemStatistics").ToString();
-
-            return (JsonConvert.DeserializeObject<List<CodeforcesProblem>>(problems),
-                    JsonConvert.DeserializeObject<List<CodeforcesProblemStatistics>>(problemStatistics),
-                    string.Empty);
+            return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
 
-        public async Task<(List<CodeforcesContest>? Contests, string Error)> GetCodeforcesContestsAsync(bool gym)
+        public async Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
         {
-            using var response = await _httpClient.GetAsync($"https://codeforces.com/api/contest.list?gym={gym}", HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
 
-            using var stream = await response.Content.ReadAsStreamAsync();
-            using var streamReader = new StreamReader(stream);
-            using var jsonReader = new JsonTextReader(streamReader);
-
-            var serializer = new Newtonsoft.Json.JsonSerializer();
-
-            List<CodeforcesContest> contests = [];
-            while (jsonReader.Read())
-            {
-                if (jsonReader.TokenType == JsonToken.PropertyName && jsonReader.Value?.ToString() == "result")
-                {
-                    jsonReader.Read();
-                    if (jsonReader.TokenType == JsonToken.StartArray)
-                    {
-                        while (jsonReader.Read())
-                        {
-                            if (jsonReader.TokenType == JsonToken.StartObject)
-                            {
-                                var contest = serializer.Deserialize<CodeforcesContest>(jsonReader);
-                                contests.Add(contest!);
-                            }
-                            else if (jsonReader.TokenType == JsonToken.EndArray)
-                            {
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
-            return (contests, string.Empty);
+            return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
 
-        public async Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesSubmissionsAsync(string handle)
-        {
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                $"https://codeforces.com/api/user.status?handle={handle}",
-                "codeforces.com");
-
-            if (!isCorrectResponse)
-                return (null, content);
-    
-            string submissions = JsonDocument.Parse(content).RootElement.GetProperty("result").ToString();
-    
-            return (JsonConvert.DeserializeObject<List<CodeforcesSubmission>>(submissions),
-                string.Empty);
-        }
-
-        public async Task<(List<CodeforcesSubmission>? Submissions, string Error)> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
-        {
-            await Task.Delay(2000);
-
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient,
-                $"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}",
-                "codeforces.com");
-
-            if (!isCorrectResponse)
-                return (null, content);
-
-            string submissions = JsonDocument.Parse(content).RootElement.GetProperty("result").ToString();
-
-            return (JsonConvert.DeserializeObject<List<CodeforcesSubmission>>(submissions),
-                string.Empty);
-        }
-
-        public async Task<(List<string>? Handles, string Error)> GetCoodeforcesContestUsersAsync(string[] handles, int contestId)
+        public async Task<List<string>> GetCodeforcesContestUsersAsync(string[] handles, int contestId)
         {
             var handlesString = string.Join(";", handles);
 
-            var (isCorrectResponse, content) = await GetResponseAsync(
-                _httpClient, 
-                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}", 
-                "codeforces.com");
+            var result = await GetApiDataAsync<JObject>(
+                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
 
-            if (!isCorrectResponse)
-                return (null, content);
+            var rows = result["result"]?["rows"]?.ToObject<List<CodeforcesRanklistRow>>() ?? [];
 
-            string rowsJson = JsonDocument.Parse(content).RootElement.GetProperty("result").GetProperty("rows").ToString();
-            var rows = JsonConvert.DeserializeObject<List<CodeforcesRanklistRow>>(rowsJson)!;
-
-            List<string> newHandles = [];
-            if (rows.Count != 0)
-            {
-                newHandles = rows
-                    .SelectMany(row => row.Party.Members)
-                    .Where(handle => handles.Contains(handle.Handle) && !newHandles.Contains(handle.Handle))
-                    .Select(handle => handle.Handle)
-                    .Distinct()
-                    .ToList();
-
-                return (newHandles, string.Empty);
-            }
-            else
-            {
-                return (newHandles, $"There are not users who solve contest {contestId}.");
-            }
+            return rows
+                .SelectMany(row => row.Party.Members)
+                .Select(member => member.Handle)
+                .Distinct()
+                .ToList();
         }
 
-        private static async Task<(bool, string)> GetResponseAsync(HttpClient httpclient, string url, string host)
+        private async Task<T> GetApiDataAsync<T>(string url)
         {
             try
             {
-                var response = await httpclient.GetAsync(url);
+                using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
 
-                if (host == "dl.gsu.by")
-                {
-                    if (!response.IsSuccessStatusCode)
-                        return (false, $"Couldn't get data from {host}");
+                using var stream = await response.Content.ReadAsStreamAsync();
+                using var streamReader = new StreamReader(stream);
+                using var jsonReader = new JsonTextReader(streamReader);
 
-                    return (true, await response.Content.ReadAsStringAsync());
-                }
-                else if (host == "codeforces.com")
-                {
-                    if (!response.IsSuccessStatusCode)
-                        return (false, JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("comment").ToString());
-
-                    string content =  await response.Content.ReadAsStringAsync();
-                    if (content.StartsWith('<'))
-                        return (false, "Couldn't get data from Codeforces.");
-
-                    return (true, content);
-                }
-                return (false, $"Couldn't get data from {host}");
+                var serializer = new JsonSerializer();
+                return serializer.Deserialize<T>(jsonReader)
+                       ?? throw new InvalidOperationException("Unable to deserialize response.");
             }
-            catch (Exception ex)
+            catch (HttpRequestException e)
             {
-                return (false, $"Error: {ex.Message}");
+                throw new InvalidOperationException($"HTTP error: {e.Message}");
+            }
+            catch (JsonException e)
+            {
+                throw new InvalidOperationException($"JSON deserialization error: {e.Message}");
             }
         }
     }

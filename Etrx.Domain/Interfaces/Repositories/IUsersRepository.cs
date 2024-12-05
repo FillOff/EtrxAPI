@@ -9,5 +9,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         IQueryable<User> Get();
         User? GetByHandle(string handle);
         Task<int> Update(User user);
+        Task InsertOrUpdateAsync(List<User> users);
     }
 }

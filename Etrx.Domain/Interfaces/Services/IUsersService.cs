@@ -8,7 +8,7 @@ namespace Etrx.Domain.Interfaces.Services
         Task<int> CreateUser(User user);
         Task<int> UpdateUser(User user);
         User? GetUserByHandle(string handle);
-        string[] GetUsersHandle();
+        string[] GetHandles();
         public IQueryable<User> GetUsersWithSort(string sortField, bool sortOrder);
     }
 }

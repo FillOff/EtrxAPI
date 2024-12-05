@@ -26,6 +26,7 @@ namespace Etrx.Application.Services
 
         public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
         {
+            List<User> users = [];
             for (int i = 0; i < dlUsersList.Count; i++)
             {
                 var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
@@ -61,20 +62,19 @@ namespace Etrx.Application.Services
                         user.TitlePhoto,
                         dlUsersList[i].Grade);
 
-                    if (_usersRepository.GetByHandle(newUser.Handle) == null)
-                        await _usersRepository.Create(newUser);
-                    else
-                        await _usersRepository.Update(newUser);
+                    users.Add(newUser);
                 }
                 else
                 {
                     Console.WriteLine($"User {dlUsersList[i].Handle} doesn't exist in Codeforces");
                 }
             }
+            await _usersRepository.InsertOrUpdateAsync(users);
         }
 
         public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics)
         {
+            List<Problem> newProblems = [];
             for (int i = 0; i < problems.Count; i++)
             {
                 var problem = problems[i];
@@ -89,11 +89,9 @@ namespace Etrx.Application.Services
                     problem.Rating,
                     solvedCount,
                     problem.Tags);
-                if (_problemsRepository.GetByContestIdAndIndex(newProblem.ContestId, newProblem.Index) == null)
-                    await _problemsRepository.Create(newProblem);
-                else
-                    await _problemsRepository.Update(newProblem);
+                newProblems.Add(newProblem);
             }
+            await _problemsRepository.InsertOrUpdateAsync(newProblems);
         }
 
         public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym)
@@ -131,18 +129,17 @@ namespace Etrx.Application.Services
 
                 newContests.Add(newContest);
             }
-
             await _contestsRepository.InsertOrUpdateAsync(newContests);
         }
 
         public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
         {
+            List<Submission> newSubmissions = [];
             for (int i = 0; i < submissions.Count; i++)
             {
                 var submission = submissions[i];
                 DateTime creationTimeSeconds = DateTimeOffset.FromUnixTimeSeconds(submission.CreationTimeSeconds).UtcDateTime;
                 DateTime relativeTimeSeconds = DateTimeOffset.FromUnixTimeSeconds(submission.RelativeTimeSeconds).UtcDateTime;
-                var user = _usersRepository.GetByHandle(handle);
 
                 var newSubmission = new Submission(
                     submission.Id,
@@ -152,20 +149,15 @@ namespace Etrx.Application.Services
                     relativeTimeSeconds,
                     submission.ProgrammingLanguage,
                     handle,
-                    user!.FirstName!,
-                    user!.LastName!,
                     submission.Author.ParticipantType,
                     submission.Verdict,
                     submission.Testset,
                     submission.PassedTestCount,
                     submission.TimeConsumedMillis,
                     submission.MemoryConsumedBytes);
-
-                if (_submissionsRepository.GetById(submission.Id) == null)
-                    await _submissionsRepository.Create(newSubmission);
-                else
-                    await _submissionsRepository.Update(newSubmission);
+                newSubmissions.Add(newSubmission);
             }
+            await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);
         }
     }
 }

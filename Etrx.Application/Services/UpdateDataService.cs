@@ -70,7 +70,7 @@ namespace Etrx.Application.Services
             _logger.LogInformation("UpdateDataService is stopping.");
         }
 
-        private DateTime CalculateNextRunTime()
+        private static DateTime CalculateNextRunTime()
         {
             var targetTime = DateTime.Today.AddHours(23).AddMinutes(00);
 
@@ -87,10 +87,7 @@ namespace Etrx.Application.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
 
-            var (Problems, ProblemStatistics, Error) = await _externalApiService.GetCodeforcesProblemsAsync();
-
-            if (!string.IsNullOrEmpty(Error))
-                return (false, Error);
+            var (Problems, ProblemStatistics) = await _externalApiService.GetCodeforcesProblemsAsync();
 
             await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!);
 
@@ -104,17 +101,11 @@ namespace Etrx.Application.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
 
-            var (contests, error) = await _externalApiService.GetCodeforcesContestsAsync(false);
-
-            if (!string.IsNullOrEmpty(error))
-                return (false, error);
+            var contests = await _externalApiService.GetCodeforcesContestsAsync(false);
 
             await codeforcesService.PostContestsFromCodeforces(contests!, false);
 
-            (contests, error) = await _externalApiService.GetCodeforcesContestsAsync(true);
-
-            if (!string.IsNullOrEmpty(error))
-                return (false, error);
+            contests = await _externalApiService.GetCodeforcesContestsAsync(true);
 
             await codeforcesService.PostContestsFromCodeforces(contests!, true);
 
@@ -130,19 +121,30 @@ namespace Etrx.Application.Services
 
             var dlUsers = await _externalApiService.GetDlUsersAsync();
 
-            if (!string.IsNullOrEmpty(dlUsers.Error))
-                return (false, dlUsers.Error);
+            string handlesString = string.Join(';', dlUsers.Select(user => user.Handle.ToLower()));
+            var users = await _externalApiService.GetCodeforcesUsersAsync(handlesString);
 
-            string handlesString = string.Join(';', dlUsers.Users!.Select(user => user.Handle.ToLower()));
-            var (Users, Error) = await _externalApiService.GetCodeforcesUsersAsync(handlesString);
-
-            if (!string.IsNullOrEmpty(Error))
-                return (false, Error);
-
-            await codeforcesService.PostUsersFromDlCodeforces(dlUsers.Users!, Users!);
+            await codeforcesService.PostUsersFromDlCodeforces(dlUsers, users);
 
             _logger.LogInformation($"Dl users updated successfully.");
             _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
+            return (true, string.Empty);
+        }
+
+        public async Task<(bool Success, string Error)> UpdateSubmissions()
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+            var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+            var handles = usersService.GetHandles();
+
+            foreach (var handle in handles)
+            {
+                var submissions = await _externalApiService.GetCodeforcesSubmissionsAsync(handle);
+                await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
+            }
+
+            _logger.LogInformation($"Submissions updated successfully.");
             return (true, string.Empty);
         }
     }

@@ -9,5 +9,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         IQueryable<Submission> Get();
         Submission? GetById(ulong id);
         Task<ulong> Update(Submission submission);
+        Task InsertOrUpdateAsync(List<Submission> submissions);
     }
 }

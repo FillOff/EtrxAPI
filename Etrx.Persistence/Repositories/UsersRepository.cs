@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Persistence.Databases;
+using EFCore.BulkExtensions;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -24,6 +25,11 @@ namespace Etrx.Persistence.Repositories
         public User? GetByHandle(string handle)
         {
             return _context.Users.FirstOrDefault(u => u.Handle == handle);
+        }
+
+        public async Task InsertOrUpdateAsync(List<User> users)
+        {
+            await _context.BulkInsertOrUpdateAsync(users);
         }
 
         public async Task<int> Create(User user)

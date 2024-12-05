@@ -2,6 +2,7 @@
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
+using EFCore.BulkExtensions;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -26,6 +27,11 @@ namespace Etrx.Persistence.Repositories
             return _context.Submissions.AsNoTracking().FirstOrDefault(s => s.Id == id);
         }
 
+        public async Task InsertOrUpdateAsync(List<Submission> submissions)
+        {
+            await _context.BulkInsertOrUpdateAsync(submissions);
+        }
+
         public async Task<ulong> Create(Submission submission)
         {
             await _context.Submissions.AddAsync(submission);
@@ -42,8 +48,6 @@ namespace Etrx.Persistence.Repositories
                     .SetProperty(s => s.ContestId, submission.ContestId)
                     .SetProperty(s => s.CreationTimeSeconds, submission.CreationTimeSeconds)
                     .SetProperty(s => s.RelativeTimeSeconds, submission.RelativeTimeSeconds)
-                    .SetProperty(s => s.FirstName, submission.FirstName)
-                    .SetProperty(s => s.LastName, submission.LastName)
                     .SetProperty(s => s.ParticipantType, submission.ParticipantType)
                     .SetProperty(s => s.ProgrammingLanguage, submission.ProgrammingLanguage)
                     .SetProperty(s => s.Verdict, submission.Verdict)

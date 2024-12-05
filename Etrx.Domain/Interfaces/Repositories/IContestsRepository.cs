@@ -9,8 +9,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         Contest? GetById(int contestId);
         Task<int> Update(Contest contest);
         Task<int> Delete(int contestId);
-
-
         Task InsertOrUpdateAsync(List<Contest> contests);
     }
 }

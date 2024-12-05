@@ -34,7 +34,7 @@ namespace Etrx.Application.Services
             return await _usersRepository.Update(user);
         }
 
-        public string[] GetUsersHandle()
+        public string[] GetHandles()
         {
             return _usersRepository
                 .Get()

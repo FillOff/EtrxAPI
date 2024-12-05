@@ -58,38 +58,28 @@ namespace Etrx.API.Controllers
         }
 
         [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforces")]
-        public async Task<IActionResult> PostSubmissionsFromCodeforces()
+        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforces()
         {
-            string[] handles = _usersService.GetUsersHandle();
+            var (_, Error) = await _updateDataService.UpdateSubmissions();
 
-            foreach (var handle in handles)
-            {
-                var (Submissions, Error) = await _externalApiService.GetCodeforcesSubmissionsAsync(handle);
-                if (!string.IsNullOrEmpty(Error))
-                    return StatusCode(StatusCodes.Status502BadGateway, Error);
-
-                await _codeforcesService.PostSubmissionsFromCodeforces(Submissions!, handle);
-            }
+            if (!string.IsNullOrEmpty(Error))
+                return StatusCode(StatusCodes.Status502BadGateway, Error);
 
             return Ok("Submissions added successfully!");
         }
 
-        [HttpPost("Submissions/PostSubmissionsFromCodeforcesByContestId")]
-        public async Task<IActionResult> PostSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
+        [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforcesByContestId")]
+        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
         {
-            var (handles, error) = await _externalApiService.GetCoodeforcesContestUsersAsync(_usersService.GetUsersHandle(), contestId);
-            if (!string.IsNullOrEmpty(error))
-                return StatusCode(StatusCodes.Status502BadGateway, error);
+            var handles = await _externalApiService.GetCodeforcesContestUsersAsync(_usersService.GetHandles(), contestId);
 
             Console.WriteLine(string.Join(';', handles));
 
             foreach (var handle in handles)
             {
-                var (Submissions, Error) = await _externalApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
-                if (!string.IsNullOrEmpty(Error))
-                    return StatusCode(StatusCodes.Status502BadGateway, Error);
+                var submissions = await _externalApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
 
-                await _codeforcesService.PostSubmissionsFromCodeforces(Submissions!, handle);
+                await _codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
             }
 
             return Ok($"Submissions of contest {contestId} added successfully!");
