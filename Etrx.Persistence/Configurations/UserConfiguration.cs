@@ -8,7 +8,9 @@ namespace Etrx.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.HasKey(u => u.Id);
+            builder.HasKey(u => u.Handle);
+            builder.Property(u => u.Id)
+                .ValueGeneratedOnAdd();
         }
     }
 }
