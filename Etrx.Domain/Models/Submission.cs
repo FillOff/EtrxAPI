@@ -5,8 +5,8 @@
         public Submission(ulong id,
                           int? contestId,
                           string index,
-                          DateTime creationTimeSeconds,
-                          DateTime relativeTimeSeconds,
+                          long creationTimeSeconds,
+                          long relativeTimeSeconds,
                           string programmingLanguage,
                           string handle,
                           string participantType,
@@ -34,8 +34,8 @@
         public ulong Id { get; set; }
         public int? ContestId { get; set; }
         public string Index { get; set; }
-        public DateTime CreationTimeSeconds { get; set; }
-        public DateTime RelativeTimeSeconds { get; set; }
+        public long CreationTimeSeconds { get; set; }
+        public long RelativeTimeSeconds { get; set; }
         public string Handle { get; set; }
         public string ParticipantType { get; set; } = string.Empty;
         public string ProgrammingLanguage { get; set; } = string.Empty;

@@ -18,8 +18,8 @@ public class User
         int? rating,
         string? maxRank,
         int? maxRating,
-        DateTime? lastOnlineTimeSeconds,
-        DateTime? registrationTimeSeconds,
+        long? lastOnlineTimeSeconds,
+        long? registrationTimeSeconds,
         int? friendOfCount,
         string? avatar,
         string? titlePhoto,
@@ -63,8 +63,8 @@ public class User
     public int? Rating { get; set; }
     public string? MaxRank { get; set; } = string.Empty;
     public int? MaxRating { get; set; }
-    public DateTime? LastOnlineTimeSeconds { get; set; }
-    public DateTime? RegistrationTimeSeconds { get; set; }
+    public long? LastOnlineTimeSeconds { get; set; }
+    public long? RegistrationTimeSeconds { get; set; }
     public int? FriendOfCount { get; set; }
     public string? Avatar { get; set; } = string.Empty;
     public string? TitlePhoto { get; set; } = string.Empty;

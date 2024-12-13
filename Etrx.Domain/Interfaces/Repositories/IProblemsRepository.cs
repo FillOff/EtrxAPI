@@ -10,5 +10,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         Task<int> Update(Problem problem);
         Problem? GetByContestIdAndIndex(int contestId, string index);
         Task InsertOrUpdateAsync(List<Problem> problems);
+        IQueryable<Problem> GetByContestId(int contestId);
     }
 }

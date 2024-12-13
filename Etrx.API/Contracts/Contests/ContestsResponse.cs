@@ -3,5 +3,5 @@
     public record ContestsResponse(
         int ContestId,
         string Name,
-        DateTime? StartTime);
+        long? StartTime);
 }

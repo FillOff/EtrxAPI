@@ -32,13 +32,6 @@ namespace Etrx.Application.Services
                 var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
                 if (user != null)
                 {
-                    DateTime? lastTime = user.LastOnlineTimeSeconds != null 
-                        ? DateTimeOffset.FromUnixTimeSeconds((long)user.LastOnlineTimeSeconds).UtcDateTime 
-                        : null;
-                    DateTime? regTime = user.RegistrationTimeSeconds != null 
-                        ? DateTimeOffset.FromUnixTimeSeconds((long)user.RegistrationTimeSeconds).UtcDateTime 
-                        : null;
-
                     var newUser = new User(
                         0,
                         dlUsersList[i].Handle,
@@ -55,8 +48,8 @@ namespace Etrx.Application.Services
                         user.Rating,
                         user.MaxRank,
                         user.MaxRating,
-                        lastTime,
-                        regTime,
+                        user.LastOnlineTimeSeconds,
+                        user.RegistrationTimeSeconds,
                         user.FriendOfCount,
                         user.Avatar,
                         user.TitlePhoto,
@@ -100,12 +93,6 @@ namespace Etrx.Application.Services
             for (int i = 0; i < contests.Count; i++)
             {
                 var contest = contests[i];
-                DateTime? startTime = contest.StartTime != null 
-                    ? DateTimeOffset.FromUnixTimeSeconds((long)contest.StartTime).UtcDateTime 
-                    : null;
-                DateTime? relativeTimeSeconds = contest.RelativeTimeSeconds != null 
-                    ? DateTimeOffset.FromUnixTimeSeconds((long)contest.RelativeTimeSeconds).UtcDateTime 
-                    : null;
 
                 var newContest = new Contest(
                     contest.ContestId,
@@ -114,8 +101,8 @@ namespace Etrx.Application.Services
                     contest.Phase,
                     contest.Frozen,
                     contest.DurationSeconds,
-                    startTime,
-                    relativeTimeSeconds,
+                    contest.StartTime,
+                    contest.RelativeTimeSeconds,
                     contest.PreparedBy,
                     contest.WebsiteUrl,
                     contest.Description,
@@ -138,15 +125,13 @@ namespace Etrx.Application.Services
             for (int i = 0; i < submissions.Count; i++)
             {
                 var submission = submissions[i];
-                DateTime creationTimeSeconds = DateTimeOffset.FromUnixTimeSeconds(submission.CreationTimeSeconds).UtcDateTime;
-                DateTime relativeTimeSeconds = DateTimeOffset.FromUnixTimeSeconds(submission.RelativeTimeSeconds).UtcDateTime;
 
                 var newSubmission = new Submission(
                     submission.Id,
                     submission.ContestId,
                     submission.Problem.Index,
-                    creationTimeSeconds,
-                    relativeTimeSeconds,
+                    submission.CreationTimeSeconds,
+                    submission.RelativeTimeSeconds,
                     submission.ProgrammingLanguage,
                     handle,
                     submission.Author.ParticipantType,

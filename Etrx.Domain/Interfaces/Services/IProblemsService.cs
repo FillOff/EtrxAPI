@@ -12,5 +12,6 @@ namespace Etrx.Domain.Interfaces.Services
         Task<int> DeleteProblem(int id);
         List<string?>? GetAllTags();
         (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField, bool sortOrder);
+        string[]? GetProblemsIndexesByContestId(int contestId);
     }
 }

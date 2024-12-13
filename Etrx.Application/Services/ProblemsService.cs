@@ -78,5 +78,16 @@ namespace Etrx.Application.Services
 
             return (problems, pageCount);
         }
+        public string[]? GetProblemsIndexesByContestId(int contestId)
+        {
+            var problems = _problemsRepository.GetByContestId(contestId);
+
+            if (problems == null) 
+                return null;
+
+            return problems
+                .Select(p => p.Index)
+                .ToArray();
+        }
     }
 }

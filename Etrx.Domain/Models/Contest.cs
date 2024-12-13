@@ -9,8 +9,8 @@ public class Contest
         string phase, 
         bool frozen, 
         int durationSeconds,
-        DateTime? startTime,
-        DateTime? relativeTimeSeconds, 
+        long? startTime,
+        long? relativeTimeSeconds, 
         string? preparedBy, 
         string? websiteUrl,
         string? description, 
@@ -48,8 +48,8 @@ public class Contest
     public string Phase { get; set; } = string.Empty;
     public bool Frozen { get; set; }
     public int DurationSeconds { get; set; }
-    public DateTime? StartTime { get; set; }
-    public DateTime? RelativeTimeSeconds { get; set; }
+    public long? StartTime { get; set; }
+    public long? RelativeTimeSeconds { get; set; }
     public string? PreparedBy { get; set; }
     public string? WebsiteUrl { get; set; }
     public string? Description { get; set; }

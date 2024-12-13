@@ -24,6 +24,10 @@ namespace Etrx.API.Controllers
             _externalApiService = externalApiService;
         }
 
+        /// <summary>
+        /// Load and insert or update problems from Codeforces
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("Problems/PostAndUpdateProblemsFromCodeforces")]
         public async Task<IActionResult> PostAndUpdateProblemsFromCodeforces()
         {
@@ -35,6 +39,10 @@ namespace Etrx.API.Controllers
             return Ok("Problems added successfully");
         }
 
+        /// <summary>
+        /// Load and insert or update contests from Codeforces
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("Contests/PostAndUpdateContestsFromCodeforces")]
         public async Task<IActionResult> PostAndUpdateContestsFromCodeforces()
         {
@@ -46,6 +54,10 @@ namespace Etrx.API.Controllers
             return Ok("Contests added successfully");
         }
 
+        /// <summary>
+        /// Load and insert or update users from Codeforces
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("Users/PostAndUpdateUsersFromDlCodeforces")]
         public async Task<IActionResult> PostAndUpdateUsersFromDlCodeforces()
         {
@@ -57,6 +69,10 @@ namespace Etrx.API.Controllers
             return Ok("Dl users added successfully");
         }
 
+        /// <summary>
+        /// Load and insert or update submissions of all users from Codeforces (DO NOT USE THIS! Virtual machine can't process this)
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforces")]
         public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforces()
         {
@@ -68,12 +84,14 @@ namespace Etrx.API.Controllers
             return Ok("Submissions added successfully!");
         }
 
+        /// <summary>
+        /// Load and insert or update submissions of one contest from Codeforces
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforcesByContestId")]
         public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
         {
             var handles = await _externalApiService.GetCodeforcesContestUsersAsync(_usersService.GetHandles(), contestId);
-
-            Console.WriteLine(string.Join(';', handles));
 
             foreach (var handle in handles)
             {

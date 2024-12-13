@@ -66,5 +66,12 @@ namespace Etrx.Persistence.Repositories
 
             return id;
         }
+
+        public IQueryable<Problem> GetByContestId(int contestId)
+        {
+            return _context.Problems
+                .AsNoTracking()
+                .Where(p => p.ContestId == contestId);
+        }
     }
 }

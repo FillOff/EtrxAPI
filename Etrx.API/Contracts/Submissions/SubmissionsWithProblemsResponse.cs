@@ -2,6 +2,6 @@
 {
     public record SubmissionsWithProblemsResponse(
         IEnumerable<SubmissionsResponse> Submissions,
-        string[] ProblemIndexes,
+        string[]? ProblemIndexes,
         string[] Properties);
 }

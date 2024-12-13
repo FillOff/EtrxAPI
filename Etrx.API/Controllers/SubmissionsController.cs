@@ -11,19 +11,24 @@ namespace Etrx.API.Controllers
     {
         private readonly ISubmissionsService _submissionsService;
         private readonly IUsersService _usersService;
+        private readonly IProblemsService _problemsService;
 
         public SubmissionsController(ISubmissionsService submissionsService, 
-                                     IUsersService usersService)
+                                     IUsersService usersService,
+                                     IProblemsService problemsService)
         {
             _submissionsService = submissionsService;
             _usersService = usersService;
+            _problemsService = problemsService;
         }
 
         [HttpGet("GetSubmissionsByContestIdWithSort")]
         public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestIdWithSort(
             [FromQuery] int contestId,
             [FromQuery] string sortField = "solvedCount",
-            [FromQuery] bool sortOrder = true)
+            [FromQuery] bool sortOrder = true,
+            [FromQuery] bool allIndexes = true,
+            [FromQuery] string filterByParticipantType = "ALL")
         {
             if (string.IsNullOrEmpty(sortField) ||
                 !typeof(SubmissionsResponse).GetProperties().Any(p => p.Name.Equals(sortField, System.StringComparison.InvariantCultureIgnoreCase)))
@@ -42,10 +47,19 @@ namespace Etrx.API.Controllers
             
             List<SubmissionsResponse> submissionsResponses = [];
 
-            var indexes = submissions
-                .Select(s => s.Index)
-                .Distinct()
-                .ToArray();
+            string[]? indexes;
+            if (allIndexes)
+            {
+                indexes = _problemsService
+                    .GetProblemsIndexesByContestId(contestId);
+            }
+            else
+            {
+                indexes = submissions
+                    .Select(s => s.Index)
+                    .Distinct()
+                    .ToArray();
+            }
 
             foreach (var handle in handles)
             {
@@ -58,6 +72,13 @@ namespace Etrx.API.Controllers
                                                                  user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
 
                 submissionsResponses.Add(submissionResponse);
+            }
+
+            if (filterByParticipantType != "ALL")
+            {
+                submissionsResponses = submissionsResponses
+                    .Where(s => s.ParticipantType == filterByParticipantType)
+                    .ToList();
             }
 
             submissionsResponses = submissionsResponses
