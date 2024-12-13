@@ -43,7 +43,7 @@ if (app.Environment.IsDevelopment())
             {
                 new OpenApiServer 
                 { 
-                    Url = $"{httpReq.Scheme}://{httpReq.Host}/etrx2",
+                    Url = $"https://dl.gsu.by/etrx2",
                     Description = "For swagger in production"
                 },
                 new OpenApiServer 
