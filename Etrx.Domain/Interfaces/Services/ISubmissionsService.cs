@@ -9,6 +9,7 @@ namespace Etrx.Domain.Interfaces.Services
         IQueryable<Submission> GetAllSubmissions();
         Task<ulong> UpdateSubmission(Submission submission);
         IQueryable<Submission> GetSubmissionsByContestId(int contestId);
+        List<string> GetUserParticipantTypeList(string handle);
         (int SolvedCount, int[] Tries) GetTriesAndSolvedCountByHandle(string handle, IQueryable<Submission> userSubmissions, string[] indexes);
     }
 }

@@ -10,7 +10,7 @@ namespace Etrx.Application.Services
         private readonly HttpClient _httpClient = httpClient;
 
         public async Task<List<DlUser>> GetDlUsersAsync()
-            => await GetApiDataAsync<List<DlUser>>("http://dl.gsu.by/codeforces/api/students");
+            => await GetApiDataAsync<List<DlUser>>("https://dl.gsu.by/codeforces/api/students");
 
         public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
         {

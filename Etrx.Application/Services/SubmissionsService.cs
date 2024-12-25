@@ -41,11 +41,22 @@ namespace Etrx.Application.Services
                 .Where(s => s.ContestId == contestId);
         }
 
+        public List<string> GetUserParticipantTypeList(string handle)
+        {
+            return _submissionsRepository
+                .Get()
+                .Where(s => s.Handle == handle)
+                .Select(s => s.ParticipantType)
+                .Distinct()
+                .ToList();
+        }
+
         public (int SolvedCount, int[] Tries) GetTriesAndSolvedCountByHandle(string handle, IQueryable<Submission> userSubmissions, string[] indexes)
         {
             int solvedCount = 0;
             int[] tries = new int[indexes.Length];
             int i = 0;
+
             foreach (var index in indexes)
             {
                 var indexSubmissions = userSubmissions.Where(s => s.Index == index);

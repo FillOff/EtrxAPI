@@ -43,6 +43,7 @@ namespace Etrx.API.Controllers
                 .Select(s => s.Handle)
                 .Distinct()
                 .ToArray();
+
             var users = handles.Select(_usersService.GetUserByHandle);
             
             List<SubmissionsResponse> submissionsResponses = [];
@@ -64,14 +65,20 @@ namespace Etrx.API.Controllers
             foreach (var handle in handles)
             {
                 var userSubmissions = submissions.Where(s => s.Handle == handle);
+                List<string> types = _submissionsService.GetUserParticipantTypeList(handle);
+                Console.WriteLine(string.Join(" ", types));
+                foreach (var type in types)
+                {
+                    var typeSubmissions = userSubmissions.Where(s => s.ParticipantType == type);
 
-                var (solvedCount, tries) = _submissionsService.GetTriesAndSolvedCountByHandle(handle, userSubmissions, indexes);
+                    var (solvedCount, tries) = _submissionsService.GetTriesAndSolvedCountByHandle(handle, typeSubmissions, indexes);
+                    var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
+                    
+                    var submissionResponse = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
+                        user.Grade, solvedCount, type, tries);
 
-                var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
-                var submissionResponse = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
-                                                                 user.Grade, solvedCount, userSubmissions.FirstOrDefault(s => s.Handle == handle)!.ParticipantType, tries);
-
-                submissionsResponses.Add(submissionResponse);
+                    submissionsResponses.Add(submissionResponse);
+                }
             }
 
             if (filterByParticipantType != "ALL")

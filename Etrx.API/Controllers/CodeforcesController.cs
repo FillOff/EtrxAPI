@@ -70,21 +70,6 @@ namespace Etrx.API.Controllers
         }
 
         /// <summary>
-        /// Load and insert or update submissions of all users from Codeforces (DO NOT USE THIS! Virtual machine can't process this)
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforces")]
-        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforces()
-        {
-            var (_, Error) = await _updateDataService.UpdateSubmissions();
-
-            if (!string.IsNullOrEmpty(Error))
-                return StatusCode(StatusCodes.Status502BadGateway, Error);
-
-            return Ok("Submissions added successfully!");
-        }
-
-        /// <summary>
         /// Load and insert or update submissions of one contest from Codeforces
         /// </summary>
         /// <returns></returns>
