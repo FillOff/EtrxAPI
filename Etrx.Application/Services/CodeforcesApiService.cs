@@ -14,7 +14,7 @@ namespace Etrx.Application.Services
 
         public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.info?handles={handlesString}");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
 
             var users = result["result"]?.ToObject<List<CodeforcesUser>>()
                         ?? throw new InvalidOperationException("Unable to deserialize 'result' to List<CodeforcesUser>.");
@@ -24,7 +24,7 @@ namespace Etrx.Application.Services
 
         public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync()
         {
-            var result = await GetApiDataAsync<JObject>("https://codeforces.com/api/problemset.problems");
+            var result = await GetApiDataAsync<JObject>("https://codeforces.com/api/problemset.problems?lang=ru");
 
             var resultData = result["result"] ?? throw new InvalidOperationException("API response does not contain a 'result' field.");
 
@@ -36,21 +36,21 @@ namespace Etrx.Application.Services
 
         public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.list?gym={gym}");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.list?gym={gym}&lang=ru");
 
             return result["result"]?.ToObject<List<CodeforcesContest>>() ?? [];
         }
 
         public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.status?handle={handle}");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.status?handle={handle}&lang=ru");
 
             return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
 
         public async Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}&lang=ru");
 
             return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
@@ -60,7 +60,7 @@ namespace Etrx.Application.Services
             var handlesString = string.Join(";", handles);
 
             var result = await GetApiDataAsync<JObject>(
-                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
+                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}&lang=ru");
 
             var rows = result["result"]?["rows"]?.ToObject<List<CodeforcesRanklistRow>>() ?? [];
 

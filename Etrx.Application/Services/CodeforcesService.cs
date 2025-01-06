@@ -30,19 +30,21 @@ namespace Etrx.Application.Services
             for (int i = 0; i < dlUsersList.Count; i++)
             {
                 var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
+                var dlUser = dlUsersList[i];
+
                 if (user != null)
                 {
                     var newUser = new User(
                         0,
-                        dlUsersList[i].Handle,
+                        dlUser.Handle,
                         user.Email,
                         user.VkId,
                         user.OpenId,
-                        dlUsersList[i].FirstName,
-                        dlUsersList[i].LastName,
+                        dlUser.FirstName,
+                        dlUser.LastName,
                         user.Country,
-                        dlUsersList[i].City,
-                        dlUsersList[i].Organization,
+                        dlUser.City,
+                        dlUser.Organization,
                         user.Contribution,
                         user.Rank,
                         user.Rating,
@@ -53,13 +55,13 @@ namespace Etrx.Application.Services
                         user.FriendOfCount,
                         user.Avatar,
                         user.TitlePhoto,
-                        dlUsersList[i].Grade);
+                        dlUser.Grade);
 
                     users.Add(newUser);
                 }
                 else
                 {
-                    Console.WriteLine($"User {dlUsersList[i].Handle} doesn't exist in Codeforces");
+                    Console.WriteLine($"User {dlUser.Handle} doesn't exist in Codeforces");
                 }
             }
             await _usersRepository.InsertOrUpdateAsync(users);
