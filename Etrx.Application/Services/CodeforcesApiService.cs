@@ -43,14 +43,14 @@ namespace Etrx.Application.Services
 
         public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.status?handle={handle}&lang=ru");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/user.status?handle={handle}");
 
             return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
 
         public async Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
         {
-            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}&lang=ru");
+            var result = await GetApiDataAsync<JObject>($"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
 
             return result["result"]?.ToObject<List<CodeforcesSubmission>>() ?? new List<CodeforcesSubmission>();
         }
@@ -60,7 +60,7 @@ namespace Etrx.Application.Services
             var handlesString = string.Join(";", handles);
 
             var result = await GetApiDataAsync<JObject>(
-                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}&lang=ru");
+                $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
 
             var rows = result["result"]?["rows"]?.ToObject<List<CodeforcesRanklistRow>>() ?? [];
 

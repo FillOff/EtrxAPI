@@ -44,19 +44,41 @@ namespace Etrx.Application.Services
             return await _problemsRepository.Delete(id);
         }
 
-        public List<string?>? GetAllTags()
+        public List<string?> GetAllTags()
         {
             var problems = _problemsRepository.Get().ToList();
 
             var tags = problems
-                .SelectMany(problem => problem.Tags)
+                .Where(problem => problem.Tags != null)
+                .SelectMany(problem => problem.Tags!)
                 .Distinct()
+                .OrderBy(tag => tag)
                 .ToList();
 
             return tags;
         }
 
-        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField, bool sortOrder)
+        public List<string> GetAllIndexes()
+        {
+            var problems = _problemsRepository.Get().ToList();
+
+            var indexes = problems
+                .Select(problem => problem.Index)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToList();
+
+            return indexes;
+        }
+
+        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(
+            int page, 
+            int pageSize, 
+            string? tags, 
+            string? indexes,
+            string? problemName,
+            string sortField, 
+            bool sortOrder)
         {
             var problems = _problemsRepository.Get();
 
@@ -68,6 +90,17 @@ namespace Etrx.Application.Services
             {
                 var tagsFilter = tags.Split(';');
                 problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            }
+
+            if (indexes != null)
+            {
+                var indexesFilter = indexes.Split(";");
+                problems = problems.Where(p => indexesFilter.Contains(p.Index));
+            }
+
+            if (problemName != null)
+            {
+                problems = problems.Where(p => p.Name.Contains(problemName));
             }
 
             int pageCount = problems.Count() % pageSize == 0

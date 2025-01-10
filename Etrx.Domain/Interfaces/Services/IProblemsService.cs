@@ -10,8 +10,9 @@ namespace Etrx.Domain.Interfaces.Services
         Task<int> CreateProblem(Problem problem);
         Task<int> UpdateProblem(Problem problem);
         Task<int> DeleteProblem(int id);
-        List<string?>? GetAllTags();
-        (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string sortField, bool sortOrder);
+        List<string?> GetAllTags();
+        List<string> GetAllIndexes();
+        (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string? indexes, string? problemName, string sortField, bool sortOrder);
         string[]? GetProblemsIndexesByContestId(int contestId);
     }
 }

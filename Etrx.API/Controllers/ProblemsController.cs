@@ -34,6 +34,8 @@ namespace Etrx.API.Controllers
             [FromQuery] int page,
             [FromQuery] int pageSize,
             [FromQuery] string? tags,
+            [FromQuery] string? indexes,
+            [FromQuery] string? problemName,
             [FromQuery] string sortField = "id", 
             [FromQuery] bool sortOrder = true)
         {
@@ -43,7 +45,7 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var (Problems, PageCount) = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, sortField, sortOrder);
+            var (Problems, PageCount) = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, indexes, problemName, sortField, sortOrder);
             
             ProblemsWithPropsResponse response = new ProblemsWithPropsResponse
             (
@@ -59,6 +61,14 @@ namespace Etrx.API.Controllers
         public ActionResult<List<string>> GetTagsList()
         {
             var response = _problemsService.GetAllTags();
+
+            return Ok(response);
+        }
+
+        [HttpGet("GetIndexesList")]
+        public ActionResult<List<string>> GetIndexesList()
+        {
+            var response = _problemsService.GetAllIndexes();
 
             return Ok(response);
         }
