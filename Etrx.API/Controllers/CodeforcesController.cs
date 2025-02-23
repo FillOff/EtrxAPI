@@ -24,11 +24,7 @@ namespace Etrx.API.Controllers
             _externalApiService = externalApiService;
         }
 
-        /// <summary>
-        /// Load and insert or update problems from Codeforces
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Problems/PostAndUpdateProblemsFromCodeforces")]
+        [HttpPost("problems")]
         public async Task<IActionResult> PostAndUpdateProblemsFromCodeforces()
         {
             var (_, Error) = await _updateDataService.UpdateProblems();
@@ -39,11 +35,7 @@ namespace Etrx.API.Controllers
             return Ok("Problems added successfully");
         }
 
-        /// <summary>
-        /// Load and insert or update contests from Codeforces
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Contests/PostAndUpdateContestsFromCodeforces")]
+        [HttpPost("contests")]
         public async Task<IActionResult> PostAndUpdateContestsFromCodeforces()
         {
             var (_, Error) = await _updateDataService.UpdateContests();
@@ -54,11 +46,7 @@ namespace Etrx.API.Controllers
             return Ok("Contests added successfully");
         }
 
-        /// <summary>
-        /// Load and insert or update users from Codeforces
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Users/PostAndUpdateUsersFromDlCodeforces")]
+        [HttpPost("users")]
         public async Task<IActionResult> PostAndUpdateUsersFromDlCodeforces()
         {
             var (_, Error) = await _updateDataService.UpdateUsers();
@@ -69,11 +57,7 @@ namespace Etrx.API.Controllers
             return Ok("Dl users added successfully");
         }
 
-        /// <summary>
-        /// Load and insert or update submissions of one contest from Codeforces
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost("Submissions/PostAndUpdateSubmissionsFromCodeforcesByContestId")]
+        [HttpPost("submissions")]
         public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
         {
             var handles = await _externalApiService.GetCodeforcesContestUsersAsync(_usersService.GetHandles(), contestId);

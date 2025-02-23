@@ -20,7 +20,7 @@ namespace Etrx.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetUsersWithSort")]
+        [HttpGet]
         public ActionResult<IEnumerable<UsersResponse>> GetUsersWithSort(
             [FromQuery] string sortField = "id",
             [FromQuery] bool sortOrder = true)
@@ -43,8 +43,8 @@ namespace Etrx.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("GetUserByHandle")]
-        public ActionResult<UsersResponse> GetUserByHandle([FromQuery] string handle)
+        [HttpGet("{handle}")]
+        public ActionResult<UsersResponse> GetUserByHandle(string handle)
         {
             var user = _usersService.GetUserByHandle(handle);
 

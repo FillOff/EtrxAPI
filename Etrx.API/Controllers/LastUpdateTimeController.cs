@@ -13,8 +13,8 @@ namespace Etrx.API.Controllers
             _lastUpdateTimeService = lastTimeUpdateService;
         }
 
-        [HttpGet("GetLastUpdateTime")]
-        public ActionResult<DateTime> GetLastUpdateTime([FromQuery] string tableName)
+        [HttpGet("{tableName}")]
+        public ActionResult<DateTime> GetLastUpdateTime(string tableName)
         {
             try
             {

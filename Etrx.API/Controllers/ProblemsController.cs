@@ -20,16 +20,16 @@ namespace Etrx.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetProblemsByContestId")]
-        public ActionResult<IEnumerable<ProblemsResponse>> GetProblemsByContestId([FromQuery] int contestId)
+        [HttpGet("{id:int}")]
+        public ActionResult<IEnumerable<ProblemsResponse>> GetProblemsByContestId(int id)
         {
-            var problems = _problemsService.GetProblemsByContestId(contestId);
+            var problems = _problemsService.GetProblemsByContestId(id);
 
             var response = problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable();
             return Ok(response);
         }
 
-        [HttpGet("GetProblemsByPageWithSortAndFilterTags")]
+        [HttpGet]
         public ActionResult<ProblemsWithPropsResponse> GetProblemsByPageWithSortAndFilterTags(
             [FromQuery] int page,
             [FromQuery] int pageSize,
@@ -57,7 +57,7 @@ namespace Etrx.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("GetTagsList")]
+        [HttpGet("tags")]
         public ActionResult<List<string>> GetTagsList()
         {
             var response = _problemsService.GetAllTags();
@@ -65,7 +65,7 @@ namespace Etrx.API.Controllers
             return Ok(response);
         }
 
-        [HttpGet("GetIndexesList")]
+        [HttpGet("indexes")]
         public ActionResult<List<string>> GetIndexesList()
         {
             var response = _problemsService.GetAllIndexes();

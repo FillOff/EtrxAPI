@@ -21,19 +21,19 @@ namespace Etrx.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetContestById")]
-        public ActionResult<ContestsResponse> GetContestById([FromQuery] int contestId)
+        [HttpGet("{id:int}")]
+        public ActionResult<ContestsResponse> GetContestById(int id)
         {
-            var contest = _contestsService.GetContestById(contestId);
+            var contest = _contestsService.GetContestById(id);
 
             if (contest == null)
-                return NotFound($"Contest {contestId} not fount");
+                return NotFound($"Contest {id} not fount");
 
             var response = _mapper.Map<ContestsResponse>(contest);
             return Ok(response);
         }
 
-        [HttpGet("GetContestsByPageWithSort")]
+        [HttpGet]
         public ActionResult<ContestsWithPropsResponse> GetContestsByPageWithSort(
             [FromQuery] int page,
             [FromQuery] int pageSize,

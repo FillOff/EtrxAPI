@@ -22,7 +22,7 @@ namespace Etrx.API.Controllers
             _problemsService = problemsService;
         }
 
-        [HttpGet("GetSubmissionsByContestIdWithSort")]
+        [HttpGet]
         public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestIdWithSort(
             [FromQuery] int contestId,
             [FromQuery] string sortField = "solvedCount",
