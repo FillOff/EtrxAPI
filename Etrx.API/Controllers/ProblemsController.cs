@@ -14,7 +14,9 @@ namespace Etrx.API.Controllers
         private readonly IProblemsService _problemsService;
         private readonly IMapper _mapper;
 
-        public ProblemsController(IProblemsService problemsService, IMapper mapper)
+        public ProblemsController(
+            IProblemsService problemsService, 
+            IMapper mapper)
         {
             _problemsService = problemsService;
             _mapper = mapper;
