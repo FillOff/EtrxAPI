@@ -2,22 +2,12 @@ using Etrx.API.Extensions;
 using Etrx.Application.Services;
 using Etrx.Domain.Interfaces.Services;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(options =>
-{
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    options.IncludeXmlComments(xmlPath);
-});
-
-builder.Services.AddHttpClient<ICodeforcesApiService, CodeforcesApiService>();
-builder.Services.AddHostedService<UpdateDataService>();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddProfiles();
 builder.Services.AddApplicationServices();

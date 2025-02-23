@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Parsing_models
+namespace Etrx.Domain.Models.ParsingModels.Codeforces
 {
     public class CodeforcesSubmission
     {
@@ -17,10 +17,10 @@ namespace Etrx.Domain.Parsing_models
         public long RelativeTimeSeconds { get; set; }
 
         [JsonProperty("problem")]
-        public SubmissionProblem Problem { get; set; } = null!;
+        public CodeforcesSubmissionProblem Problem { get; set; } = null!;
 
         [JsonProperty("author")]
-        public SubmissionAuthor Author { get; set; } = null!;
+        public CodeforcesSubmissionAuthor Author { get; set; } = null!;
 
         [JsonProperty("programmingLanguage")]
         public string ProgrammingLanguage { get; set; } = string.Empty;

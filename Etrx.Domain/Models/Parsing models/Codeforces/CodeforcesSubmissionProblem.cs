@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Parsing_models
+namespace Etrx.Domain.Models.ParsingModels.Codeforces
 {
-    public class SubmissionProblem
+    public class CodeforcesSubmissionProblem
     {
         [JsonProperty("contestId")]
         public int ContestId { get; set; }

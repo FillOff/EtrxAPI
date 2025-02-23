@@ -2,35 +2,6 @@
 {
     public class Submission
     {
-        public Submission(ulong id,
-                          int? contestId,
-                          string index,
-                          long creationTimeSeconds,
-                          long relativeTimeSeconds,
-                          string programmingLanguage,
-                          string handle,
-                          string participantType,
-                          string? verdict,
-                          string testset, 
-                          int passedTestCount, 
-                          int timeConsumedMillis, 
-                          long memoryConsumedBytes)
-        {
-            Id = id;
-            ContestId = contestId;
-            Index = index;
-            CreationTimeSeconds = creationTimeSeconds;
-            RelativeTimeSeconds = relativeTimeSeconds;
-            Handle = handle;
-            ParticipantType = participantType;
-            ProgrammingLanguage = programmingLanguage;
-            Verdict = verdict;
-            Testset = testset;
-            PassedTestCount = passedTestCount;
-            TimeConsumedMillis = timeConsumedMillis;
-            MemoryConsumedBytes = memoryConsumedBytes;
-        }
-
         public ulong Id { get; set; }
         public int? ContestId { get; set; }
         public string Index { get; set; }

@@ -8,18 +8,15 @@ namespace Etrx.Application.Services
     public class UpdateDataService : BackgroundService, IUpdateDataService
     {
         private readonly ILogger<UpdateDataService> _logger;
-        private readonly ICodeforcesApiService _externalApiService;
         private readonly ILastUpdateTimeService _lastTimeUpdateService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private DateTime _nextRunTime;
 
         public UpdateDataService(ILogger<UpdateDataService> logger,
-                                 ICodeforcesApiService externalApiService,
                                  ILastUpdateTimeService lastTimeUpdateService,
                                  IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
-            _externalApiService = externalApiService;
             _lastTimeUpdateService = lastTimeUpdateService;
             _serviceScopeFactory = serviceScopeFactory;
             _nextRunTime = CalculateNextRunTime();
@@ -86,8 +83,9 @@ namespace Etrx.Application.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
 
-            var (Problems, ProblemStatistics) = await _externalApiService.GetCodeforcesProblemsAsync();
+            var (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync();
 
             await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!);
 
@@ -100,12 +98,13 @@ namespace Etrx.Application.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
 
-            var contests = await _externalApiService.GetCodeforcesContestsAsync(false);
+            var contests = await codeforcesApiService.GetCodeforcesContestsAsync(false);
 
             await codeforcesService.PostContestsFromCodeforces(contests!, false);
 
-            contests = await _externalApiService.GetCodeforcesContestsAsync(true);
+            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true);
 
             await codeforcesService.PostContestsFromCodeforces(contests!, true);
 
@@ -118,11 +117,12 @@ namespace Etrx.Application.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
 
-            var dlUsers = await _externalApiService.GetDlUsersAsync();
+            var dlUsers = await codeforcesApiService.GetDlUsersAsync();
 
             string handlesString = string.Join(';', dlUsers.Select(user => user.Handle.ToLower()));
-            var users = await _externalApiService.GetCodeforcesUsersAsync(handlesString);
+            var users = await codeforcesApiService.GetCodeforcesUsersAsync(handlesString);
 
             await codeforcesService.PostUsersFromDlCodeforces(dlUsers, users);
 
@@ -135,12 +135,14 @@ namespace Etrx.Application.Services
         {
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
             var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+
             var handles = usersService.GetHandles();
 
             foreach (var handle in handles)
             {
-                var submissions = await _externalApiService.GetCodeforcesSubmissionsAsync(handle);
+                var submissions = await codeforcesApiService.GetCodeforcesSubmissionsAsync(handle);
                 await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
             }
 

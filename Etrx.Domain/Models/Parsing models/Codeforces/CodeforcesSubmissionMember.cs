@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Parsing_models
+namespace Etrx.Domain.Models.ParsingModels.Codeforces
 {
-    public class SubmissionMember
+    public class CodeforcesSubmissionMember
     {
         [JsonProperty("handle")]
         public string Handle { get; set; } = null!;

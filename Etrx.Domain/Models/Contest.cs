@@ -2,46 +2,6 @@
 
 public class Contest
 {
-    public Contest(
-        int contestId, 
-        string name, 
-        string type, 
-        string phase, 
-        bool frozen, 
-        int durationSeconds,
-        long? startTime,
-        long? relativeTimeSeconds, 
-        string? preparedBy, 
-        string? websiteUrl,
-        string? description, 
-        int? difficulty, 
-        string? kind, 
-        string? icpcRegion,
-        string? country, 
-        string? city, 
-        string? season, 
-        bool gym)
-    {
-        ContestId = contestId;
-        Name = name;
-        Type = type;
-        Phase = phase;
-        Frozen = frozen;
-        DurationSeconds = durationSeconds;
-        StartTime = startTime;
-        RelativeTimeSeconds = relativeTimeSeconds;
-        PreparedBy = preparedBy;
-        WebsiteUrl = websiteUrl;
-        Description = description;
-        Difficulty = difficulty;
-        Kind = kind;
-        IcpcRegion = icpcRegion;
-        Country = country;
-        City = city;
-        Season = season;
-        Gym = gym;
-    }
-
     public int ContestId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;

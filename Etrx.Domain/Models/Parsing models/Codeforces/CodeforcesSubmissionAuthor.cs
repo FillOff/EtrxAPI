@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Parsing_models
+namespace Etrx.Domain.Models.ParsingModels.Codeforces
 {
-    public class SubmissionAuthor
+    public class CodeforcesSubmissionAuthor
     {
         [JsonProperty("members")]
-        public SubmissionMember[] Members { get; set; } = null!;
+        public CodeforcesSubmissionMember[] Members { get; set; } = null!;
 
         [JsonProperty("participantType")]
         public string ParticipantType { get; set; } = string.Empty;

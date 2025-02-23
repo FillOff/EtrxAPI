@@ -2,52 +2,6 @@
 
 public class User
 {
-    public User(
-        int id,
-        string handle,
-        string? email,
-        string? vkId,
-        string? openId,
-        string? firstName,
-        string? lastName,
-        string? country,
-        string? city,
-        string? organization,
-        int? contribution,
-        string? rank,
-        int? rating,
-        string? maxRank,
-        int? maxRating,
-        long? lastOnlineTimeSeconds,
-        long? registrationTimeSeconds,
-        int? friendOfCount,
-        string? avatar,
-        string? titlePhoto,
-        int? grade)
-    {
-        Id = id;
-        Handle = handle;
-        Email = email;
-        VkId = vkId;
-        OpenId = openId;
-        FirstName = firstName;
-        LastName = lastName;
-        Country = country;
-        City = city;
-        Organization = organization;
-        Contribution = contribution;
-        Rank = rank;
-        Rating = rating;
-        MaxRank = maxRank;
-        MaxRating = maxRating;
-        LastOnlineTimeSeconds = lastOnlineTimeSeconds;
-        RegistrationTimeSeconds = registrationTimeSeconds;
-        FriendOfCount = friendOfCount;
-        Avatar = avatar;
-        TitlePhoto = titlePhoto;
-        Grade = grade;
-    }
-
     public int Id { get; set; }
     public string Handle { get; set; } = string.Empty;
     public string? Email { get; set; }

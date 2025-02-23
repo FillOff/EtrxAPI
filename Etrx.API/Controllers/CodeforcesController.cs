@@ -57,8 +57,8 @@ namespace Etrx.API.Controllers
             return Ok("Dl users added successfully");
         }
 
-        [HttpPost("submissions")]
-        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromQuery] int contestId)
+        [HttpPost("submissions/{contestId:int}")]
+        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId(int contestId)
         {
             var handles = await _externalApiService.GetCodeforcesContestUsersAsync(_usersService.GetHandles(), contestId);
 

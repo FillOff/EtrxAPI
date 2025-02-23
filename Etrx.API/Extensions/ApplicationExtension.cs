@@ -12,9 +12,15 @@ public static class ApplicationExtension
         services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<ISubmissionsService, SubmissionsService>();
         services.AddScoped<ICodeforcesService, CodeforcesService>();
+        services.AddScoped<ICodeforcesApiService, CodeforcesApiService>();
+        services.AddScoped<IDlApiService, DlApiService>();
 
         services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
         services.AddSingleton<IUpdateDataService, UpdateDataService>();
+
+        services.AddHostedService<UpdateDataService>();
+
+        services.AddHttpClient<IApiService, ApiService>();
 
         return services;
     }

@@ -1,7 +1,8 @@
-﻿using Etrx.Domain.Parsing_models;
+﻿using Etrx.Domain.Models.ParsingModels.Dl;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
+using Etrx.Domain.Models.ParsingModels.Codeforces;
 
 namespace Etrx.Application.Services
 {
@@ -34,28 +35,29 @@ namespace Etrx.Application.Services
 
                 if (user != null)
                 {
-                    var newUser = new User(
-                        0,
-                        dlUser.Handle,
-                        user.Email,
-                        user.VkId,
-                        user.OpenId,
-                        dlUser.FirstName,
-                        dlUser.LastName,
-                        user.Country,
-                        dlUser.City,
-                        dlUser.Organization,
-                        user.Contribution,
-                        user.Rank,
-                        user.Rating,
-                        user.MaxRank,
-                        user.MaxRating,
-                        user.LastOnlineTimeSeconds,
-                        user.RegistrationTimeSeconds,
-                        user.FriendOfCount,
-                        user.Avatar,
-                        user.TitlePhoto,
-                        dlUser.Grade);
+                    var newUser = new User()
+                    {
+                        Handle = dlUser.Handle,
+                        Email = user.Email,
+                        VkId = user.VkId,
+                        OpenId = user.OpenId,
+                        FirstName = dlUser.FirstName,
+                        LastName = dlUser.LastName,
+                        Country = user.Country,
+                        City = dlUser.City,
+                        Organization = dlUser.Organization,
+                        Contribution = user.Contribution,
+                        Rank = user.Rank,
+                        Rating = user.Rating,
+                        MaxRank = user.MaxRank,
+                        MaxRating = user.MaxRating,
+                        LastOnlineTimeSeconds = user.LastOnlineTimeSeconds,
+                        RegistrationTimeSeconds = user.RegistrationTimeSeconds,
+                        FriendOfCount = user.FriendOfCount,
+                        Avatar = user.Avatar,
+                        TitlePhoto = user.TitlePhoto,
+                        Grade = dlUser.Grade
+                    };
 
                     users.Add(newUser);
                 }
@@ -74,16 +76,18 @@ namespace Etrx.Application.Services
             {
                 var problem = problems[i];
                 var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problem.ContestId && s.Index == problem.Index)!.SolvedCount;
-                var newProblem = new Problem(
-                    0,
-                    problem.ContestId,
-                    problem.Index,
-                    problem.Name,
-                    problem.Type,
-                    problem.Points,
-                    problem.Rating,
-                    solvedCount,
-                    problem.Tags);
+                var newProblem = new Problem()
+                {
+                    ContestId = problem.ContestId,
+                    Index = problem.Index,
+                    Name = problem.Name,
+                    Type = problem.Type,
+                    Points = problem.Points,
+                    Rating = problem.Rating,
+                    SolvedCount = solvedCount,
+                    Tags = problem.Tags
+                };
+
                 newProblems.Add(newProblem);
             }
             await _problemsRepository.InsertOrUpdateAsync(newProblems);
@@ -96,25 +100,27 @@ namespace Etrx.Application.Services
             {
                 var contest = contests[i];
 
-                var newContest = new Contest(
-                    contest.ContestId,
-                    contest.Name,
-                    contest.Type,
-                    contest.Phase,
-                    contest.Frozen,
-                    contest.DurationSeconds,
-                    contest.StartTime,
-                    contest.RelativeTimeSeconds,
-                    contest.PreparedBy,
-                    contest.WebsiteUrl,
-                    contest.Description,
-                    contest.Difficulty,
-                    contest.Kind,
-                    contest.IcpcRegion,
-                    contest.Country,
-                    contest.City,
-                    contest.Season,
-                    gym);
+                var newContest = new Contest()
+                {
+                    ContestId = contest.ContestId,
+                    Name = contest.Name,
+                    Type = contest.Type,
+                    Phase = contest.Phase,
+                    Frozen = contest.Frozen,
+                    DurationSeconds = contest.DurationSeconds,
+                    StartTime = contest.StartTime,
+                    RelativeTimeSeconds = contest.RelativeTimeSeconds,
+                    PreparedBy = contest.PreparedBy,
+                    WebsiteUrl = contest.WebsiteUrl,
+                    Description = contest.Description,
+                    Difficulty = contest.Difficulty,
+                    Kind = contest.Kind,
+                    IcpcRegion = contest.IcpcRegion,
+                    Country = contest.Country,
+                    City = contest.City,
+                    Season = contest.Season,
+                    Gym = gym
+                };
 
                 newContests.Add(newContest);
             }
@@ -128,20 +134,23 @@ namespace Etrx.Application.Services
             {
                 var submission = submissions[i];
 
-                var newSubmission = new Submission(
-                    submission.Id,
-                    submission.ContestId,
-                    submission.Problem.Index,
-                    submission.CreationTimeSeconds,
-                    submission.RelativeTimeSeconds,
-                    submission.ProgrammingLanguage,
-                    handle,
-                    submission.Author.ParticipantType,
-                    submission.Verdict,
-                    submission.Testset,
-                    submission.PassedTestCount,
-                    submission.TimeConsumedMillis,
-                    submission.MemoryConsumedBytes);
+                var newSubmission = new Submission()
+                {
+                    Id = submission.Id,
+                    ContestId = submission.ContestId,
+                    Index = submission.Problem.Index,
+                    CreationTimeSeconds = submission.CreationTimeSeconds,
+                    RelativeTimeSeconds = submission.RelativeTimeSeconds,
+                    ProgrammingLanguage = submission.ProgrammingLanguage,
+                    Handle = handle,
+                    ParticipantType = submission.Author.ParticipantType,
+                    Verdict = submission.Verdict,
+                    Testset = submission.Testset,
+                    PassedTestCount = submission.PassedTestCount,
+                    TimeConsumedMillis = submission.TimeConsumedMillis,
+                    MemoryConsumedBytes = submission.MemoryConsumedBytes
+                };
+
                 newSubmissions.Add(newSubmission);
             }
             await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);

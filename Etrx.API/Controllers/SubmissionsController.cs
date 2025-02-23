@@ -22,9 +22,9 @@ namespace Etrx.API.Controllers
             _problemsService = problemsService;
         }
 
-        [HttpGet]
+        [HttpGet("{contestId:int}")]
         public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestIdWithSort(
-            [FromQuery] int contestId,
+            int contestId,
             [FromQuery] string sortField = "solvedCount",
             [FromQuery] bool sortOrder = true,
             [FromQuery] bool allIndexes = true,

@@ -1,4 +1,5 @@
-﻿using Etrx.Domain.Parsing_models;
+﻿using Etrx.Domain.Models.ParsingModels.Dl;
+using Etrx.Domain.Models.ParsingModels.Codeforces;
 
 namespace Etrx.Domain.Interfaces.Services
 {
