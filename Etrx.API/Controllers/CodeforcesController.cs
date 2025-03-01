@@ -58,7 +58,7 @@ namespace Etrx.API.Controllers
         }
 
         [HttpPost("submissions/{contestId:int}")]
-        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId(int contestId)
+        public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromRoute] int contestId)
         {
             var handles = await _codeforcesApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
 

@@ -3,5 +3,6 @@
     public record ContestsResponse(
         int ContestId,
         string Name,
-        long? StartTime);
+        long? StartTime,
+        long? RelativeTimeSeconds);
 }
