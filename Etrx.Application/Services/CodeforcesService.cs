@@ -69,6 +69,35 @@ namespace Etrx.Application.Services
             await _usersRepository.InsertOrUpdateAsync(users);
         }
 
+        public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
+        {
+            var newUser = new User()
+            {
+                Handle = cfUser.Handle,
+                Email = cfUser.Email,
+                VkId = cfUser.VkId,
+                OpenId = cfUser.OpenId,
+                FirstName = dlUser.FirstName,
+                LastName = dlUser.LastName,
+                Country = cfUser.Country,
+                City = dlUser.City,
+                Organization = dlUser.Organization,
+                Contribution = cfUser.Contribution,
+                Rank = cfUser.Rank,
+                Rating = cfUser.Rating,
+                MaxRank = cfUser.MaxRank,
+                MaxRating = cfUser.MaxRating,
+                LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
+                RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
+                FriendOfCount = cfUser.FriendOfCount,
+                Avatar = cfUser.Avatar,
+                TitlePhoto = cfUser.TitlePhoto,
+                Grade = dlUser.Grade
+            };
+
+            await _usersRepository.InsertOrUpdateAsync([newUser]);
+        }
+
         public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics)
         {
             List<Problem> newProblems = [];

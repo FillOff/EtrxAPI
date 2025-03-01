@@ -21,7 +21,6 @@ namespace Etrx.Persistence.Databases
         public DbSet<Contest> Contests { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Submission> Submissions { get; set; }
-        public DbSet<UserHandle> UserHandles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

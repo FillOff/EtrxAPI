@@ -123,10 +123,19 @@ namespace Etrx.Application.Services
 
             var dlUsers = await dlApiService.GetDlUsersAsync();
 
-            string handlesString = string.Join(';', dlUsers.Select(user => user.Handle.ToLower()));
-            var users = await codeforcesApiService.GetCodeforcesUsersAsync(handlesString);
+            foreach ( var dlUser in dlUsers )
+            {
+                var handle = dlUser.Handle;
+                var user = await codeforcesApiService.GetCodeforcesUsersAsync(handle);
 
-            await codeforcesService.PostUsersFromDlCodeforces(dlUsers, users);
+                await codeforcesService.PostUserFromDlCodeforces(dlUser, user[0]);
+                await Task.Delay(2000);
+            }
+
+            //string handlesString = string.Join(';', dlUsers.Select(user => user.Handle.ToLower()));
+            //var users = await codeforcesApiService.GetCodeforcesUsersAsync(handlesString);
+
+            //await codeforcesService.PostUsersFromDlCodeforces(dlUsers, users);
 
             _logger.LogInformation($"Dl users updated successfully.");
             _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));

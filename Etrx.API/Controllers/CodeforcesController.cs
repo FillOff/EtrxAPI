@@ -10,7 +10,7 @@ namespace Etrx.API.Controllers
         private readonly IUsersService _usersService;
         private readonly ICodeforcesService _codeforcesService;
         private readonly IUpdateDataService _updateDataService;
-        private readonly ICodeforcesApiService _externalApiService;
+        private readonly ICodeforcesApiService _codeforcesApiService;
 
         public CodeforcesController(
             IUsersService usersService,
@@ -21,7 +21,7 @@ namespace Etrx.API.Controllers
             _usersService = usersService;
             _codeforcesService = codeforcesService;
             _updateDataService = updateDataService;
-            _externalApiService = externalApiService;
+            _codeforcesApiService = externalApiService;
         }
 
         [HttpPost("problems")]
@@ -60,11 +60,11 @@ namespace Etrx.API.Controllers
         [HttpPost("submissions/{contestId:int}")]
         public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId(int contestId)
         {
-            var handles = await _externalApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
+            var handles = await _codeforcesApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
 
             foreach (var handle in handles)
             {
-                var submissions = await _externalApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
+                var submissions = await _codeforcesApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
 
                 await _codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
             }

@@ -17,9 +17,14 @@ namespace Etrx.Application.Services
         public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
         {
             var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesUser>>>(
-                $"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru");
+                $"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru&checkHistoricHandles=true");
+
+            if (response.Result == null)
+            {
+                throw new Exception(response.Comment);
+            }
             
-            return response.Result ?? [];
+            return response.Result;
         }
 
         public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync()
