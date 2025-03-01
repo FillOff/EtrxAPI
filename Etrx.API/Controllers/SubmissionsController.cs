@@ -45,8 +45,7 @@ namespace Etrx.API.Controllers
                 .Distinct()
                 .ToArray();
 
-            var tasks= handles.Select(async h => await _usersService.GetUserByHandleAsync(h)).ToList();
-            var users = (await Task.WhenAll(tasks)).ToList();
+            var users = handles.Select(h => _usersService.GetUserByHandleAsync(h)).ToList();
 
             List<SubmissionsResponse> submissionsResponses = [];
 

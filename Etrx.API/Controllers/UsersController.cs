@@ -41,9 +41,9 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("{handle}")]
-        public async Task<ActionResult<UsersResponse>> GetUserByHandle(string handle)
+        public ActionResult<UsersResponse> GetUserByHandle(string handle)
         {
-            var user = await _usersService.GetUserByHandleAsync(handle);
+            var user = _usersService.GetUserByHandleAsync(handle);
 
             if (user == null)
                 return NotFound($"User {handle} not found");

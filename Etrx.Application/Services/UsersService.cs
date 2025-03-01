@@ -18,9 +18,9 @@ namespace Etrx.Application.Services
             return await _usersRepository.Get();
         }
 
-        public async Task<User?> GetUserByHandleAsync(string handle)
+        public User? GetUserByHandleAsync(string handle)
         {
-            return await _usersRepository.GetByHandle(handle);
+            return _usersRepository.GetByHandle(handle);
         }
 
         public async Task<List<User>> GetUsersWithSortAsync(

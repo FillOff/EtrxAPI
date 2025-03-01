@@ -5,7 +5,7 @@ namespace Etrx.Domain.Interfaces.Services
     public interface IUsersService
     {
         Task<List<User>> GetAllUsersAsync();
-        Task<User?> GetUserByHandleAsync(string handle);
+        User? GetUserByHandleAsync(string handle);
         Task<List<User>> GetUsersWithSortAsync(
             string sortField,
             bool sortOrder);

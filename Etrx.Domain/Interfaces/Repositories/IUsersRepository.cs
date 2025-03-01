@@ -5,7 +5,7 @@ namespace Etrx.Domain.Interfaces.Repositories
     public interface IUsersRepository
     {
         Task<List<User>> Get();
-        Task<User?> GetByHandle(string handle);
+        User? GetByHandle(string handle);
         Task<List<string>> GetHandles();
         Task<List<User>> GetWithSort(
             string sortField,

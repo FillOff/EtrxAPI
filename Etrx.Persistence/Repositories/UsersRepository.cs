@@ -25,11 +25,11 @@ namespace Etrx.Persistence.Repositories
             return users;
         }
 
-        public async Task<User?> GetByHandle(string handle)
+        public User? GetByHandle(string handle)
         {
-            var user = await _context.Users
+            var user = _context.Users
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Handle == handle);
+                .FirstOrDefault(u => u.Handle == handle);
 
             return user;
         }
