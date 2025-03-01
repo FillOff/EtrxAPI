@@ -90,7 +90,7 @@ namespace Etrx.Application.Services
 
                 newProblems.Add(newProblem);
             }
-            await _problemsRepository.InsertOrUpdateAsync(newProblems);
+            await _problemsRepository.InsertOrUpdate(newProblems);
         }
 
         public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym)

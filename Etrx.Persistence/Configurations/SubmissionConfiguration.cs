@@ -10,7 +10,8 @@ namespace Etrx.Persistence.Configurations
         {
             builder.HasKey(s => s.Id);
 
-            builder.Property(s => s.Id).ValueGeneratedNever();
+            builder.Property(s => s.Id)
+                .ValueGeneratedNever();
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using Etrx.Domain.Models.ParsingModels.Dl;
-using Etrx.Domain.Interfaces.Services;
-using Newtonsoft.Json;
+﻿using Etrx.Domain.Interfaces.Services;
 using Newtonsoft.Json.Linq;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Core.Models.Parsing_models.Codeforces;
@@ -14,13 +12,6 @@ namespace Etrx.Application.Services
         public CodeforcesApiService(IApiService apiService)
         {
             _apiService = apiService;
-        }
-
-        public async Task<List<DlUser>> GetDlUsersAsync()
-        {
-            var response = await _apiService.GetApiDataAsync<List<DlUser>>("https://dl.gsu.by/codeforces/api/students");
-
-            return response;
         }
 
         public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
@@ -66,7 +57,7 @@ namespace Etrx.Application.Services
             return response.Result ?? [];
         }
 
-        public async Task<List<string>> GetCodeforcesContestUsersAsync(string[] handles, int contestId)
+        public async Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId)
         {
             var handlesString = string.Join(";", handles);
 

@@ -23,16 +23,16 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<IEnumerable<ProblemsResponse>> GetProblemsByContestId(int id)
+        public async Task<ActionResult<IEnumerable<ProblemsResponse>>> GetProblemsByContestId(int id)
         {
-            var problems = _problemsService.GetProblemsByContestId(id);
+            var problems = await _problemsService.GetProblemsByContestIdAsync(id);
 
             var response = problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable();
             return Ok(response);
         }
 
         [HttpGet]
-        public ActionResult<ProblemsWithPropsResponse> GetProblemsByPageWithSortAndFilterTags(
+        public async Task<ActionResult<ProblemsWithPropsResponse>> GetProblemsByPageWithSortAndFilterTags(
             [FromQuery] int page,
             [FromQuery] int pageSize,
             [FromQuery] string? tags,
@@ -47,30 +47,37 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var (Problems, PageCount) = _problemsService.GetProblemsByPageWithSortAndFilterTags(page, pageSize, tags, indexes, problemName, sortField, sortOrder);
+            var (problems, pageCount) = await _problemsService.GetProblemsByPageWithSortAndFilterTagsAsync(
+                page, 
+                pageSize, 
+                tags, 
+                indexes, 
+                problemName, 
+                sortField, 
+                sortOrder);
             
             ProblemsWithPropsResponse response = new ProblemsWithPropsResponse
             (
-                Problems: Problems.Select(problem => _mapper.Map<ProblemsResponse>(problem)).AsEnumerable(),
+                Problems: _mapper.Map<List<ProblemsResponse>>(problems),
                 Properties: typeof(ProblemsResponse).GetProperties().Select(p => p.Name).ToArray()!,
-                PageCount: PageCount
+                PageCount: pageCount
             );
 
             return Ok(response);
         }
 
         [HttpGet("tags")]
-        public ActionResult<List<string>> GetTagsList()
+        public async Task<ActionResult<List<string>>> GetTagsList()
         {
-            var response = _problemsService.GetAllTags();
+            var response = await _problemsService.GetAllTagsAsync();
 
             return Ok(response);
         }
 
         [HttpGet("indexes")]
-        public ActionResult<List<string>> GetIndexesList()
+        public async Task<ActionResult<List<string>>> GetIndexesList()
         {
-            var response = _problemsService.GetAllIndexes();
+            var response = await _problemsService.GetAllIndexesAsync();
 
             return Ok(response);
         }

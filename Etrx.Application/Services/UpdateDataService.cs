@@ -12,9 +12,10 @@ namespace Etrx.Application.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private DateTime _nextRunTime;
 
-        public UpdateDataService(ILogger<UpdateDataService> logger,
-                                 ILastUpdateTimeService lastTimeUpdateService,
-                                 IServiceScopeFactory serviceScopeFactory)
+        public UpdateDataService(
+            ILogger<UpdateDataService> logger,
+            ILastUpdateTimeService lastTimeUpdateService,
+            IServiceScopeFactory serviceScopeFactory)
         {
             _logger = logger;
             _lastTimeUpdateService = lastTimeUpdateService;
@@ -118,8 +119,9 @@ namespace Etrx.Application.Services
             using var scope = _serviceScopeFactory.CreateScope();
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
             var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+            var dlApiService = scope.ServiceProvider.GetRequiredService<IDlApiService>();
 
-            var dlUsers = await codeforcesApiService.GetDlUsersAsync();
+            var dlUsers = await dlApiService.GetDlUsersAsync();
 
             string handlesString = string.Join(';', dlUsers.Select(user => user.Handle.ToLower()));
             var users = await codeforcesApiService.GetCodeforcesUsersAsync(handlesString);
@@ -138,7 +140,7 @@ namespace Etrx.Application.Services
             var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
             var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
 
-            var handles = usersService.GetHandles();
+            var handles = await usersService.GetHandlesAsync();
 
             foreach (var handle in handles)
             {

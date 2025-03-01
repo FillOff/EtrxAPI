@@ -1,6 +1,6 @@
 ﻿namespace Etrx.API.Contracts.Users
 {
     public record UsersWithPropsResponse(
-        IEnumerable<UsersResponse> Users,
+        List<UsersResponse> Users,
         string[] Properties);
 }

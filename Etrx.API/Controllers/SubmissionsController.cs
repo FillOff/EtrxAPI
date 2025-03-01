@@ -23,8 +23,8 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("{contestId:int}")]
-        public ActionResult<IEnumerable<SubmissionsWithProblemsResponse>> GetSubmissionsByContestIdWithSort(
-            int contestId,
+        public async Task<ActionResult<List<SubmissionsWithProblemsResponse>>> GetSubmissionsByContestIdWithSort(
+            [FromRoute] int contestId,
             [FromQuery] string sortField = "solvedCount",
             [FromQuery] bool sortOrder = true,
             [FromQuery] bool allIndexes = true,
@@ -35,43 +35,44 @@ namespace Etrx.API.Controllers
             {
                 return BadRequest($"Invalid field: {sortField}");
             }
+
             string order = sortOrder == true ? "asc" : "desc";
 
-            var submissions = _submissionsService.GetSubmissionsByContestId(contestId);
+            var submissions = await _submissionsService.GetSubmissionsByContestIdAsync(contestId);
 
             var handles = submissions
                 .Select(s => s.Handle)
                 .Distinct()
                 .ToArray();
 
-            var users = handles.Select(_usersService.GetUserByHandle);
-            
+            var tasks= handles.Select(async h => await _usersService.GetUserByHandleAsync(h)).ToList();
+            var users = (await Task.WhenAll(tasks)).ToList();
+
             List<SubmissionsResponse> submissionsResponses = [];
 
-            string[]? indexes;
+            List<string>? indexes;
             if (allIndexes)
             {
-                indexes = _problemsService
-                    .GetProblemsIndexesByContestId(contestId);
+                indexes = await _problemsService
+                    .GetProblemsIndexesByContestIdAsync(contestId);
             }
             else
             {
                 indexes = submissions
                     .Select(s => s.Index)
                     .Distinct()
-                    .ToArray();
+                    .ToList();
             }
 
             foreach (var handle in handles)
             {
-                var userSubmissions = submissions.Where(s => s.Handle == handle);
-                List<string> types = _submissionsService.GetUserParticipantTypeList(handle);
-                Console.WriteLine(string.Join(" ", types));
+                var userSubmissions = submissions.Where(s => s.Handle == handle).ToList();
+                List<string> types = await _submissionsService.GetUserParticipantTypesAsync(handle);
                 foreach (var type in types)
                 {
-                    var typeSubmissions = userSubmissions.Where(s => s.ParticipantType == type);
+                    var typeSubmissions = userSubmissions.Where(s => s.ParticipantType == type).ToList();
 
-                    var (solvedCount, tries) = _submissionsService.GetTriesAndSolvedCountByHandle(handle, typeSubmissions, indexes);
+                    var (solvedCount, tries) = _submissionsService.GetTriesAndSolvedCountByHandleAsync(typeSubmissions, indexes);
                     var user = users.FirstOrDefault(u => u!.Handle.Equals(handle, StringComparison.CurrentCultureIgnoreCase))!;
                     
                     var submissionResponse = new SubmissionsResponse(handle, user.FirstName, user.LastName, user.City, user.Organization,
@@ -96,7 +97,7 @@ namespace Etrx.API.Controllers
             var response = new SubmissionsWithProblemsResponse(
                 Submissions: submissionsResponses,
                 ProblemIndexes: indexes,
-                Properties: typeof(SubmissionsResponse).GetProperties().Select(p => p.Name).ToArray());
+                Properties: typeof(SubmissionsResponse).GetProperties().Select(p => p.Name).ToList());
 
             return Ok(response);
         }

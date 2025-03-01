@@ -10,5 +10,5 @@ public class Problem
     public double? Points { get; set; }
     public int? Rating { get; set; }
     public int? SolvedCount { get; set; }
-    public List<string?>? Tags { get; set; } = null!;
+    public List<string> Tags { get; set; } = [];
 }

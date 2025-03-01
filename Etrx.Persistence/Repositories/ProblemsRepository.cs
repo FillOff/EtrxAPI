@@ -3,6 +3,7 @@ using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -15,21 +16,105 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public IQueryable<Problem> Get()
+        public async Task<List<Problem>> Get()
         {
-            var problems = _context.Problems.AsNoTracking();
+            var problems = await _context.Problems
+                .AsNoTracking()
+                .ToListAsync();
 
             return problems;
         }
 
-        public async Task InsertOrUpdateAsync(List<Problem> problems)
+        public async Task<List<Problem>> GetByContestId(int contestId)
         {
-            await _context.BulkInsertOrUpdateAsync(problems);
+            var problems = await _context.Problems
+                .AsNoTracking()
+                .Where(p => p.ContestId == contestId)
+                .ToListAsync();
+
+            return problems;
         }
 
-        public Problem? GetByContestIdAndIndex(int contestId, string index)
+        public async Task<Problem?> GetByContestIdAndIndex(int contestId, string index)
         {
-            return _context.Problems.AsNoTracking().FirstOrDefault(p => p.ContestId == contestId && p.Index == index);
+            var problem = await _context.Problems
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
+
+            return problem;
+        }
+
+        public async Task<List<string>> GetAllTags()
+        {
+            var tags = await _context.Problems
+                .AsNoTracking()
+                .Where(problem => problem.Tags != null)
+                .SelectMany(problem => problem.Tags!)
+                .Distinct()
+                .OrderBy(tag => tag)
+                .ToListAsync();
+
+            return tags;
+        }
+
+        public async Task<List<string>> GetAllIndexes()
+        {
+            var indexes = await _context.Problems
+                .AsNoTracking()
+                .Select(problem => problem.Index)
+                .Distinct()
+                .OrderBy(index => index)
+                .ToListAsync();
+
+            return indexes;
+        }
+
+        public async Task<List<string>> GetIndexesByContestId(int contestId)
+        {
+            var indexes = await _context.Problems
+                .AsNoTracking()
+                .Where(p => p.ContestId == contestId)
+                .Select(p => p.Index)
+                .ToListAsync();
+
+            return indexes;
+        }
+
+        public async Task<List<Problem>> GetByPageWithSortAndFilterTags(
+            int page,
+            int pageSize,
+            string? tags,
+            string? indexes,
+            string? problemName,
+            string sortField,
+            string order)
+        {
+            var problems = _context.Problems
+                .AsNoTracking();
+
+            if (tags != null)
+            {
+                var tagsFilter = tags.Split(';');
+                problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            }
+
+            if (indexes != null)
+            {
+                var indexesFilter = indexes.Split(";");
+                problems = problems.Where(p => indexesFilter.Contains(p.Index));
+            }
+
+            if (problemName != null)
+            {
+                problems = problems.Where(p => p.Name.Contains(problemName));
+            }
+
+            problems = problems
+                .OrderBy($"{sortField} {order}")
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            return await problems.ToListAsync();
         }
 
         public async Task<int> Create(Problem problem)
@@ -38,6 +123,11 @@ namespace Etrx.Persistence.Repositories
             await _context.SaveChangesAsync();
 
             return problem.Id;
+        }
+
+        public async Task InsertOrUpdate(List<Problem> problems)
+        {
+            await _context.BulkInsertOrUpdateAsync(problems);
         }
 
         public async Task<int> Update(Problem problem)
@@ -65,13 +155,6 @@ namespace Etrx.Persistence.Repositories
                 .ExecuteDeleteAsync();
 
             return id;
-        }
-
-        public IQueryable<Problem> GetByContestId(int contestId)
-        {
-            return _context.Problems
-                .AsNoTracking()
-                .Where(p => p.ContestId == contestId);
         }
     }
 }

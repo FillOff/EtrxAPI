@@ -1,4 +1,5 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Core.Models;
+using Etrx.Domain.Models;
 using Etrx.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ namespace Etrx.Persistence.Databases
         public DbSet<Contest> Contests { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Submission> Submissions { get; set; }
+        public DbSet<UserHandle> UserHandles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

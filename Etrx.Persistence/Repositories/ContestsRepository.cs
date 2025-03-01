@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Persistence.Databases;
 using EFCore.BulkExtensions;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -15,22 +16,46 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public IQueryable<Contest> Get()
+        public async Task<List<Contest>> Get()
         {
-            var contests = _context.Contests
-                .AsNoTracking();
+            var contests = await _context.Contests
+                .AsNoTracking()
+                .ToListAsync();
 
             return contests;
         }
 
-        public async Task InsertOrUpdateAsync(List<Contest> contests)
+        public async Task<Contest?> GetById(int contestId)
         {
-            await _context.BulkInsertOrUpdateAsync(contests);
+            var contest = await _context.Contests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.ContestId == contestId);
+
+            return contest;
         }
 
-        public Contest? GetById(int contestId)
+        public async Task<List<Contest>> GetByPageWithSort(
+            int page,
+            int pageSize,
+            bool? gym,
+            string sortField,
+            string order)
         {
-            return _context.Contests.AsNoTracking().FirstOrDefault(c => c.ContestId == contestId);
+            var contests = _context.Contests
+                .AsNoTracking()
+                .OrderBy($"{sortField} {order}")
+                .Where(c => c.Phase != "BEFORE");
+
+            if (gym != null)
+            {
+                contests = contests.Where(c => c.Gym == gym);
+            }
+
+            contests = contests
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            return await contests.ToListAsync();
         }
 
         public async Task<int> Create(Contest contest)
@@ -39,6 +64,11 @@ namespace Etrx.Persistence.Repositories
             await _context.SaveChangesAsync();
 
             return contest.ContestId;
+        }
+
+        public async Task InsertOrUpdateAsync(List<Contest> contests)
+        {
+            await _context.BulkInsertOrUpdateAsync(contests);
         }
 
         public async Task<int> Update(Contest contest)

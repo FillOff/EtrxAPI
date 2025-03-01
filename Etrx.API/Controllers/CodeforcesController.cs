@@ -60,7 +60,7 @@ namespace Etrx.API.Controllers
         [HttpPost("submissions/{contestId:int}")]
         public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId(int contestId)
         {
-            var handles = await _externalApiService.GetCodeforcesContestUsersAsync(_usersService.GetHandles(), contestId);
+            var handles = await _externalApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
 
             foreach (var handle in handles)
             {

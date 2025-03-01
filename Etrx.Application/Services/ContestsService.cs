@@ -1,7 +1,6 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
-using System.Linq.Dynamic.Core;
 
 namespace Etrx.Application.Services
 {
@@ -14,51 +13,47 @@ namespace Etrx.Application.Services
             _contestsRepository = contestsRepository;
         }
 
-        public IQueryable<Contest> GetAllContests()
+        public async Task<List<Contest>> GetAllContestsAsync()
         {
-            return _contestsRepository.Get();
+            return await _contestsRepository.Get();
         }
 
-        public Contest? GetContestById(int contestId)
+        public async Task<Contest?> GetContestByIdAsync(int contestId)
         {
-            return _contestsRepository.GetById(contestId);
+            return await _contestsRepository.GetById(contestId);
         }
 
-        public async Task<int> CreateContest(Contest contest)
+        public async Task<(List<Contest> Contests, int PageCount)> GetContestsByPageWithSortAsync(
+            int page,
+            int pageSize,
+            bool? gym,
+            string sortField = "contestid",
+            bool sortOrder = true)
+        {
+            var allContests = await _contestsRepository.Get();
+            int pageCount = allContests.Count % pageSize == 0
+                ? allContests.Count / pageSize
+                : allContests.Count / pageSize + 1;
+
+            string order = sortOrder == true ? "asc" : "desc";
+            var contests = await _contestsRepository.GetByPageWithSort(
+                page,
+                pageSize,
+                gym,
+                sortField,
+                order);
+
+            return (contests, pageCount);
+        }
+
+        public async Task<int> CreateContestAsync(Contest contest)
         {
             return await _contestsRepository.Create(contest);
         }
 
-        public async Task<int> UpdateContest(Contest contest)
+        public async Task<int> UpdateContestAsync(Contest contest)
         {
             return await _contestsRepository.Update(contest);
-        }
-
-        public (IQueryable<Contest> Contests, int PageCount) GetContestsByPageWithSort(
-            int page, 
-            int pageSize, 
-            bool? gym, 
-            string sortField = "contestid", 
-            bool sortOrder = true)
-        {
-            var contests = gym != null
-                ? _contestsRepository.Get().Where(c => c.Gym == gym)
-                : _contestsRepository.Get();
-
-            contests = contests.Where(c => c.Phase != "BEFORE");
-
-            int pageCount = contests.Count() % pageSize == 0
-                ? contests.Count() / pageSize
-                : contests.Count() / pageSize + 1;
-
-            string order = sortOrder == true ? "asc" : "desc";
-
-            contests = contests
-                .OrderBy($"{sortField} {order}")
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
-
-            return (contests, pageCount);
         }
     }
 }

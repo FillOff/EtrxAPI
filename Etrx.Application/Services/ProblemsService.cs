@@ -1,7 +1,6 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Services;
-using System.Linq.Dynamic.Core;
 
 namespace Etrx.Application.Services
 {
@@ -14,113 +13,78 @@ namespace Etrx.Application.Services
             _problemsRepository = problemsRepository;
         }
 
-        public IQueryable<Problem> GetAllProblems()
+        public async Task<List<Problem>> GetAllProblemsAsync()
         {
-            return _problemsRepository.Get();
+            return await _problemsRepository.Get();
         }
 
-        public Problem? GetProblemByContestIdAndIndex(int contestId, string index)
+        public async Task<Problem?> GetProblemByContestIdAndIndexAsync(
+            int contestId, 
+            string index)
         {
-            return _problemsRepository.GetByContestIdAndIndex(contestId, index);
+            return await _problemsRepository.GetByContestIdAndIndex(contestId, index);
         }
 
-        public IQueryable<Problem> GetProblemsByContestId(int contestId)
+        public async Task<List<Problem>> GetProblemsByContestIdAsync(int contestId)
         {
-            return _problemsRepository.Get().Where(p => p.ContestId == contestId);
+            return await _problemsRepository.GetByContestId(contestId);
         }
 
-        public async Task<int> CreateProblem(Problem problem)
+        public async Task<(List<Problem> Problems, int PageCount)> GetProblemsByPageWithSortAndFilterTagsAsync(
+            int page,
+            int pageSize,
+            string? tags,
+            string? indexes,
+            string? problemName,
+            string sortField,
+            bool sortOrder)
+        {
+            var allProblems = await _problemsRepository.Get();
+            int pageCount = allProblems.Count % pageSize == 0
+                ? allProblems.Count / pageSize
+                : allProblems.Count / pageSize + 1;
+
+            string order = sortOrder == true ? "asc" : "desc";
+            var problems = await _problemsRepository.GetByPageWithSortAndFilterTags(
+                page,
+                pageSize,
+                tags,
+                indexes,
+                problemName,
+                sortField,
+                order);
+
+            return (problems, pageCount);
+        }
+
+        public async Task<List<string>> GetAllTagsAsync()
+        {
+            return await _problemsRepository.GetAllTags();
+        }
+
+        public async Task<List<string>> GetAllIndexesAsync()
+        {
+            return await _problemsRepository.GetAllIndexes();
+        }
+
+        public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
+        {
+            return await _problemsRepository.GetIndexesByContestId(contestId);
+        }
+
+        public async Task<int> CreateProblemAsync(Problem problem)
         {
             return await _problemsRepository.Create(problem);
         }
 
-        public async Task<int> UpdateProblem(Problem problem)
+        public async Task<int> UpdateProblemAsync(Problem problem)
         {
             return await _problemsRepository.Update(problem);
         }
 
-        public async Task<int> DeleteProblem(int id)
+        public async Task<int> DeleteProblemAsync(int id)
         {
             return await _problemsRepository.Delete(id);
-        }
-
-        public List<string?> GetAllTags()
-        {
-            var problems = _problemsRepository.Get().ToList();
-
-            var tags = problems
-                .Where(problem => problem.Tags != null)
-                .SelectMany(problem => problem.Tags!)
-                .Distinct()
-                .OrderBy(tag => tag)
-                .ToList();
-
-            return tags;
-        }
-
-        public List<string> GetAllIndexes()
-        {
-            var problems = _problemsRepository.Get().ToList();
-
-            var indexes = problems
-                .Select(problem => problem.Index)
-                .Distinct()
-                .OrderBy(index => index)
-                .ToList();
-
-            return indexes;
-        }
-
-        public (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(
-            int page, 
-            int pageSize, 
-            string? tags, 
-            string? indexes,
-            string? problemName,
-            string sortField, 
-            bool sortOrder)
-        {
-            var problems = _problemsRepository.Get();
-
-            string order = sortOrder == true ? "asc" : "desc";
-
-            problems = problems.OrderBy($"{sortField} {order}");
-
-            if (tags != null)
-            {
-                var tagsFilter = tags.Split(';');
-                problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
-            }
-
-            if (indexes != null)
-            {
-                var indexesFilter = indexes.Split(";");
-                problems = problems.Where(p => indexesFilter.Contains(p.Index));
-            }
-
-            if (problemName != null)
-            {
-                problems = problems.Where(p => p.Name.Contains(problemName));
-            }
-
-            int pageCount = problems.Count() % pageSize == 0
-                ? problems.Count() / pageSize
-                : problems.Count() / pageSize + 1;
-
-            problems = problems.Skip((page - 1) * pageSize).Take(pageSize);
-
-            return (problems, pageCount);
-        }
-        public string[]? GetProblemsIndexesByContestId(int contestId)
-        {
-            var problems = _problemsRepository.GetByContestId(contestId);
-
-            if (problems == null) 
-                return null;
-
-            return problems
-                .Select(p => p.Index)
-                .ToArray();
         }
     }
 }

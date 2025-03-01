@@ -1,7 +1,6 @@
 ﻿using Etrx.Domain.Models;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
-using System;
 
 namespace Etrx.Application.Services
 {
@@ -14,68 +13,55 @@ namespace Etrx.Application.Services
             _submissionsRepository = submissionsRepository;
         }
 
-        public IQueryable<Submission> GetAllSubmissions()
+        public async Task<List<Submission>> GetAllSubmissionsAsync()
         {
-            return _submissionsRepository.Get();
+            return await _submissionsRepository.Get();
         }
 
-        public async Task<ulong> CreateSubmission(Submission submission)
+        public async Task<List<Submission>> GetSubmissionsByContestIdAsync(int contestId)
+        {
+            return await _submissionsRepository.GetByContestId(contestId);
+        }
+
+        public async Task<List<string>> GetUserParticipantTypesAsync(string handle)
+        {
+            return await _submissionsRepository.GetUserParticipantTypes(handle);
+        }
+
+        public (int SolvedCount, List<int> Tries) GetTriesAndSolvedCountByHandleAsync(
+            List<Submission> userSubmissions,
+            List<string> indexes)
+        {
+            int solvedCount = 0;
+            List<int> tries = indexes
+                .Select(index =>
+                {
+                    var submissions = userSubmissions.Where(s => s.Index == index).ToList();
+                    int tryCount = submissions.Count;
+                    bool isSolved = submissions.Any(s => s.Verdict == "OK");
+
+                    if (isSolved) solvedCount++;
+
+                    return isSolved ? tryCount : -tryCount;
+                })
+                .ToList();
+
+            return (solvedCount, tries);
+        }
+
+        public async Task<ulong> CreateSubmissionAsync(Submission submission)
         {
             return await _submissionsRepository.Create(submission);
         }
 
-        public async Task<ulong> UpdateSubmission(Submission submission)
+        public async Task<ulong> UpdateSubmissionAsync(Submission submission)
         {
             return await _submissionsRepository.Update(submission);
         }
 
-        public async Task<ulong> DeleteSubmission(ulong id)
+        public async Task<ulong> DeleteSubmissionAsync(ulong id)
         {
             return await _submissionsRepository.Delete(id);
-        }
-
-        public IQueryable<Submission> GetSubmissionsByContestId(int contestId)
-        {
-            return _submissionsRepository
-                .Get()
-                .Where(s => s.ContestId == contestId);
-        }
-
-        public List<string> GetUserParticipantTypeList(string handle)
-        {
-            return _submissionsRepository
-                .Get()
-                .Where(s => s.Handle == handle)
-                .Select(s => s.ParticipantType)
-                .Distinct()
-                .ToList();
-        }
-
-        public (int SolvedCount, int[] Tries) GetTriesAndSolvedCountByHandle(string handle, IQueryable<Submission> userSubmissions, string[] indexes)
-        {
-            int solvedCount = 0;
-            int[] tries = new int[indexes.Length];
-            int i = 0;
-
-            foreach (var index in indexes)
-            {
-                var indexSubmissions = userSubmissions.Where(s => s.Index == index);
-
-                int tryCount = indexSubmissions.Count();
-
-                if (indexSubmissions.Any(s => s.Verdict == "Ok"))
-                {
-                    solvedCount++;
-                    tries[i] = tryCount;
-                }
-                else
-                {
-                    tries[i] = -tryCount;
-                }
-                i++;
-            }
-
-            return (solvedCount, tries);
         }
     }
 }

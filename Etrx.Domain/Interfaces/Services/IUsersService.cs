@@ -4,11 +4,13 @@ namespace Etrx.Domain.Interfaces.Services
 {
     public interface IUsersService
     {
-        IQueryable<User> GetAllUsers();
-        Task<int> CreateUser(User user);
-        Task<int> UpdateUser(User user);
-        User? GetUserByHandle(string handle);
-        string[] GetHandles();
-        public IQueryable<User> GetUsersWithSort(string sortField, bool sortOrder);
+        Task<List<User>> GetAllUsersAsync();
+        Task<User?> GetUserByHandleAsync(string handle);
+        Task<List<User>> GetUsersWithSortAsync(
+            string sortField,
+            bool sortOrder);
+        Task<List<string>> GetHandlesAsync();
+        Task<int> CreateUserAsync(User user);
+        Task<int> UpdateUserAsync(User user);
     }
 }

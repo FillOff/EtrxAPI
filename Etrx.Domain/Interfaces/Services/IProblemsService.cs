@@ -4,15 +4,24 @@ namespace Etrx.Domain.Interfaces.Services
 {
     public interface IProblemsService
     {
-        IQueryable<Problem> GetAllProblems();
-        IQueryable<Problem> GetProblemsByContestId(int contestId);
-        Problem? GetProblemByContestIdAndIndex(int contestId, string index);
-        Task<int> CreateProblem(Problem problem);
-        Task<int> UpdateProblem(Problem problem);
-        Task<int> DeleteProblem(int id);
-        List<string?> GetAllTags();
-        List<string> GetAllIndexes();
-        (IQueryable<Problem> Problems, int PageCount) GetProblemsByPageWithSortAndFilterTags(int page, int pageSize, string? tags, string? indexes, string? problemName, string sortField, bool sortOrder);
-        string[]? GetProblemsIndexesByContestId(int contestId);
+        Task<List<Problem>> GetAllProblemsAsync();
+        Task<Problem?> GetProblemByContestIdAndIndexAsync(
+            int contestId,
+            string index);
+        Task<List<Problem>> GetProblemsByContestIdAsync(int contestId);
+        Task<(List<Problem> Problems, int PageCount)> GetProblemsByPageWithSortAndFilterTagsAsync(
+            int page,
+            int pageSize,
+            string? tags,
+            string? indexes,
+            string? problemName,
+            string sortField,
+            bool sortOrder);
+        Task<List<string>> GetAllTagsAsync();
+        Task<List<string>> GetAllIndexesAsync();
+        Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId);
+        Task<int> CreateProblemAsync(Problem problem);
+        Task<int> UpdateProblemAsync(Problem problem);
+        Task<int> DeleteProblemAsync(int id);
     }
 }

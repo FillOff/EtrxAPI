@@ -22,9 +22,9 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public ActionResult<ContestsResponse> GetContestById(int id)
+        public async Task<ActionResult<ContestsResponse>> GetContestById(int id)
         {
-            var contest = _contestsService.GetContestById(id);
+            var contest = await _contestsService.GetContestByIdAsync(id);
 
             if (contest == null)
                 return NotFound($"Contest {id} not fount");
@@ -34,7 +34,7 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult<ContestsWithPropsResponse> GetContestsByPageWithSort(
+        public async Task<ActionResult<ContestsWithPropsResponse>> GetContestsByPageWithSort(
             [FromQuery] int page,
             [FromQuery] int pageSize,
             [FromQuery] bool? gym,
@@ -47,13 +47,18 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var (Contests, PageCount) = _contestsService.GetContestsByPageWithSort(page, pageSize, gym, sortField, sortOrder);
+            var (contests, pageCount) = await _contestsService.GetContestsByPageWithSortAsync(
+                page, 
+                pageSize, 
+                gym, 
+                sortField, 
+                sortOrder);
 
             var response = new ContestsWithPropsResponse
             (
-                Contests: Contests.Select(contest => _mapper.Map<ContestsResponse>(contest)).AsEnumerable(),
+                Contests: _mapper.Map<List<ContestsResponse>>(contests),
                 Properties: typeof(ContestsResponse).GetProperties().Select(p => p.Name).ToArray(),
-                PageCount: PageCount
+                PageCount: pageCount
             );
 
             return Ok(response);

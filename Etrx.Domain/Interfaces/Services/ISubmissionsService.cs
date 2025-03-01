@@ -4,12 +4,14 @@ namespace Etrx.Domain.Interfaces.Services
 {
     public interface ISubmissionsService
     {
-        Task<ulong> CreateSubmission(Submission submission);
-        Task<ulong> DeleteSubmission(ulong id);
-        IQueryable<Submission> GetAllSubmissions();
-        Task<ulong> UpdateSubmission(Submission submission);
-        IQueryable<Submission> GetSubmissionsByContestId(int contestId);
-        List<string> GetUserParticipantTypeList(string handle);
-        (int SolvedCount, int[] Tries) GetTriesAndSolvedCountByHandle(string handle, IQueryable<Submission> userSubmissions, string[] indexes);
+        Task<List<Submission>> GetAllSubmissionsAsync();
+        Task<List<Submission>> GetSubmissionsByContestIdAsync(int contestId);
+        Task<List<string>> GetUserParticipantTypesAsync(string handle);
+        (int SolvedCount, List<int> Tries) GetTriesAndSolvedCountByHandleAsync(
+            List<Submission> userSubmissions,
+            List<string> indexes);
+        Task<ulong> CreateSubmissionAsync(Submission submission);
+        Task<ulong> UpdateSubmissionAsync(Submission submission);
+        Task<ulong> DeleteSubmissionAsync(ulong id);
     }
 }

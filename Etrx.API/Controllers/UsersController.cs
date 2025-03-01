@@ -3,7 +3,6 @@ using Etrx.API.Contracts.Users;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Dynamic;
 
 namespace Etrx.API.Controllers
 {
@@ -21,7 +20,7 @@ namespace Etrx.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<UsersResponse>> GetUsersWithSort(
+        public async Task<ActionResult<List<UsersResponse>>> GetUsersWithSort(
             [FromQuery] string sortField = "id",
             [FromQuery] bool sortOrder = true)
         {
@@ -31,22 +30,20 @@ namespace Etrx.API.Controllers
                 return BadRequest($"Invalid field: {sortField}");
             }
 
-            var users = _usersService
-                .GetUsersWithSort(sortField, sortOrder)
-                .Select(u => _mapper.Map<UsersResponse>(u))
-                .AsEnumerable();
+            var users = await _usersService.GetUsersWithSortAsync(sortField, sortOrder);
+            var mappedUsers = _mapper.Map<List<UsersResponse>>(users);
 
             var response = new UsersWithPropsResponse(
-                Users: users,
+                Users: mappedUsers,
                 Properties: typeof(UsersResponse).GetProperties().Select(p => p.Name).ToArray());
 
             return Ok(response);
         }
 
         [HttpGet("{handle}")]
-        public ActionResult<UsersResponse> GetUserByHandle(string handle)
+        public async Task<ActionResult<UsersResponse>> GetUserByHandle(string handle)
         {
-            var user = _usersService.GetUserByHandle(handle);
+            var user = await _usersService.GetUserByHandleAsync(handle);
 
             if (user == null)
                 return NotFound($"User {handle} not found");

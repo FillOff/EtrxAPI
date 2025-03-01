@@ -9,6 +9,6 @@
         int? Grade,
         int? SolvedCount,
         string? ParticipantType,
-        int[]? Tries
+        List<int>? Tries
     );
 }

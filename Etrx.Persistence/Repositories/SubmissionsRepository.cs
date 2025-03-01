@@ -15,21 +15,54 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public IQueryable<Submission> Get()
+        public async Task<List<Submission>> Get()
         {
-            var submissions = _context.Submissions.AsNoTracking();
+            var submissions = await  _context.Submissions
+                .AsNoTracking()
+                .ToListAsync();
 
             return submissions;
         }
 
-        public Submission? GetById(ulong id)
+        public async Task<Submission?> GetById(ulong id)
         {
-            return _context.Submissions.AsNoTracking().FirstOrDefault(s => s.Id == id);
+            var submission = await _context.Submissions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == id);
+
+            return submission;
         }
 
-        public async Task InsertOrUpdateAsync(List<Submission> submissions)
+        public async Task<List<Submission>> GetByContestId(int contestId)
         {
-            await _context.BulkInsertOrUpdateAsync(submissions);
+            var submissions = await _context.Submissions
+                .AsNoTracking()
+                .Where(s => s.ContestId == contestId)
+                .ToListAsync();
+
+            return submissions;
+        }
+
+        public async Task<List<string>> GetUserParticipantTypes(string handle)
+        {
+            var participantTypes = await _context.Submissions
+                .AsNoTracking()
+                .Where(s => s.Handle == handle)
+                .Select(s => s.ParticipantType)
+                .Distinct()
+                .ToListAsync();
+
+            return participantTypes;
+        }
+
+        public async Task<List<Submission>> GetByHandle(string handle)
+        {
+            var submissions = await _context.Submissions
+                .AsNoTracking()
+                .Where(s => s.Handle == handle)
+                .ToListAsync();
+
+            return submissions;
         }
 
         public async Task<ulong> Create(Submission submission)
@@ -38,6 +71,11 @@ namespace Etrx.Persistence.Repositories
             await _context.SaveChangesAsync();
 
             return submission.Id;
+        }
+
+        public async Task InsertOrUpdateAsync(List<Submission> submissions)
+        {
+            await _context.BulkInsertOrUpdateAsync(submissions);
         }
 
         public async Task<ulong> Update(Submission submission)

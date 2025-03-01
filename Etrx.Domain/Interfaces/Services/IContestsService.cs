@@ -4,10 +4,15 @@ namespace Etrx.Domain.Interfaces.Services
 {
     public interface IContestsService
     {
-        Task<int> CreateContest(Contest contest);
-        IQueryable<Contest> GetAllContests();
-        Contest? GetContestById(int contestId);
-        Task<int> UpdateContest(Contest contest);
-        (IQueryable<Contest> Contests, int PageCount) GetContestsByPageWithSort(int page, int pageSize, bool? gym, string sortField = "contestid", bool sortOrder = true);
+        Task<List<Contest>> GetAllContestsAsync();
+        Task<Contest?> GetContestByIdAsync(int contestId);
+        Task<(List<Contest> Contests, int PageCount)> GetContestsByPageWithSortAsync(
+            int page,
+            int pageSize,
+            bool? gym,
+            string sortField = "contestid",
+            bool sortOrder = true);
+        Task<int> CreateContestAsync(Contest contest);
+        Task<int> UpdateContestAsync(Contest contest);
     }
 }

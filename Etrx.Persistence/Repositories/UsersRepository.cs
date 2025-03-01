@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Persistence.Databases;
 using EFCore.BulkExtensions;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories
 {
@@ -15,21 +16,44 @@ namespace Etrx.Persistence.Repositories
             _context = context;
         }
 
-        public IQueryable<User> Get()
+        public async Task<List<User>> Get()
         {
-            var users = _context.Users.AsNoTracking();
+            var users = await _context.Users
+                .AsNoTracking()
+                .ToListAsync();
 
             return users;
         }
 
-        public User? GetByHandle(string handle)
+        public async Task<User?> GetByHandle(string handle)
         {
-            return _context.Users.FirstOrDefault(u => u.Handle == handle);
+            var user = await _context.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Handle == handle);
+
+            return user;
         }
 
-        public async Task InsertOrUpdateAsync(List<User> users)
+        public async Task<List<string>> GetHandles()
         {
-            await _context.BulkInsertOrUpdateAsync(users);
+            var handles = await _context.Users
+                .AsNoTracking()
+                .Select(u => u.Handle)
+                .ToListAsync();
+
+            return handles;
+        }
+
+        public async Task<List<User>> GetWithSort(
+            string sortField,
+            string order)
+        {
+            var users = await _context.Users
+                .AsNoTracking()
+                .OrderBy($"{sortField} {order}")
+                .ToListAsync();
+
+            return users;
         }
 
         public async Task<int> Create(User user)
@@ -38,6 +62,11 @@ namespace Etrx.Persistence.Repositories
             await _context.SaveChangesAsync();
 
             return user.Id;
+        }
+
+        public async Task InsertOrUpdateAsync(List<User> users)
+        {
+            await _context.BulkInsertOrUpdateAsync(users);
         }
 
         public async Task<int> Update(User user)
