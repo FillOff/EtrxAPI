@@ -43,11 +43,6 @@ namespace Etrx.Application.Services
             double minPoints,
             double maxPoints)
         {
-            var allProblems = await _problemsRepository.Get();
-            int pageCount = allProblems.Count % pageSize == 0
-                ? allProblems.Count / pageSize
-                : allProblems.Count / pageSize + 1;
-
             string order = sortOrder == true ? "asc" : "desc";
             var problems = await _problemsRepository.GetByPageWithSortAndFilterTags(
                 page,
@@ -61,6 +56,10 @@ namespace Etrx.Application.Services
                 maxRating,
                 minPoints,
                 maxPoints);
+
+            int pageCount = problems.Count % pageSize == 0
+                ? problems.Count / pageSize
+                : problems.Count / pageSize + 1;
 
             return (problems, pageCount);
         }

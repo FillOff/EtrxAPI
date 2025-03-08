@@ -30,11 +30,6 @@ namespace Etrx.Application.Services
             string sortField = "contestid",
             bool sortOrder = true)
         {
-            var allContests = await _contestsRepository.Get();
-            int pageCount = allContests.Count % pageSize == 0
-                ? allContests.Count / pageSize
-                : allContests.Count / pageSize + 1;
-
             string order = sortOrder == true ? "asc" : "desc";
             var contests = await _contestsRepository.GetByPageWithSort(
                 page,
@@ -42,6 +37,10 @@ namespace Etrx.Application.Services
                 gym,
                 sortField,
                 order);
+
+            int pageCount = contests.Count % pageSize == 0
+                ? contests.Count / pageSize
+                : contests.Count / pageSize + 1;
 
             return (contests, pageCount);
         }
