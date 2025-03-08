@@ -16,7 +16,11 @@ namespace Etrx.Domain.Interfaces.Services
             string? indexes,
             string? problemName,
             string sortField,
-            bool sortOrder);
+            bool sortOrder,
+            int minRating,
+            int maxRating,
+            double minPoints,
+            double maxPoints);
         Task<List<string>> GetAllTagsAsync();
         Task<List<string>> GetAllIndexesAsync();
         Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId);

@@ -38,6 +38,10 @@ namespace Etrx.API.Controllers
             [FromQuery] string? tags,
             [FromQuery] string? indexes,
             [FromQuery] string? problemName,
+            [FromQuery] int minRating = 0,
+            [FromQuery] int maxRating = int.MaxValue,
+            [FromQuery] double minPoints = 0,
+            [FromQuery] double maxPoints = int.MaxValue,
             [FromQuery] string sortField = "id", 
             [FromQuery] bool sortOrder = true)
         {
@@ -54,7 +58,11 @@ namespace Etrx.API.Controllers
                 indexes, 
                 problemName, 
                 sortField, 
-                sortOrder);
+                sortOrder,
+                minRating,
+                maxRating,
+                minPoints,
+                maxPoints);
             
             ProblemsWithPropsResponse response = new ProblemsWithPropsResponse
             (

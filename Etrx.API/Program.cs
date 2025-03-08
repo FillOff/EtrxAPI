@@ -1,7 +1,6 @@
 using Etrx.API.Extensions;
-using Etrx.Application.Services;
-using Etrx.Domain.Interfaces.Services;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,10 +8,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddProfiles();
 builder.Services.AddApplicationServices();
 builder.Services.AddRepositories();
-builder.Services.AddDbContexts();
+builder.Services.AddDbContexts(builder.Configuration);
+builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 var app = builder.Build();
 
@@ -24,7 +23,7 @@ if (app.Environment.IsDevelopment())
         {
             swaggerDoc.Servers = new List<OpenApiServer>
             {
-                new OpenApiServer 
+                new OpenApiServer
                 { 
                     Url = $"https://dl.gsu.by/etrx2",
                     Description = "For swagger in production"

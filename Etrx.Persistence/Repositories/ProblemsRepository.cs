@@ -87,7 +87,11 @@ namespace Etrx.Persistence.Repositories
             string? indexes,
             string? problemName,
             string sortField,
-            string order)
+            string order,
+            int minRating,
+            int maxRating,
+            double minPoints,
+            double maxPoints)
         {
             var problems = _context.Problems
                 .AsNoTracking();
@@ -108,6 +112,10 @@ namespace Etrx.Persistence.Repositories
             {
                 problems = problems.Where(p => p.Name.Contains(problemName));
             }
+
+            problems = problems
+                .Where(p => p.Rating >= minRating && p.Rating <= maxRating)
+                .Where(p => p.Points >= minPoints && p.Points <= maxPoints);
 
             problems = problems
                 .OrderBy($"{sortField} {order}")

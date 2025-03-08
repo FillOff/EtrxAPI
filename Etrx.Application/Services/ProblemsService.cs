@@ -37,7 +37,11 @@ namespace Etrx.Application.Services
             string? indexes,
             string? problemName,
             string sortField,
-            bool sortOrder)
+            bool sortOrder,
+            int minRating,
+            int maxRating,
+            double minPoints,
+            double maxPoints)
         {
             var allProblems = await _problemsRepository.Get();
             int pageCount = allProblems.Count % pageSize == 0
@@ -52,7 +56,11 @@ namespace Etrx.Application.Services
                 indexes,
                 problemName,
                 sortField,
-                order);
+                order,
+                minRating,
+                maxRating,
+                minPoints,
+                maxPoints);
 
             return (problems, pageCount);
         }

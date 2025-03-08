@@ -17,7 +17,11 @@ namespace Etrx.Domain.Interfaces.Repositories
             string? indexes,
             string? problemName,
             string sortField,
-            string order);
+            string order,
+            int minRating,
+            int maxRating,
+            double minPoints,
+            double maxPoints);
         Task InsertOrUpdate(List<Problem> problems);
         Task<int> Create(Problem problem);
         Task<int> Update(Problem problem);
