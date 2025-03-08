@@ -44,13 +44,13 @@ namespace Etrx.Application.Services
                 contests = contests.Where(c => c.Gym == gym);
             }
 
-            contests = contests
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
-
             int pageCount = contests.Count() % pageSize == 0
                 ? contests.Count() / pageSize
                 : contests.Count() / pageSize + 1;
+
+            contests = contests
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
 
             return (contests.ToList(), pageCount);
         }
