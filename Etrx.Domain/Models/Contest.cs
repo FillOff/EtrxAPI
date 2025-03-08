@@ -8,16 +8,16 @@ public class Contest
     public string Phase { get; set; } = string.Empty;
     public bool Frozen { get; set; }
     public int DurationSeconds { get; set; }
-    public long? StartTime { get; set; }
-    public long? RelativeTimeSeconds { get; set; }
-    public string? PreparedBy { get; set; }
-    public string? WebsiteUrl { get; set; }
-    public string? Description { get; set; }
-    public int? Difficulty { get; set; }
-    public string? Kind { get; set; }
-    public string? IcpcRegion { get; set; }
-    public string? Country { get; set; }
-    public string? City { get; set; }
-    public string? Season { get; set; }
+    public long StartTime { get; set; } = 0;
+    public long RelativeTimeSeconds { get; set; } = 0;
+    public string PreparedBy { get; set; } = string.Empty;
+    public string WebsiteUrl { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public int Difficulty { get; set; } = 0;
+    public string Kind { get; set; } = string.Empty;
+    public string IcpcRegion { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
 }

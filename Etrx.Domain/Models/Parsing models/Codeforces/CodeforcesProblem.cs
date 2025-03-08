@@ -17,12 +17,12 @@ namespace Etrx.Domain.Models.ParsingModels.Codeforces
         public string Type { get; set; } = string.Empty;
 
         [JsonProperty("points")]
-        public double? Points { get; set; }
+        public double Points { get; set; } = 0;
 
         [JsonProperty("rating")]
-        public int? Rating { get; set; }
+        public int Rating { get; set; } = 0;
 
         [JsonProperty("tags")]
-        public List<string?>? Tags { get; set; } = null!;
+        public List<string> Tags { get; set; } = [];
     }
 }

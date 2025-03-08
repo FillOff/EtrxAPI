@@ -8,7 +8,7 @@ namespace Etrx.Domain.Models.ParsingModels.Codeforces
         public ulong Id { get; set; }
 
         [JsonProperty("contestId")]
-        public int? ContestId { get; set; }
+        public int ContestId { get; set; } = 0;
 
         [JsonProperty("creationTimeSeconds")]
         public long CreationTimeSeconds { get; set; }

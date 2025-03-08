@@ -3,7 +3,7 @@
 public class Submission
 {
     public ulong Id { get; set; }
-    public int? ContestId { get; set; }
+    public int ContestId { get; set; } = 0;
     public string Index { get; set; } = string.Empty;
     public long CreationTimeSeconds { get; set; }
     public long RelativeTimeSeconds { get; set; }

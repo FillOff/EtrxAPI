@@ -23,36 +23,36 @@ namespace Etrx.Domain.Models.ParsingModels.Codeforces
         public int DurationSeconds { get; set; }
 
         [JsonProperty("startTimeSeconds")]
-        public long? StartTime { get; set; }
+        public long StartTime { get; set; } = 0;
 
         [JsonProperty("relativeTimeSeconds")]
-        public long? RelativeTimeSeconds { get; set; }
+        public long RelativeTimeSeconds { get; set; } = 0;
 
         [JsonProperty("preparedBy")]
-        public string? PreparedBy { get; set; }
+        public string PreparedBy { get; set; } = string.Empty;
 
         [JsonProperty("websiteUrl")]
-        public string? WebsiteUrl { get; set; }
+        public string WebsiteUrl { get; set; } = string.Empty;
 
         [JsonProperty("description")]
-        public string? Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [JsonProperty("difficulty")]
-        public int? Difficulty { get; set; }
+        public int Difficulty { get; set; } = 0;
 
         [JsonProperty("kind")]
-        public string? Kind { get; set; }
+        public string Kind { get; set; } = string.Empty;
 
         [JsonProperty("icpcRegion")]
-        public string? IcpcRegion { get; set; }
+        public string IcpcRegion { get; set; } = string.Empty;
 
         [JsonProperty("country")]
-        public string? Country { get; set; }
+        public string Country { get; set; } = string.Empty;
 
         [JsonProperty("city")]
-        public string? City { get; set; }
+        public string City { get; set; } = string.Empty;
 
         [JsonProperty("season")]
-        public string? Season { get; set; }
+        public string Season { get; set; } = string.Empty;
     }
 }
