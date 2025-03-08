@@ -80,51 +80,6 @@ namespace Etrx.Persistence.Repositories
             return indexes;
         }
 
-        public async Task<List<Problem>> GetByPageWithSortAndFilterTags(
-            int page,
-            int pageSize,
-            string? tags,
-            string? indexes,
-            string? problemName,
-            string sortField,
-            string order,
-            int minRating,
-            int maxRating,
-            double minPoints,
-            double maxPoints)
-        {
-            var problems = _context.Problems
-                .AsNoTracking();
-
-            if (tags != null)
-            {
-                var tagsFilter = tags.Split(';');
-                problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
-            }
-
-            if (indexes != null)
-            {
-                var indexesFilter = indexes.Split(";");
-                problems = problems.Where(p => indexesFilter.Contains(p.Index));
-            }
-
-            if (problemName != null)
-            {
-                problems = problems.Where(p => p.Name.Contains(problemName));
-            }
-
-            problems = problems
-                .Where(p => p.Rating >= minRating && p.Rating <= maxRating)
-                .Where(p => p.Points >= minPoints && p.Points <= maxPoints);
-
-            problems = problems
-                .OrderBy($"{sortField} {order}")
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
-
-            return await problems.ToListAsync();
-        }
-
         public async Task<int> Create(Problem problem)
         {
             await _context.Problems.AddAsync(problem);

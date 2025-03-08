@@ -1,6 +1,8 @@
 ﻿using Etrx.Domain.Interfaces.Repositories;
 using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Application.Services
 {
@@ -31,18 +33,26 @@ namespace Etrx.Application.Services
             bool sortOrder = true)
         {
             string order = sortOrder == true ? "asc" : "desc";
-            var contests = await _contestsRepository.GetByPageWithSort(
-                page,
-                pageSize,
-                gym,
-                sortField,
-                order);
+            var contests = (await _contestsRepository.Get())
+                .AsQueryable()
+                .AsNoTracking()
+                .OrderBy($"{sortField} {order}")
+                .Where(c => c.Phase != "BEFORE");
 
-            int pageCount = contests.Count % pageSize == 0
-                ? contests.Count / pageSize
-                : contests.Count / pageSize + 1;
+            if (gym != null)
+            {
+                contests = contests.Where(c => c.Gym == gym);
+            }
 
-            return (contests, pageCount);
+            contests = contests
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize);
+
+            int pageCount = contests.Count() % pageSize == 0
+                ? contests.Count() / pageSize
+                : contests.Count() / pageSize + 1;
+
+            return (contests.ToList(), pageCount);
         }
 
         public async Task<int> CreateContestAsync(Contest contest)

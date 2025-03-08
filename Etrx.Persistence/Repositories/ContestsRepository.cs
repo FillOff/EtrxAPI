@@ -34,30 +34,6 @@ namespace Etrx.Persistence.Repositories
             return contest;
         }
 
-        public async Task<List<Contest>> GetByPageWithSort(
-            int page,
-            int pageSize,
-            bool? gym,
-            string sortField,
-            string order)
-        {
-            var contests = _context.Contests
-                .AsNoTracking()
-                .OrderBy($"{sortField} {order}")
-                .Where(c => c.Phase != "BEFORE");
-
-            if (gym != null)
-            {
-                contests = contests.Where(c => c.Gym == gym);
-            }
-
-            contests = contests
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
-
-            return await contests.ToListAsync();
-        }
-
         public async Task<int> Create(Contest contest)
         {
             await _context.Contests.AddAsync(contest);

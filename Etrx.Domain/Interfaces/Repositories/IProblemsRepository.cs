@@ -10,18 +10,6 @@ namespace Etrx.Domain.Interfaces.Repositories
         Task<List<string>> GetAllTags();
         Task<List<string>> GetAllIndexes();
         Task<List<string>> GetIndexesByContestId(int contestId);
-        Task<List<Problem>> GetByPageWithSortAndFilterTags(
-            int page,
-            int pageSize,
-            string? tags,
-            string? indexes,
-            string? problemName,
-            string sortField,
-            string order,
-            int minRating,
-            int maxRating,
-            double minPoints,
-            double maxPoints);
         Task InsertOrUpdate(List<Problem> problems);
         Task<int> Create(Problem problem);
         Task<int> Update(Problem problem);
