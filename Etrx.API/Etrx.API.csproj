@@ -30,4 +30,8 @@
       <ProjectReference Include="..\Etrx.Persistence\Etrx.Persistence.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Profiles\" />
+    </ItemGroup>
+
 </Project>

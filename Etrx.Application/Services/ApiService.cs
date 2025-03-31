@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Interfaces.Services;
+﻿using Etrx.Application.Interfaces;
 using Newtonsoft.Json;
 
 namespace Etrx.Application.Services;

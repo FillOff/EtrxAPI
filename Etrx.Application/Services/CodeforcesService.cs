@@ -1,28 +1,32 @@
 ﻿using Etrx.Domain.Models.ParsingModels.Dl;
-using Etrx.Domain.Interfaces.Repositories;
-using Etrx.Domain.Interfaces.Services;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
+using Etrx.Persistence.Interfaces;
+using Etrx.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services
 {
     public class CodeforcesService : ICodeforcesService
     {
         private readonly IProblemsRepository _problemsRepository;
-        private readonly IContestsRepository _contestsRepository;
+        private readonly IGenericRepository<Contest, int> _contestsRepository;
         private readonly IUsersRepository _usersRepository;
         private readonly ISubmissionsRepository _submissionsRepository;
+        private ILogger<CodeforcesService> _logger;
 
         public CodeforcesService(
             IProblemsRepository problemsRepository,
-            IContestsRepository contestsRepository,
+            IGenericRepository<Contest, int> contestsRepository,
             IUsersRepository usersRepository,
-            ISubmissionsRepository submissionsRepository)
+            ISubmissionsRepository submissionsRepository,
+            ILogger<CodeforcesService> logger)
         {
             _problemsRepository = problemsRepository;
             _contestsRepository = contestsRepository;
             _usersRepository = usersRepository;
             _submissionsRepository = submissionsRepository;
+            _logger = logger;
         }
 
         public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
@@ -63,10 +67,10 @@ namespace Etrx.Application.Services
                 }
                 else
                 {
-                    Console.WriteLine($"User {dlUser.Handle} doesn't exist in Codeforces");
+                    _logger.LogError($"User {dlUser.Handle} doesn't exist in Codeforces");
                 }
             }
-            await _usersRepository.InsertOrUpdateAsync(users);
+            await _usersRepository.InsertOrUpdate(users);
         }
 
         public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
@@ -95,7 +99,7 @@ namespace Etrx.Application.Services
                 Grade = dlUser.Grade
             };
 
-            await _usersRepository.InsertOrUpdateAsync([newUser]);
+            await _usersRepository.InsertOrUpdate([newUser]);
         }
 
         public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics)
@@ -153,7 +157,7 @@ namespace Etrx.Application.Services
 
                 newContests.Add(newContest);
             }
-            await _contestsRepository.InsertOrUpdateAsync(newContests);
+            await _contestsRepository.InsertOrUpdate(newContests);
         }
 
         public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
@@ -182,7 +186,7 @@ namespace Etrx.Application.Services
 
                 newSubmissions.Add(newSubmission);
             }
-            await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);
+            await _submissionsRepository.InsertOrUpdate(newSubmissions);
         }
     }
 }

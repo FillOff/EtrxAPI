@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Interfaces.Services;
+﻿using Etrx.Application.Interfaces;
 
 namespace Etrx.Application.Services
 {

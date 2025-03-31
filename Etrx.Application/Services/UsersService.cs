@@ -1,51 +1,57 @@
-﻿using Etrx.Domain.Interfaces.Repositories;
-using Etrx.Domain.Interfaces.Services;
+﻿using AutoMapper;
+using Azure;
+using Etrx.Application.Interfaces;
+using Etrx.Core.Contracts.Users;
 using Etrx.Domain.Models;
+using Etrx.Persistence.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Application.Services
 {
     public class UsersService : IUsersService
     {
         private readonly IUsersRepository _usersRepository;
+        private readonly IMapper _mapper;
 
-        public UsersService(IUsersRepository usersRepository)
+        public UsersService(
+            IUsersRepository usersRepository,
+            IMapper mapper)
         {
             _usersRepository = usersRepository;
+            _mapper = mapper;
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
+        public async Task<UsersResponseDto?> GetUserByHandleAsync(string handle)
         {
-            return await _usersRepository.Get();
+            var user = await _usersRepository.GetByKey(handle)
+                ?? throw new Exception($"User {handle} not found");
+
+            var response = _mapper.Map<UsersResponseDto?>(user);
+
+            return response;
         }
 
-        public User? GetUserByHandleAsync(string handle)
+        public async Task<UsersWithPropsResponseDto> GetUsersWithSortAsync(GetSortUserRequestDto dto)
         {
-            return _usersRepository.GetByHandle(handle);
+            if (!typeof(User).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new Exception($"Invalid field: SortField");
+            }
+
+            string order = dto.SortOrder == true ? "asc" : "desc";
+
+            var users = await _usersRepository.GetWithSort(dto.SortField!, order).ToListAsync();
+            var response = new UsersWithPropsResponseDto(
+                Users: _mapper.Map<List<UsersResponseDto>>(users),
+                Properties: typeof(UsersResponseDto).GetProperties().Select(p => p.Name).ToArray());
+
+            return response;
         }
-
-        public async Task<List<User>> GetUsersWithSortAsync(
-            string sortField,
-            bool sortOrder)
-        {
-            string order = sortOrder == true ? "asc" : "desc";
-            var users = await _usersRepository.GetWithSort(sortField, order);
-
-            return users;
-        }
-
+        
         public async Task<List<string>> GetHandlesAsync()
         {
-            return await _usersRepository.GetHandles();
-        }
-
-        public async Task<int> CreateUserAsync(User user)
-        {
-            return await _usersRepository.Create(user);
-        }
-
-        public async Task<int> UpdateUserAsync(User user)
-        {
-            return await _usersRepository.Update(user);
+            return await _usersRepository.GetHandles()
+                .ToListAsync();
         }
     }
 }

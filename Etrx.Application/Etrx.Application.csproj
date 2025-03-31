@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Etrx.Domain\Etrx.Domain.csproj" />
+    <ProjectReference Include="..\Etrx.Persistence\Etrx.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

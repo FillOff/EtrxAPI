@@ -1,7 +1,7 @@
-﻿using Etrx.Domain.Interfaces.Services;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Core.Models.Parsing_models.Codeforces;
+using Etrx.Application.Interfaces;
 
 namespace Etrx.Application.Services
 {

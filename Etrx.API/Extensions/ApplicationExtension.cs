@@ -1,5 +1,5 @@
-﻿using Etrx.Application.Services;
-using Etrx.Domain.Interfaces.Services;
+﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Services;
 
 namespace Etrx.API.Extensions;
 

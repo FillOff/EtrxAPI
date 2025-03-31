@@ -1,5 +1,6 @@
-﻿using Etrx.Domain.Interfaces.Repositories;
+﻿using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
+using Etrx.Persistence.Interfaces;
 using Etrx.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,8 +11,8 @@ public static class PersistenceExtension
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IProblemsRepository, ProblemsRepository>();
-        services.AddScoped<IContestsRepository, ContestsRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
+        services.AddScoped<IGenericRepository<Contest, int>, GenericRepository<Contest, int>>();
         services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
 
         return services;

@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Interfaces.Services;
+﻿using Etrx.Application.Interfaces;
 using Etrx.Domain.Models.ParsingModels.Dl;
 namespace Etrx.Application.Services;
 

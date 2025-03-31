@@ -1,6 +1,8 @@
-﻿using Etrx.Domain.Interfaces.Repositories;
-using Etrx.Domain.Interfaces.Services;
+﻿using AutoMapper;
+using Etrx.Application.Interfaces;
+using Etrx.Core.Contracts.Contests;
 using Etrx.Domain.Models;
+using Etrx.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
@@ -8,61 +10,68 @@ namespace Etrx.Application.Services
 {
     public class ContestsService : IContestsService
     {
-        private readonly IContestsRepository _contestsRepository;
+        private readonly IGenericRepository<Contest, int> _contestsRepository;
+        private readonly IMapper _mapper;
 
-        public ContestsService(IContestsRepository contestsRepository)
+        public ContestsService(
+            IGenericRepository<Contest, int> contestsRepository,
+            IMapper mapper)
         {
             _contestsRepository = contestsRepository;
+            _mapper = mapper;
         }
 
         public async Task<List<Contest>> GetAllContestsAsync()
         {
-            return await _contestsRepository.Get();
+            return await _contestsRepository.GetAll()
+                .ToListAsync();
         }
 
-        public async Task<Contest?> GetContestByIdAsync(int contestId)
+        public async Task<ContestResponseDto?> GetContestByIdAsync(int contestId)
         {
-            return await _contestsRepository.GetById(contestId);
+            var contest = await _contestsRepository.GetByKey(contestId)
+                ?? throw new Exception($"Contest {contestId} not fount");
+
+            var response = _mapper.Map<ContestResponseDto>(contest);
+
+            return response;
         }
 
-        public async Task<(List<Contest> Contests, int PageCount)> GetContestsByPageWithSortAsync(
-            int page,
-            int pageSize,
-            bool? gym,
-            string sortField = "contestid",
-            bool sortOrder = true)
+        public ContestWithPropsResponseDto GetContestsByPageWithSortAsync(GetSortContestRequestDto dto)
         {
-            string order = sortOrder == true ? "asc" : "desc";
-            var contests = (await _contestsRepository.Get())
-                .AsQueryable()
-                .AsNoTracking()
-                .OrderBy($"{sortField} {order}")
-                .Where(c => c.Phase != "BEFORE");
-
-            if (gym != null)
+            if (!typeof(Contest).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
             {
-                contests = contests.Where(c => c.Gym == gym);
+                throw new Exception($"Invalid field: SortField");
             }
 
-            int pageCount = contests.Count() % pageSize == 0
-                ? contests.Count() / pageSize
-                : contests.Count() / pageSize + 1;
+            string order = dto.SortOrder == true ? "asc" : "desc";
+            var contests = _contestsRepository.GetAll()
+                .AsQueryable()
+                .AsNoTracking()
+                .OrderBy($"{dto.SortField} {order}")
+                .Where(c => c.Phase != "BEFORE");
+
+            if (dto.Gym != null)
+            {
+                contests = contests.Where(c => c.Gym == dto.Gym);
+            }
+
+            int pageCount = contests.Count() % dto.PageSize == 0
+                ? contests.Count() / dto.PageSize
+                : contests.Count() / dto.PageSize + 1;
 
             contests = contests
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize);
+                .Skip((dto.Page - 1) * dto.PageSize)
+                .Take(dto.PageSize);
 
-            return (contests.ToList(), pageCount);
-        }
+            var response = new ContestWithPropsResponseDto
+            (
+                Contests: _mapper.Map<List<ContestResponseDto>>(contests),
+                Properties: typeof(ContestResponseDto).GetProperties().Select(p => p.Name).ToArray(),
+                PageCount: pageCount
+            );
 
-        public async Task<int> CreateContestAsync(Contest contest)
-        {
-            return await _contestsRepository.Create(contest);
-        }
-
-        public async Task<int> UpdateContestAsync(Contest contest)
-        {
-            return await _contestsRepository.Update(contest);
+            return response;
         }
     }
 }
