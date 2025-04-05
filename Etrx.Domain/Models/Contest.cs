@@ -1,9 +1,10 @@
-﻿namespace Etrx.Domain.Models;
+﻿using Etrx.Core.Models;
+
+namespace Etrx.Domain.Models;
 
 public class Contest
 {
     public int ContestId { get; set; }
-    public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Phase { get; set; } = string.Empty;
     public bool Frozen { get; set; }
@@ -20,4 +21,6 @@ public class Contest
     public string City { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
+
+    public List<ContestTranslation> ContestTranslations { get; set; } = [];
 }

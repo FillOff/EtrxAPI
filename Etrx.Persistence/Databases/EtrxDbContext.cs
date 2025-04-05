@@ -1,4 +1,5 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Core.Models;
+using Etrx.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
@@ -13,7 +14,9 @@ namespace Etrx.Persistence.Databases
         }
 
         public DbSet<Problem> Problems { get; set; }
+        public DbSet<ProblemTranslation> ProblemTranslations { get; set; }
         public DbSet<Contest> Contests { get; set; }
+        public DbSet<ContestTranslation> ContestTranslations { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Submission> Submissions { get; set; }
 

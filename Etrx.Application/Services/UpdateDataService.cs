@@ -79,8 +79,11 @@ namespace Etrx.Application.Services
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
             var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
 
-            var (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync();
-            await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!);
+            var (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("ru");
+            await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "ru");
+
+            (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("en");
+            await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "en");
 
             _logger.LogInformation($"Problems updated successfully.");
             _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
@@ -92,11 +95,17 @@ namespace Etrx.Application.Services
             var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
             var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
 
-            var contests = await codeforcesApiService.GetCodeforcesContestsAsync(false);
-            await codeforcesService.PostContestsFromCodeforces(contests!, false);
+            var contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "ru");
+            await codeforcesService.PostContestsFromCodeforces(contests!, false, "ru");
 
-            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true);
-            await codeforcesService.PostContestsFromCodeforces(contests!, true);
+            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "ru");
+            await codeforcesService.PostContestsFromCodeforces(contests!, true, "ru");
+
+            contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "en");
+            await codeforcesService.PostContestsFromCodeforces(contests!, false, "en");
+
+            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "en");
+            await codeforcesService.PostContestsFromCodeforces(contests!, true, "en");
 
             _logger.LogInformation($"Contests updated successfully.");
             _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));

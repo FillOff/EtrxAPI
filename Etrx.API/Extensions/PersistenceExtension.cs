@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Core.Models;
 using Etrx.Persistence.Databases;
 using Etrx.Persistence.Interfaces;
 using Etrx.Persistence.Repositories;
@@ -12,7 +12,9 @@ public static class PersistenceExtension
     {
         services.AddScoped<IProblemsRepository, ProblemsRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
-        services.AddScoped<IGenericRepository<Contest, int>, GenericRepository<Contest, int>>();
+        services.AddScoped<IContestsRepository, ContestsRepository>();
+        services.AddScoped<IGenericRepository<ContestTranslation, object>, GenericRepository<ContestTranslation, object>>();
+        services.AddScoped<IGenericRepository<ProblemTranslation, object>, GenericRepository<ProblemTranslation, object>>();
         services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
 
         return services;

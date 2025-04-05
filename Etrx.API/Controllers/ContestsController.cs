@@ -16,9 +16,11 @@ public class ContestsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ContestResponseDto>> GetContestById([FromRoute] int id)
+    public async Task<ActionResult<ContestResponseDto>> GetContestById(
+        [FromRoute] int id,
+        [FromQuery] string lang)
     {
-        return Ok(await _contestsService.GetContestByIdAsync(id));
+        return Ok(await _contestsService.GetContestByIdAsync(id, lang));
     }
 
     [HttpGet]

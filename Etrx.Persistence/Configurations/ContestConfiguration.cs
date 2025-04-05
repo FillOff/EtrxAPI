@@ -12,5 +12,10 @@ public class ContestConfiguration : IEntityTypeConfiguration<Contest>
 
         builder.Property(c => c.ContestId)
             .ValueGeneratedNever();
+
+        builder
+            .HasMany(c => c.ContestTranslations)
+            .WithOne()
+            .HasForeignKey(ct => ct.ContestId);
     }
 }

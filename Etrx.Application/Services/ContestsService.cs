@@ -10,35 +10,59 @@ namespace Etrx.Application.Services
 {
     public class ContestsService : IContestsService
     {
-        private readonly IGenericRepository<Contest, int> _contestsRepository;
+        private readonly IContestsRepository _contestsRepository;
         private readonly IMapper _mapper;
 
         public ContestsService(
-            IGenericRepository<Contest, int> contestsRepository,
+            IContestsRepository contestsRepository,
             IMapper mapper)
         {
             _contestsRepository = contestsRepository;
             _mapper = mapper;
         }
 
-        public async Task<List<Contest>> GetAllContestsAsync()
+        public async Task<List<ContestResponseDto>> GetAllContestsAsync(string lang)
         {
-            return await _contestsRepository.GetAll()
+            if (lang != "ru" && lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
+            var contests = await _contestsRepository.GetAll()
                 .ToListAsync();
+            var response = _mapper.Map<List<ContestResponseDto>>(contests, opt =>
+            {
+                opt.Items["lang"] = lang;
+            });
+
+            return response;
         }
 
-        public async Task<ContestResponseDto?> GetContestByIdAsync(int contestId)
+        public async Task<ContestResponseDto?> GetContestByIdAsync(int contestId, string lang)
         {
-            var contest = await _contestsRepository.GetByKey(contestId)
-                ?? throw new Exception($"Contest {contestId} not fount");
+            if (lang != "ru" && lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
 
-            var response = _mapper.Map<ContestResponseDto>(contest);
+            var contest = await _contestsRepository.GetByKey(contestId)
+                ?? throw new Exception($"Contest {contestId} not found");
+
+            var response = _mapper.Map<ContestResponseDto>(contest, opt =>
+            {
+                opt.Items["lang"] = lang;
+            });
 
             return response;
         }
 
         public ContestWithPropsResponseDto GetContestsByPageWithSortAsync(GetSortContestRequestDto dto)
         {
+            if (dto.Lang != "ru" && dto.Lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
             if (!typeof(Contest).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
             {
                 throw new Exception($"Invalid field: SortField");
@@ -66,7 +90,10 @@ namespace Etrx.Application.Services
 
             var response = new ContestWithPropsResponseDto
             (
-                Contests: _mapper.Map<List<ContestResponseDto>>(contests),
+                Contests: _mapper.Map<List<ContestResponseDto>>(contests, opt =>
+                {
+                    opt.Items["lang"] = dto.Lang;
+                }),
                 Properties: typeof(ContestResponseDto).GetProperties().Select(p => p.Name).ToArray(),
                 PageCount: pageCount
             );

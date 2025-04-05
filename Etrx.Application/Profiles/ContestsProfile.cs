@@ -8,7 +8,13 @@ namespace Etrx.Application.Profiles
     {
         public ContestsProfile()
         {
-            CreateMap<Contest, ContestResponseDto>();
+            CreateMap<Contest, ContestResponseDto>()
+                .ForMember(
+                    dest => dest.Name,
+                    opt => opt.MapFrom((src, dest, destMember, context) =>
+                        src.ContestTranslations.FirstOrDefault(сt => сt.LanguageCode == (string)context.Items["lang"])?.Name
+                    )
+                );
         }
     }
 }

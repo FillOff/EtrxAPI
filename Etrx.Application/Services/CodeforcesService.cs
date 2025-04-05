@@ -4,26 +4,34 @@ using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Persistence.Interfaces;
 using Etrx.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using Etrx.Core.Models;
+using System;
 
 namespace Etrx.Application.Services
 {
     public class CodeforcesService : ICodeforcesService
     {
         private readonly IProblemsRepository _problemsRepository;
-        private readonly IGenericRepository<Contest, int> _contestsRepository;
+        private readonly IContestsRepository _contestsRepository;
+        private readonly IGenericRepository<ContestTranslation, object> _contestTranslationsRepository;
+        private readonly IGenericRepository<ProblemTranslation, object> _problemTranslationsRepository;
         private readonly IUsersRepository _usersRepository;
         private readonly ISubmissionsRepository _submissionsRepository;
         private ILogger<CodeforcesService> _logger;
 
         public CodeforcesService(
             IProblemsRepository problemsRepository,
-            IGenericRepository<Contest, int> contestsRepository,
+            IContestsRepository contestsRepository,
+            IGenericRepository<ContestTranslation, object> contestTranslationsRepository,
+            IGenericRepository<ProblemTranslation, object> problemTranslationsRepository,
             IUsersRepository usersRepository,
             ISubmissionsRepository submissionsRepository,
             ILogger<CodeforcesService> logger)
         {
             _problemsRepository = problemsRepository;
             _contestsRepository = contestsRepository;
+            _contestTranslationsRepository = contestTranslationsRepository;
+            _problemTranslationsRepository = problemTranslationsRepository;
             _usersRepository = usersRepository;
             _submissionsRepository = submissionsRepository;
             _logger = logger;
@@ -102,9 +110,10 @@ namespace Etrx.Application.Services
             await _usersRepository.InsertOrUpdate([newUser]);
         }
 
-        public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics)
+        public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
         {
             List<Problem> newProblems = [];
+            List<ProblemTranslation> newTranslations = [];
             for (int i = 0; i < problems.Count; i++)
             {
                 var problem = problems[i];
@@ -113,7 +122,6 @@ namespace Etrx.Application.Services
                 {
                     ContestId = problem.ContestId,
                     Index = problem.Index,
-                    Name = problem.Name,
                     Type = problem.Type,
                     Points = problem.Points,
                     Rating = problem.Rating,
@@ -121,14 +129,26 @@ namespace Etrx.Application.Services
                     Tags = problem.Tags
                 };
 
+                var newProblemTranslation = new ProblemTranslation()
+                {
+                    ContestId = problem.ContestId,
+                    Index = problem.Index,
+                    LanguageCode = languageCode,
+                    Name = problem.Name
+                };
+
                 newProblems.Add(newProblem);
+                newTranslations.Add(newProblemTranslation);
             }
+
             await _problemsRepository.InsertOrUpdate(newProblems);
+            await _problemTranslationsRepository.InsertOrUpdate(newTranslations);
         }
 
-        public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym)
+        public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
         {
             List<Contest> newContests = [];
+            List<ContestTranslation> newTranslations = [];
             for (int i = 0; i < contests.Count; i++)
             {
                 var contest = contests[i];
@@ -136,7 +156,6 @@ namespace Etrx.Application.Services
                 var newContest = new Contest()
                 {
                     ContestId = contest.ContestId,
-                    Name = contest.Name,
                     Type = contest.Type,
                     Phase = contest.Phase,
                     Frozen = contest.Frozen,
@@ -155,9 +174,19 @@ namespace Etrx.Application.Services
                     Gym = gym
                 };
 
+                var newContestTranslation = new ContestTranslation()
+                {
+                    ContestId = contest.ContestId,
+                    LanguageCode = languageCode,
+                    Name = contest.Name
+                };
+
                 newContests.Add(newContest);
+                newTranslations.Add(newContestTranslation);
             }
+
             await _contestsRepository.InsertOrUpdate(newContests);
+            await _contestTranslationsRepository.InsertOrUpdate(newTranslations);
         }
 
         public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
@@ -186,6 +215,7 @@ namespace Etrx.Application.Services
 
                 newSubmissions.Add(newSubmission);
             }
+
             await _submissionsRepository.InsertOrUpdate(newSubmissions);
         }
     }

@@ -5,7 +5,7 @@ namespace Etrx.Application.Interfaces;
 
 public interface IContestsService
 {
-    Task<List<Contest>> GetAllContestsAsync();
-    Task<ContestResponseDto?> GetContestByIdAsync(int contestId);
+    Task<List<ContestResponseDto>> GetAllContestsAsync(string lang);
+    Task<ContestResponseDto?> GetContestByIdAsync(int contestId, string lang);
     ContestWithPropsResponseDto GetContestsByPageWithSortAsync(GetSortContestRequestDto dto);
 }

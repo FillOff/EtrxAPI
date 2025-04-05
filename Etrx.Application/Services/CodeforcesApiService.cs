@@ -27,10 +27,10 @@ namespace Etrx.Application.Services
             return response.Result;
         }
 
-        public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync()
+        public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync(string lang)
         {
             var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesProblemsResult>>(
-                "https://codeforces.com/api/problemset.problems?lang=ru");
+                $"https://codeforces.com/api/problemset.problems?lang={lang}");
 
             return (
                 response.Result!.Problems,
@@ -38,10 +38,10 @@ namespace Etrx.Application.Services
             );
         }
 
-        public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym)
+       public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym, string lang)
         {
             var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesContest>>>(
-                $"https://codeforces.com/api/contest.list?gym={gym}&lang=ru");
+                $"https://codeforces.com/api/contest.list?gym={gym}&lang={lang}");
 
             return response.Result ?? [];
         }

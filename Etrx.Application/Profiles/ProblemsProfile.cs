@@ -8,7 +8,13 @@ namespace Etrx.Application.Profiles
     {
         public ProblemsProfile()
         {
-            CreateMap<Problem, ProblemResponseDto>();
+            CreateMap<Problem, ProblemResponseDto>()
+                .ForMember(
+                    dest => dest.Name,
+                    opt => opt.MapFrom((src, dest, destMember, context) =>
+                        src.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == (string)context.Items["lang"])?.Name
+                    )
+                );
         }
     }
 }

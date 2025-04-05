@@ -9,8 +9,14 @@ namespace Etrx.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Problem> builder)
         {
             builder.HasKey(p => new { p.ContestId, p.Index });
+
             builder.Property(p => p.Id)
                 .ValueGeneratedOnAdd();
+
+            builder
+                .HasMany(p => p.ProblemTranslations)
+                .WithOne()
+                .HasForeignKey(pt => new { pt.ContestId, pt.Index });
         }
     }
 }

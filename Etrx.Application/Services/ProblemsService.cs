@@ -21,30 +21,55 @@ namespace Etrx.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<List<ProblemResponseDto>> GetAllProblemsAsync()
+        public async Task<List<ProblemResponseDto>> GetAllProblemsAsync(string lang)
         {
+            if (lang != "ru" && lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
             var problems = await _problemsRepository.GetAll()
                 .ToListAsync();
-            var response = _mapper.Map<List<ProblemResponseDto>>(problems);
+            var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
+            {
+                opts.Items["lang"] = lang;
+            });
 
             return response;
         }
 
         public async Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(
             int contestId,
-            string index)
+            string index,
+            string lang)
         {
-            var problem = await _problemsRepository.GetByKey(new { contestId, index });
-            var response = _mapper.Map<ProblemResponseDto>(problem);
+            if (lang != "ru" && lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
+            var problem = await _problemsRepository.GetByKey(contestId, index);
+            var response = _mapper.Map<ProblemResponseDto>(problem, opts =>
+            {
+                opts.Items["lang"] = lang;
+            });
 
             return response;
         }
 
-        public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId)
+        public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
         {
+            if (lang != "ru" && lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
             var problems = await _problemsRepository.GetByContestId(contestId)
                 .ToListAsync();
-            var response = _mapper.Map<List<ProblemResponseDto>>(problems);
+            var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
+            {
+                opts.Items["lang"] = lang;
+            });
 
             return response;
         }
@@ -52,6 +77,11 @@ namespace Etrx.Application.Services
         public ProblemWithPropsResponseDto GetProblemsByPageWithSortAndFilterTagsAsync(
             GetSortProblemRequestDto dto)
         {
+            if (dto.Lang != "ru" && dto.Lang != "en")
+            {
+                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            }
+
             if (string.IsNullOrEmpty(dto.SortField) ||
                 !typeof(Problem).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -85,7 +115,7 @@ namespace Etrx.Application.Services
 
             if (dto.ProblemName != null)
             {
-                problems = problems.Where(p => p.Name.Contains(dto.ProblemName));
+                problems = problems.Where(p => p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name.Contains(dto.ProblemName));
             }
             
             problems = problems
@@ -103,7 +133,10 @@ namespace Etrx.Application.Services
 
             ProblemWithPropsResponseDto response = new ProblemWithPropsResponseDto
             (
-                Problems: _mapper.Map<List<ProblemResponseDto>>(problems),
+                Problems: _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
+                {
+                    opts.Items["lang"] = dto.Lang;
+                }),
                 Properties: typeof(ProblemResponseDto).GetProperties().Select(p => p.Name).ToArray()!,
                 PageCount: pageCount
             );

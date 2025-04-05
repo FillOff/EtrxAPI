@@ -5,4 +5,5 @@ public record class GetSortContestRequestDto(
     int PageSize = 100,
     bool? Gym = null,
     string SortField = "contestid",
-    bool SortOrder = true);
+    bool SortOrder = true,
+    string Lang = "ru");

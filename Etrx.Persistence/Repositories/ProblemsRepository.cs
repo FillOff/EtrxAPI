@@ -12,10 +12,23 @@ namespace Etrx.Persistence.Repositories
             : base(context)
         { }
 
+        public override IQueryable<Problem> GetAll()
+        {
+            return base.GetAll()
+                .Include(p => p.ProblemTranslations);
+        }
+
+        public async Task<Problem?> GetByKey(int contestId, string index)
+        {
+            return await _dbSet
+                .Include(p => p.ProblemTranslations)
+                .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
+        }
+
         public IQueryable<Problem> GetByContestId(int contestId)
         {
             return _dbSet
-                .AsNoTracking()
+                .Include(p => p.ProblemTranslations)
                 .Where(p => p.ContestId == contestId);
         }
 
