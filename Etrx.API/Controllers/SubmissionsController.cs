@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
 using Etrx.Core.Contracts.Submissions;
+using Etrx.Domain.Contracts.Submissions;
 
 namespace Etrx.API.Controllers;
 
@@ -21,5 +22,12 @@ public class SubmissionsController : ControllerBase
         [FromQuery] GetSubmissionRequestDto dto)
     {
         return Ok(await _submissionsService.GetSubmissionsWithSortAsync(contestId, dto));
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<GetSubmissionsWithPropsProtocolResponseDto>> GetProtocol(
+        [FromQuery] GetSubmissionsProtocolRequestDto dto)
+    {
+        return Ok(await _submissionsService.GetProtocolAsync(dto));
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Core.Contracts.Problems;
 
-public record ProblemResponseDto
+public class ProblemResponseDto
 {
     public int Id { get; set; }
     public int ContestId { get; set; }

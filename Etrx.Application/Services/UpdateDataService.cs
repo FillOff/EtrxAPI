@@ -3,167 +3,176 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Etrx.Application.Services
+namespace Etrx.Application.Services;
+
+public class UpdateDataService : BackgroundService, IUpdateDataService
 {
-    public class UpdateDataService : BackgroundService, IUpdateDataService
+    private readonly ILogger<UpdateDataService> _logger;
+    private readonly ILastUpdateTimeService _lastTimeUpdateService;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private DateTime _nextRunTime;
+    private DateTime _nowMsk;
+
+    public UpdateDataService(
+        ILogger<UpdateDataService> logger,
+        ILastUpdateTimeService lastTimeUpdateService,
+        IServiceScopeFactory serviceScopeFactory)
     {
-        private readonly ILogger<UpdateDataService> _logger;
-        private readonly ILastUpdateTimeService _lastTimeUpdateService;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private DateTime _nextRunTime;
+        _logger = logger;
+        _lastTimeUpdateService = lastTimeUpdateService;
+        _serviceScopeFactory = serviceScopeFactory;
+        _nowMsk = DateTime.Now.AddHours(3);
+        _nextRunTime = CalculateNextRunTime(_nowMsk);
+    }
 
-        public UpdateDataService(
-            ILogger<UpdateDataService> logger,
-            ILastUpdateTimeService lastTimeUpdateService,
-            IServiceScopeFactory serviceScopeFactory)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _logger.LogInformation("UpdateDataService is starting.");
+
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _logger = logger;
-            _lastTimeUpdateService = lastTimeUpdateService;
-            _serviceScopeFactory = serviceScopeFactory;
-            _nextRunTime = CalculateNextRunTime();
-        }
+            _nowMsk = DateTime.Now.AddHours(3);
+            var delay = _nextRunTime - _nowMsk;
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _logger.LogInformation("UpdateDataService is starting.");
-
-            while (!stoppingToken.IsCancellationRequested)
+            if (delay < TimeSpan.Zero)
             {
-                var nowMsk = DateTime.Now.AddHours(3);
-                var delay = _nextRunTime - nowMsk;
-
-                if (delay < TimeSpan.Zero)
-                {
-                    delay = TimeSpan.Zero;
-                }
-
-                _logger.LogInformation($"Next execution scheduled at {_nextRunTime}.");
-
-                await Task.Delay(delay, stoppingToken);
-
-                try
-                {
-                    await UpdateProblems();
-                    await UpdateContests();
-                    await UpdateUsers();
-
-                    _nextRunTime = CalculateNextRunTime();
-                }
-                catch (Exception ex)
-                {
-                    _nextRunTime = _nextRunTime.AddHours(1);
-
-                    _logger.LogWarning($"Task failed: {ex.Message}");
-                    _logger.LogWarning($"Task failed, rescheduled to {_nextRunTime}");
-                }
+                delay = TimeSpan.Zero;
             }
 
-            _logger.LogInformation("UpdateDataService is stopping.");
-        }
+            _logger.LogInformation($"Next execution scheduled at {_nextRunTime}.");
 
-        private DateTime CalculateNextRunTime()
-        {
-            var targetTime = DateTime.Today.AddHours(23).AddMinutes(00);
+            await Task.Delay(delay, stoppingToken);
 
-            if (DateTime.Now.AddHours(3) > targetTime)
+            try
             {
-                targetTime = targetTime.AddDays(1);
+                await UpdateContests();
+                await UpdateProblems();
+                await UpdateUsers();
+                await UpdateSubmissions();
+                await Task.Delay(2000, stoppingToken);
+
+                _nowMsk = DateTime.Now.AddHours(3);
+                _nextRunTime = CalculateNextRunTime(_nowMsk);
             }
-
-            return targetTime;
-        }
-
-        public async Task UpdateProblems()
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
-
-            var (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("ru");
-            await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "ru");
-
-            (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("en");
-            await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "en");
-
-            _logger.LogInformation($"Problems updated successfully.");
-            _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
-        }
-
-        public async Task UpdateContests()
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
-
-            var contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "ru");
-            await codeforcesService.PostContestsFromCodeforces(contests!, false, "ru");
-
-            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "ru");
-            await codeforcesService.PostContestsFromCodeforces(contests!, true, "ru");
-
-            contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "en");
-            await codeforcesService.PostContestsFromCodeforces(contests!, false, "en");
-
-            contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "en");
-            await codeforcesService.PostContestsFromCodeforces(contests!, true, "en");
-
-            _logger.LogInformation($"Contests updated successfully.");
-            _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));
-        }
-
-        public async Task UpdateUsers()
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
-            var dlApiService = scope.ServiceProvider.GetRequiredService<IDlApiService>();
-
-            var dlUsers = await dlApiService.GetDlUsersAsync();
-            foreach ( var dlUser in dlUsers )
+            catch (Exception ex)
             {
-                var handle = dlUser.Handle;
-                var user = await codeforcesApiService.GetCodeforcesUsersAsync(handle);
+                _nextRunTime = _nextRunTime.AddHours(1);
 
-                await codeforcesService.PostUserFromDlCodeforces(dlUser, user[0]);
-                await Task.Delay(2000);
+                _logger.LogWarning($"Task failed: {ex.Message}");
+                _logger.LogWarning($"Task failed, rescheduled to {_nextRunTime}");
             }
-
-            _logger.LogInformation($"Dl users updated successfully.");
-            _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
         }
 
-        public async Task UpdateSubmissions()
+        _logger.LogInformation("UpdateDataService is stopping.");
+    }
+
+    private DateTime CalculateNextRunTime(DateTime nowMsk)
+    {
+        var minutes = nowMsk.Minute;
+        var nextRunMinute = (minutes / 2 + 1) * 2;
+
+        var nextRunTime = nowMsk.Date.AddHours(nowMsk.Hour).AddMinutes(nextRunMinute);
+
+        if (nextRunTime <= nowMsk)
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
-            var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
-
-            var handles = await usersService.GetHandlesAsync();
-            foreach (var handle in handles)
-            {
-                var submissions = await codeforcesApiService.GetCodeforcesSubmissionsAsync(handle);
-                await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
-            }
-
-            _logger.LogInformation($"Submissions updated successfully.");
+            nextRunTime = nextRunTime.AddMinutes(30);
         }
 
-        public async Task UpdateSubmissionsByContestId(int contestId)
+        return nextRunTime;
+    }
+
+    public async Task UpdateProblems()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+
+        var (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("ru");
+        await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "ru");
+
+        (Problems, ProblemStatistics) = await codeforcesApiService.GetCodeforcesProblemsAsync("en");
+        await codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "en");
+
+        _logger.LogInformation($"Problems updated successfully.");
+        _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
+    }
+
+    public async Task UpdateContests()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+
+        var contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "ru");
+        await codeforcesService.PostContestsFromCodeforces(contests!, false, "ru");
+
+        contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "ru");
+        await codeforcesService.PostContestsFromCodeforces(contests!, true, "ru");
+
+        contests = await codeforcesApiService.GetCodeforcesContestsAsync(false, "en");
+        await codeforcesService.PostContestsFromCodeforces(contests!, false, "en");
+
+        contests = await codeforcesApiService.GetCodeforcesContestsAsync(true, "en");
+        await codeforcesService.PostContestsFromCodeforces(contests!, true, "en");
+
+        _logger.LogInformation($"Contests updated successfully.");
+        _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));
+    }
+
+    public async Task UpdateUsers()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+        var dlApiService = scope.ServiceProvider.GetRequiredService<IDlApiService>();
+
+        var dlUsers = await dlApiService.GetDlUsersAsync();
+        foreach ( var dlUser in dlUsers )
         {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
-            var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
-            var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+            var handle = dlUser.Handle;
+            var user = await codeforcesApiService.GetCodeforcesUsersAsync(handle);
 
-            var handles = await codeforcesApiService.GetCodeforcesContestUsersAsync(await usersService.GetHandlesAsync(), contestId);
-            foreach(var handle in handles)
-            {
-                var submissions = await codeforcesApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
-                await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
-            }
-
-            _logger.LogInformation($"Submissions updated successfully.");
+            await codeforcesService.PostUserFromDlCodeforces(dlUser, user[0]);
+            await Task.Delay(2000);
         }
+
+        _logger.LogInformation($"Dl users updated successfully.");
+        _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
+    }
+
+    public async Task UpdateSubmissions()
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+        var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+
+        var handles = await usersService.GetHandlesAsync();
+        foreach (var handle in handles)
+        {
+            var submissions = await codeforcesApiService.GetCodeforcesSubmissionsAsync(handle);
+            await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
+            await Task.Delay(2000);
+        }
+
+        _logger.LogInformation($"Submissions updated successfully.");
+    }
+
+    public async Task UpdateSubmissionsByContestId(int contestId)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+        var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+
+        var handles = await codeforcesApiService.GetCodeforcesContestUsersAsync(await usersService.GetHandlesAsync(), contestId);
+        foreach(var handle in handles)
+        {
+            var submissions = await codeforcesApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
+            await codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
+            await Task.Delay(2000);
+        }
+
+        _logger.LogInformation($"Submissions updated successfully.");
     }
 }

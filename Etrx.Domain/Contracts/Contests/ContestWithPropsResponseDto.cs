@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Core.Contracts.Contests;
 
-public record ContestWithPropsResponseDto(
+public record class ContestWithPropsResponseDto(
     List<ContestResponseDto> Contests,
     string[] Properties,
     int PageCount);

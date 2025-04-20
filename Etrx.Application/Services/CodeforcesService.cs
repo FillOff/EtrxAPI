@@ -4,219 +4,216 @@ using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Persistence.Interfaces;
 using Etrx.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using Etrx.Core.Models;
-using System;
 
-namespace Etrx.Application.Services
+namespace Etrx.Application.Services;
+
+public class CodeforcesService : ICodeforcesService
 {
-    public class CodeforcesService : ICodeforcesService
+    private readonly IProblemsRepository _problemsRepository;
+    private readonly IContestsRepository _contestsRepository;
+    private readonly IGenericRepository<ContestTranslation, object> _contestTranslationsRepository;
+    private readonly IGenericRepository<ProblemTranslation, object> _problemTranslationsRepository;
+    private readonly IUsersRepository _usersRepository;
+    private readonly ISubmissionsRepository _submissionsRepository;
+    private ILogger<CodeforcesService> _logger;
+
+    public CodeforcesService(
+        IProblemsRepository problemsRepository,
+        IContestsRepository contestsRepository,
+        IGenericRepository<ContestTranslation, object> contestTranslationsRepository,
+        IGenericRepository<ProblemTranslation, object> problemTranslationsRepository,
+        IUsersRepository usersRepository,
+        ISubmissionsRepository submissionsRepository,
+        ILogger<CodeforcesService> logger)
     {
-        private readonly IProblemsRepository _problemsRepository;
-        private readonly IContestsRepository _contestsRepository;
-        private readonly IGenericRepository<ContestTranslation, object> _contestTranslationsRepository;
-        private readonly IGenericRepository<ProblemTranslation, object> _problemTranslationsRepository;
-        private readonly IUsersRepository _usersRepository;
-        private readonly ISubmissionsRepository _submissionsRepository;
-        private ILogger<CodeforcesService> _logger;
+        _problemsRepository = problemsRepository;
+        _contestsRepository = contestsRepository;
+        _contestTranslationsRepository = contestTranslationsRepository;
+        _problemTranslationsRepository = problemTranslationsRepository;
+        _usersRepository = usersRepository;
+        _submissionsRepository = submissionsRepository;
+        _logger = logger;
+    }
 
-        public CodeforcesService(
-            IProblemsRepository problemsRepository,
-            IContestsRepository contestsRepository,
-            IGenericRepository<ContestTranslation, object> contestTranslationsRepository,
-            IGenericRepository<ProblemTranslation, object> problemTranslationsRepository,
-            IUsersRepository usersRepository,
-            ISubmissionsRepository submissionsRepository,
-            ILogger<CodeforcesService> logger)
+    public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
+    {
+        List<User> users = [];
+        for (int i = 0; i < dlUsersList.Count; i++)
         {
-            _problemsRepository = problemsRepository;
-            _contestsRepository = contestsRepository;
-            _contestTranslationsRepository = contestTranslationsRepository;
-            _problemTranslationsRepository = problemTranslationsRepository;
-            _usersRepository = usersRepository;
-            _submissionsRepository = submissionsRepository;
-            _logger = logger;
-        }
+            var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
+            var dlUser = dlUsersList[i];
 
-        public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
-        {
-            List<User> users = [];
-            for (int i = 0; i < dlUsersList.Count; i++)
+            if (user != null)
             {
-                var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
-                var dlUser = dlUsersList[i];
-
-                if (user != null)
+                var newUser = new User()
                 {
-                    var newUser = new User()
-                    {
-                        Handle = dlUser.Handle,
-                        Email = user.Email,
-                        VkId = user.VkId,
-                        OpenId = user.OpenId,
-                        FirstName = dlUser.FirstName,
-                        LastName = dlUser.LastName,
-                        Country = user.Country,
-                        City = dlUser.City,
-                        Organization = dlUser.Organization,
-                        Contribution = user.Contribution,
-                        Rank = user.Rank,
-                        Rating = user.Rating,
-                        MaxRank = user.MaxRank,
-                        MaxRating = user.MaxRating,
-                        LastOnlineTimeSeconds = user.LastOnlineTimeSeconds,
-                        RegistrationTimeSeconds = user.RegistrationTimeSeconds,
-                        FriendOfCount = user.FriendOfCount,
-                        Avatar = user.Avatar,
-                        TitlePhoto = user.TitlePhoto,
-                        Grade = dlUser.Grade
-                    };
+                    Handle = dlUser.Handle,
+                    Email = user.Email,
+                    VkId = user.VkId,
+                    OpenId = user.OpenId,
+                    FirstName = dlUser.FirstName,
+                    LastName = dlUser.LastName,
+                    Country = user.Country,
+                    City = dlUser.City,
+                    Organization = dlUser.Organization,
+                    Contribution = user.Contribution,
+                    Rank = user.Rank,
+                    Rating = user.Rating,
+                    MaxRank = user.MaxRank,
+                    MaxRating = user.MaxRating,
+                    LastOnlineTimeSeconds = user.LastOnlineTimeSeconds,
+                    RegistrationTimeSeconds = user.RegistrationTimeSeconds,
+                    FriendOfCount = user.FriendOfCount,
+                    Avatar = user.Avatar,
+                    TitlePhoto = user.TitlePhoto,
+                    Grade = dlUser.Grade
+                };
 
-                    users.Add(newUser);
-                }
-                else
-                {
-                    _logger.LogError($"User {dlUser.Handle} doesn't exist in Codeforces");
-                }
+                users.Add(newUser);
             }
-            await _usersRepository.InsertOrUpdate(users);
-        }
-
-        public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
-        {
-            var newUser = new User()
+            else
             {
-                Handle = cfUser.Handle,
-                Email = cfUser.Email,
-                VkId = cfUser.VkId,
-                OpenId = cfUser.OpenId,
-                FirstName = dlUser.FirstName,
-                LastName = dlUser.LastName,
-                Country = cfUser.Country,
-                City = dlUser.City,
-                Organization = dlUser.Organization,
-                Contribution = cfUser.Contribution,
-                Rank = cfUser.Rank,
-                Rating = cfUser.Rating,
-                MaxRank = cfUser.MaxRank,
-                MaxRating = cfUser.MaxRating,
-                LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
-                RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
-                FriendOfCount = cfUser.FriendOfCount,
-                Avatar = cfUser.Avatar,
-                TitlePhoto = cfUser.TitlePhoto,
-                Grade = dlUser.Grade
+                _logger.LogError($"User {dlUser.Handle} doesn't exist in Codeforces");
+            }
+        }
+        await _usersRepository.InsertOrUpdate(users);
+    }
+
+    public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
+    {
+        var newUser = new User()
+        {
+            Handle = cfUser.Handle,
+            Email = cfUser.Email,
+            VkId = cfUser.VkId,
+            OpenId = cfUser.OpenId,
+            FirstName = dlUser.FirstName,
+            LastName = dlUser.LastName,
+            Country = cfUser.Country,
+            City = dlUser.City,
+            Organization = dlUser.Organization,
+            Contribution = cfUser.Contribution,
+            Rank = cfUser.Rank,
+            Rating = cfUser.Rating,
+            MaxRank = cfUser.MaxRank,
+            MaxRating = cfUser.MaxRating,
+            LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
+            RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
+            FriendOfCount = cfUser.FriendOfCount,
+            Avatar = cfUser.Avatar,
+            TitlePhoto = cfUser.TitlePhoto,
+            Grade = dlUser.Grade
+        };
+
+        await _usersRepository.InsertOrUpdate([newUser]);
+    }
+
+    public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
+    {
+        List<Problem> newProblems = [];
+        List<ProblemTranslation> newTranslations = [];
+        for (int i = 0; i < problems.Count; i++)
+        {
+            var problem = problems[i];
+            var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problem.ContestId && s.Index == problem.Index)!.SolvedCount;
+            var newProblem = new Problem()
+            {
+                ContestId = problem.ContestId,
+                Index = problem.Index,
+                Type = problem.Type,
+                Points = problem.Points,
+                Rating = problem.Rating,
+                SolvedCount = solvedCount,
+                Tags = problem.Tags
             };
 
-            await _usersRepository.InsertOrUpdate([newUser]);
-        }
-
-        public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
-        {
-            List<Problem> newProblems = [];
-            List<ProblemTranslation> newTranslations = [];
-            for (int i = 0; i < problems.Count; i++)
+            var newProblemTranslation = new ProblemTranslation()
             {
-                var problem = problems[i];
-                var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problem.ContestId && s.Index == problem.Index)!.SolvedCount;
-                var newProblem = new Problem()
-                {
-                    ContestId = problem.ContestId,
-                    Index = problem.Index,
-                    Type = problem.Type,
-                    Points = problem.Points,
-                    Rating = problem.Rating,
-                    SolvedCount = solvedCount,
-                    Tags = problem.Tags
-                };
+                ContestId = problem.ContestId,
+                Index = problem.Index,
+                LanguageCode = languageCode,
+                Name = problem.Name
+            };
 
-                var newProblemTranslation = new ProblemTranslation()
-                {
-                    ContestId = problem.ContestId,
-                    Index = problem.Index,
-                    LanguageCode = languageCode,
-                    Name = problem.Name
-                };
-
-                newProblems.Add(newProblem);
-                newTranslations.Add(newProblemTranslation);
-            }
-
-            await _problemsRepository.InsertOrUpdate(newProblems);
-            await _problemTranslationsRepository.InsertOrUpdate(newTranslations);
+            newProblems.Add(newProblem);
+            newTranslations.Add(newProblemTranslation);
         }
 
-        public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
+        await _problemsRepository.InsertOrUpdate(newProblems);
+        await _problemTranslationsRepository.InsertOrUpdate(newTranslations);
+    }
+
+    public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
+    {
+        List<Contest> newContests = [];
+        List<ContestTranslation> newTranslations = [];
+        for (int i = 0; i < contests.Count; i++)
         {
-            List<Contest> newContests = [];
-            List<ContestTranslation> newTranslations = [];
-            for (int i = 0; i < contests.Count; i++)
+            var contest = contests[i];
+
+            var newContest = new Contest()
             {
-                var contest = contests[i];
+                ContestId = contest.ContestId,
+                Type = contest.Type,
+                Phase = contest.Phase,
+                Frozen = contest.Frozen,
+                DurationSeconds = contest.DurationSeconds,
+                StartTime = contest.StartTime,
+                RelativeTimeSeconds = contest.RelativeTimeSeconds,
+                PreparedBy = contest.PreparedBy,
+                WebsiteUrl = contest.WebsiteUrl,
+                Description = contest.Description,
+                Difficulty = contest.Difficulty,
+                Kind = contest.Kind,
+                IcpcRegion = contest.IcpcRegion,
+                Country = contest.Country,
+                City = contest.City,
+                Season = contest.Season,
+                Gym = gym
+            };
 
-                var newContest = new Contest()
-                {
-                    ContestId = contest.ContestId,
-                    Type = contest.Type,
-                    Phase = contest.Phase,
-                    Frozen = contest.Frozen,
-                    DurationSeconds = contest.DurationSeconds,
-                    StartTime = contest.StartTime,
-                    RelativeTimeSeconds = contest.RelativeTimeSeconds,
-                    PreparedBy = contest.PreparedBy,
-                    WebsiteUrl = contest.WebsiteUrl,
-                    Description = contest.Description,
-                    Difficulty = contest.Difficulty,
-                    Kind = contest.Kind,
-                    IcpcRegion = contest.IcpcRegion,
-                    Country = contest.Country,
-                    City = contest.City,
-                    Season = contest.Season,
-                    Gym = gym
-                };
+            var newContestTranslation = new ContestTranslation()
+            {
+                ContestId = contest.ContestId,
+                LanguageCode = languageCode,
+                Name = contest.Name
+            };
 
-                var newContestTranslation = new ContestTranslation()
-                {
-                    ContestId = contest.ContestId,
-                    LanguageCode = languageCode,
-                    Name = contest.Name
-                };
-
-                newContests.Add(newContest);
-                newTranslations.Add(newContestTranslation);
-            }
-
-            await _contestsRepository.InsertOrUpdate(newContests);
-            await _contestTranslationsRepository.InsertOrUpdate(newTranslations);
+            newContests.Add(newContest);
+            newTranslations.Add(newContestTranslation);
         }
 
-        public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
+        await _contestsRepository.InsertOrUpdate(newContests);
+        await _contestTranslationsRepository.InsertOrUpdate(newTranslations);
+    }
+
+    public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
+    {
+        List<Submission> newSubmissions = [];
+        for (int i = 0; i < submissions.Count; i++)
         {
-            List<Submission> newSubmissions = [];
-            for (int i = 0; i < submissions.Count; i++)
+            var submission = submissions[i];
+
+            var newSubmission = new Submission()
             {
-                var submission = submissions[i];
+                Id = submission.Id,
+                ContestId = submission.ContestId,
+                Index = submission.Problem.Index,
+                CreationTimeSeconds = submission.CreationTimeSeconds,
+                RelativeTimeSeconds = submission.RelativeTimeSeconds,
+                ProgrammingLanguage = submission.ProgrammingLanguage,
+                Handle = handle,
+                ParticipantType = submission.Author.ParticipantType,
+                Verdict = submission.Verdict,
+                Testset = submission.Testset,
+                PassedTestCount = submission.PassedTestCount,
+                TimeConsumedMillis = submission.TimeConsumedMillis,
+                MemoryConsumedBytes = submission.MemoryConsumedBytes
+            };
 
-                var newSubmission = new Submission()
-                {
-                    Id = submission.Id,
-                    ContestId = submission.ContestId,
-                    Index = submission.Problem.Index,
-                    CreationTimeSeconds = submission.CreationTimeSeconds,
-                    RelativeTimeSeconds = submission.RelativeTimeSeconds,
-                    ProgrammingLanguage = submission.ProgrammingLanguage,
-                    Handle = handle,
-                    ParticipantType = submission.Author.ParticipantType,
-                    Verdict = submission.Verdict,
-                    Testset = submission.Testset,
-                    PassedTestCount = submission.PassedTestCount,
-                    TimeConsumedMillis = submission.TimeConsumedMillis,
-                    MemoryConsumedBytes = submission.MemoryConsumedBytes
-                };
-
-                newSubmissions.Add(newSubmission);
-            }
-
-            await _submissionsRepository.InsertOrUpdate(newSubmissions);
+            newSubmissions.Add(newSubmission);
         }
+
+        await _submissionsRepository.InsertOrUpdate(newSubmissions);
     }
 }

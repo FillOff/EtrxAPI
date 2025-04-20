@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Core.Contracts.Users;
 
-public record UsersResponseDto(
+public record class UsersResponseDto(
     int Id,
     string Handle,
     string? FirstName,

@@ -1,6 +1,4 @@
-﻿using Etrx.Core.Models;
-
-namespace Etrx.Domain.Models;
+﻿namespace Etrx.Domain.Models;
 
 public class Contest
 {

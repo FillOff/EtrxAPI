@@ -1,5 +1,4 @@
 ﻿using Etrx.Core.Contracts.Users;
-using Etrx.Domain.Models;
 
 namespace Etrx.Application.Interfaces;
 

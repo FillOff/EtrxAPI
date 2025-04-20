@@ -6,160 +6,159 @@ using Etrx.Application.Interfaces;
 using AutoMapper;
 using Etrx.Core.Contracts.Problems;
 
-namespace Etrx.Application.Services
+namespace Etrx.Application.Services;
+
+public class ProblemsService : IProblemsService
 {
-    public class ProblemsService : IProblemsService
+    private readonly IProblemsRepository _problemsRepository;
+    private readonly IMapper _mapper;
+
+    public ProblemsService(
+        IProblemsRepository problemsRepository,
+        IMapper mapper)
     {
-        private readonly IProblemsRepository _problemsRepository;
-        private readonly IMapper _mapper;
+        _problemsRepository = problemsRepository;
+        _mapper = mapper;
+    }
 
-        public ProblemsService(
-            IProblemsRepository problemsRepository,
-            IMapper mapper)
+    public async Task<List<ProblemResponseDto>> GetAllProblemsAsync(string lang)
+    {
+        if (lang != "ru" && lang != "en")
         {
-            _problemsRepository = problemsRepository;
-            _mapper = mapper;
+            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        public async Task<List<ProblemResponseDto>> GetAllProblemsAsync(string lang)
+        var problems = await _problemsRepository.GetAll()
+            .ToListAsync();
+        var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
-            if (lang != "ru" && lang != "en")
-            {
-                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-            }
+            opts.Items["lang"] = lang;
+        });
 
-            var problems = await _problemsRepository.GetAll()
-                .ToListAsync();
-            var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
-            {
-                opts.Items["lang"] = lang;
-            });
+        return response;
+    }
 
-            return response;
+    public async Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(
+        int contestId,
+        string index,
+        string lang)
+    {
+        if (lang != "ru" && lang != "en")
+        {
+            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        public async Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(
-            int contestId,
-            string index,
-            string lang)
+        var problem = await _problemsRepository.GetByKey(contestId, index);
+        var response = _mapper.Map<ProblemResponseDto>(problem, opts =>
         {
-            if (lang != "ru" && lang != "en")
-            {
-                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-            }
+            opts.Items["lang"] = lang;
+        });
 
-            var problem = await _problemsRepository.GetByKey(contestId, index);
-            var response = _mapper.Map<ProblemResponseDto>(problem, opts =>
-            {
-                opts.Items["lang"] = lang;
-            });
+        return response;
+    }
 
-            return response;
+    public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
+    {
+        if (lang != "ru" && lang != "en")
+        {
+            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
+        var problems = await _problemsRepository.GetByContestId(contestId)
+            .ToListAsync();
+        var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
-            if (lang != "ru" && lang != "en")
-            {
-                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-            }
+            opts.Items["lang"] = lang;
+        });
 
-            var problems = await _problemsRepository.GetByContestId(contestId)
-                .ToListAsync();
-            var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
-            {
-                opts.Items["lang"] = lang;
-            });
+        return response;
+    }
 
-            return response;
+    public ProblemWithPropsResponseDto GetProblemsByPageWithSortAndFilterTagsAsync(
+        GetSortProblemRequestDto dto)
+    {
+        if (dto.Lang != "ru" && dto.Lang != "en")
+        {
+            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        public ProblemWithPropsResponseDto GetProblemsByPageWithSortAndFilterTagsAsync(
-            GetSortProblemRequestDto dto)
+        if (string.IsNullOrEmpty(dto.SortField) ||
+            !typeof(Problem).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
         {
-            if (dto.Lang != "ru" && dto.Lang != "en")
-            {
-                throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-            }
-
-            if (string.IsNullOrEmpty(dto.SortField) ||
-                !typeof(Problem).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                throw new Exception($"Invalid field: SortField");
-            }
-
-            if (dto.Page <= 0)
-            {
-                throw new Exception($"Invalid field: Page");
-            }
-
-            if (dto.PageSize <= 0)
-            {
-                throw new Exception($"Invalid field: PageSize");
-            }
-
-            var problems = _problemsRepository.GetAll();
-            string order = dto.SortOrder == true ? "asc" : "desc";
-
-            if (dto.Tags != null)
-            {
-                var tagsFilter = dto.Tags.Split(';');
-                problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
-            }
-
-            if (dto.Indexes != null)
-            {
-                var indexesFilter = dto.Indexes.Split(";");
-                problems = problems.Where(p => indexesFilter.Contains(p.Index));
-            }
-
-            if (dto.ProblemName != null)
-            {
-                problems = problems.Where(p => p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name.Contains(dto.ProblemName));
-            }
-            
-            problems = problems
-                .Where(p => p.Rating >= dto.MinRating && p.Rating <= dto.MaxRating)
-                .Where(p => p.Points >= dto.MinPoints && p.Points <= dto.MaxPoints);
-
-            int pageCount = problems.Count() % dto.PageSize == 0
-                ? problems.Count() / dto.PageSize
-                : problems.Count() / dto.PageSize + 1;
-
-            problems = problems
-                .OrderBy($"{dto.SortField} {order}")
-                .Skip((dto.Page - 1) * dto.PageSize)
-                .Take(dto.PageSize);
-
-            ProblemWithPropsResponseDto response = new ProblemWithPropsResponseDto
-            (
-                Problems: _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
-                {
-                    opts.Items["lang"] = dto.Lang;
-                }),
-                Properties: typeof(ProblemResponseDto).GetProperties().Select(p => p.Name).ToArray()!,
-                PageCount: pageCount
-            );
-
-            return response;
+            throw new Exception($"Invalid field: SortField");
         }
 
-        public async Task<List<string>> GetAllTagsAsync()
+        if (dto.Page <= 0)
         {
-            return await _problemsRepository.GetAllTags()
-                .ToListAsync();
+            throw new Exception($"Invalid field: Page");
         }
 
-        public async Task<List<string>> GetAllIndexesAsync()
+        if (dto.PageSize <= 0)
         {
-            return await _problemsRepository.GetAllIndexes()
-                .ToListAsync();
+            throw new Exception($"Invalid field: PageSize");
         }
 
-        public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
+        var problems = _problemsRepository.GetAll();
+        string order = dto.SortOrder == true ? "asc" : "desc";
+
+        if (dto.Tags != null)
         {
-            return await _problemsRepository.GetIndexesByContestId(contestId)
-                .ToListAsync();
+            var tagsFilter = dto.Tags.Split(';');
+            problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
         }
+
+        if (dto.Indexes != null)
+        {
+            var indexesFilter = dto.Indexes.Split(";");
+            problems = problems.Where(p => indexesFilter.Contains(p.Index));
+        }
+
+        if (dto.ProblemName != null)
+        {
+            problems = problems.Where(p => p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name.Contains(dto.ProblemName));
+        }
+        
+        problems = problems
+            .Where(p => p.Rating >= dto.MinRating && p.Rating <= dto.MaxRating)
+            .Where(p => p.Points >= dto.MinPoints && p.Points <= dto.MaxPoints);
+
+        int pageCount = problems.Count() % dto.PageSize == 0
+            ? problems.Count() / dto.PageSize
+            : problems.Count() / dto.PageSize + 1;
+
+        problems = problems
+            .OrderBy($"{dto.SortField} {order}")
+            .Skip((dto.Page - 1) * dto.PageSize)
+            .Take(dto.PageSize);
+
+        ProblemWithPropsResponseDto response = new ProblemWithPropsResponseDto
+        (
+            Problems: _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
+            {
+                opts.Items["lang"] = dto.Lang;
+            }),
+            Properties: typeof(ProblemResponseDto).GetProperties().Select(p => p.Name).ToArray()!,
+            PageCount: pageCount
+        );
+
+        return response;
+    }
+
+    public async Task<List<string>> GetAllTagsAsync()
+    {
+        return await _problemsRepository.GetAllTags()
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetAllIndexesAsync()
+    {
+        return await _problemsRepository.GetAllIndexes()
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
+    {
+        return await _problemsRepository.GetIndexesByContestId(contestId)
+            .ToListAsync();
     }
 }

@@ -11,6 +11,12 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
         : base(context)
     { }
 
+    public override IQueryable<Submission> GetAll()
+    {
+        return base.GetAll()
+            .Include(s => s.User);
+    }
+
     public IQueryable<Submission> GetByContestId(int contestId)
     {
         return _dbSet

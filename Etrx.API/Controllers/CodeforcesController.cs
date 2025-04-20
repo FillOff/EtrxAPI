@@ -46,4 +46,12 @@ public class CodeforcesController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("submissions")]
+    public async Task<IActionResult> PostAndUpdateSubmissions()
+    {
+        await _updateDataService.UpdateSubmissions();
+
+        return Ok();
+    }
 }

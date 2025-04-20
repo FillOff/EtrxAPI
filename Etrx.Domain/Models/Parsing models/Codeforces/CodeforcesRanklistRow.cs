@@ -1,10 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Models.ParsingModels.Codeforces
+namespace Etrx.Domain.Models.ParsingModels.Codeforces;
+
+public class CodeforcesRanklistRow
 {
-    public class CodeforcesRanklistRow
-    {
-        [JsonProperty("party")]
-        public CodeforcesSubmissionAuthor Party { get; set; } = null!;
-    }
+    [JsonProperty("party")]
+    public CodeforcesSubmissionAuthor Party { get; set; } = null!;
 }

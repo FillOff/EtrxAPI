@@ -1,16 +1,15 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Domain.Models.ParsingModels.Codeforces
+namespace Etrx.Domain.Models.ParsingModels.Codeforces;
+
+public class CodeforcesProblemStatistics
 {
-    public class CodeforcesProblemStatistics
-    {
-        [JsonProperty("contestId")]
-        public int ContestId { get; set; }
+    [JsonProperty("contestId")]
+    public int ContestId { get; set; }
 
-        [JsonProperty("index")]
-        public string Index { get; set; } = string.Empty;
+    [JsonProperty("index")]
+    public string Index { get; set; } = string.Empty;
 
-        [JsonProperty("solvedCount")]
-        public int SolvedCount { get; set; }
-    }
+    [JsonProperty("solvedCount")]
+    public int SolvedCount { get; set; }
 }

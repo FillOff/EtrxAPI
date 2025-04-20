@@ -1,4 +1,4 @@
-﻿using Etrx.Core.Models;
+﻿using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Etrx.Persistence.Interfaces;
 using Etrx.Persistence.Repositories;

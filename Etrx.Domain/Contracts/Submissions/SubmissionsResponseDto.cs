@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Core.Contracts.Submissions;
 
-public record SubmissionsResponseDto(
+public record class SubmissionsResponseDto(
     string Handle,
     string? FirstName,
     string? LastName,

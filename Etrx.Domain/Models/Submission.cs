@@ -7,7 +7,10 @@ public class Submission
     public string Index { get; set; } = string.Empty;
     public long CreationTimeSeconds { get; set; }
     public long RelativeTimeSeconds { get; set; }
+
     public string Handle { get; set; } = string.Empty;
+    public User User { get; set; } = null!;
+
     public string ParticipantType { get; set; } = string.Empty;
     public string ProgrammingLanguage { get; set; } = string.Empty;
     public string? Verdict { get; set; }

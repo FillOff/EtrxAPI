@@ -1,5 +1,5 @@
 ﻿namespace Etrx.Core.Contracts.Users;
 
-public record UsersWithPropsResponseDto(
+public record class UsersWithPropsResponseDto(
     List<UsersResponseDto> Users,
     string[] Properties);

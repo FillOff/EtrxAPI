@@ -1,6 +1,5 @@
 ﻿using Etrx.Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Dynamic.Core;
 using Etrx.Persistence.Interfaces;
 using Etrx.Persistence.Databases;
 
@@ -17,13 +16,6 @@ namespace Etrx.Persistence.Repositories
             return _dbSet
                 .AsNoTracking()
                 .Select(u => u.Handle);
-        }
-
-        public IQueryable<User> GetWithSort(string sortField, string order)
-        {
-            return _dbSet
-                .AsNoTracking()
-                .OrderBy($"{sortField} {order}");
         }
     }
 }
