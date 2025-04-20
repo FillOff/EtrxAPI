@@ -69,7 +69,7 @@ public class UpdateDataService : BackgroundService, IUpdateDataService
     private DateTime CalculateNextRunTime(DateTime nowMsk)
     {
         var minutes = nowMsk.Minute;
-        var nextRunMinute = (minutes / 2 + 1) * 2;
+        var nextRunMinute = (minutes / 30 + 1) * 30;
 
         var nextRunTime = nowMsk.Date.AddHours(nowMsk.Hour).AddMinutes(nextRunMinute);
 
