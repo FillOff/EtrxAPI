@@ -133,7 +133,7 @@ public class SubmissionsService : ISubmissionsService
     public async Task<GetSubmissionsWithPropsProtocolResponseDto> GetProtocolAsync(GetSubmissionsProtocolRequestDto dto)
     {
         var unixFromDateTime = (new DateTime(dto.FYear, dto.FMonth, dto.FDay) - DateTimeOffset.UnixEpoch).TotalSeconds;
-        var unixToDateTime = (new DateTime(dto.TYear, dto.TMonth, dto.TDay) - DateTimeOffset.UnixEpoch).TotalSeconds;
+        var unixToDateTime = (new DateTime(dto.TYear, dto.TMonth, dto.TDay).AddHours(23).AddMinutes(59) - DateTimeOffset.UnixEpoch).TotalSeconds;
 
         if (dto.Page <= 0)
         {
