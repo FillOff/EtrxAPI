@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using Etrx.Domain.Models.ParsingModels.Codeforces;
-using Etrx.Core.Models.Parsing_models.Codeforces;
+﻿using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Application.Interfaces;
 
 namespace Etrx.Application.Services;
@@ -29,12 +27,17 @@ public class CodeforcesApiService : ICodeforcesApiService
 
     public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync(string lang)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesProblemsResult>>(
+        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesProblemSetResult>>(
             $"https://codeforces.com/api/problemset.problems?lang={lang}");
 
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
+
         return (
-            response.Result!.Problems,
-            response.Result!.ProblemStatistics
+            response.Result.Problems,
+            response.Result.ProblemStatistics
         );
     }
 
@@ -43,7 +46,12 @@ public class CodeforcesApiService : ICodeforcesApiService
         var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesContest>>>(
             $"https://codeforces.com/api/contest.list?gym={gym}&lang={lang}");
 
-        return response.Result ?? [];
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
+
+        return response.Result;
     }
 
     public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
@@ -51,7 +59,12 @@ public class CodeforcesApiService : ICodeforcesApiService
         var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesSubmission>>>(
             $"https://codeforces.com/api/user.status?handle={handle}");
 
-        return response.Result ?? [];
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
+
+        return response.Result;
     }
 
     public async Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
@@ -59,22 +72,45 @@ public class CodeforcesApiService : ICodeforcesApiService
         var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesSubmission>>>(
             $"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
 
-        return response.Result ?? [];
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
+
+        return response.Result;
     }
 
     public async Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId)
     {
         var handlesString = string.Join(";", handles);
 
-        var result = await _apiService.GetApiDataAsync<JObject>(
+        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesContestStanding>>(
             $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
 
-        var rows = result["result"]?["rows"]?.ToObject<List<CodeforcesRanklistRow>>() ?? [];
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
 
-        return rows
+        return response.Result.Rows
             .SelectMany(row => row.Party.Members)
             .Select(member => member.Handle)
             .Distinct()
             .ToList();
+    }
+
+    public async Task<CodeforcesContestStanding> GetCodeforcesRanklistRowsAsync(List<string> handles, int contestId)
+    {
+        var handlesString = string.Join(";", handles);
+
+        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesContestStanding>>(
+            $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
+
+        if (response.Result == null)
+        {
+            throw new Exception(response.Comment);
+        }
+
+        return response.Result;
     }
 }

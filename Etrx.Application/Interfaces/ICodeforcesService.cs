@@ -10,4 +10,6 @@ public interface ICodeforcesService
     Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode);
     Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode);
     Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle);
+    Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding);
+    Task PostProblemResultsFromCodeforces(string handle, int contestId, CodeforcesRanklistRow row, List<string> indexes);
 }

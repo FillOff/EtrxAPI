@@ -10,4 +10,5 @@ public interface ICodeforcesApiService
     Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle);
     Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId);
     Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId);
+    Task<CodeforcesContestStanding> GetCodeforcesRanklistRowsAsync(List<string> handles, int contestId);
 }

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Etrx.Core.Models.Parsing_models.Codeforces;
+namespace Etrx.Domain.Models.ParsingModels.Codeforces;
 
 public class CodeforcesResponse<T>
 {

@@ -1,9 +1,8 @@
-﻿using Etrx.Domain.Models.ParsingModels.Codeforces;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
-namespace Etrx.Core.Models.Parsing_models.Codeforces;
+namespace Etrx.Domain.Models.ParsingModels.Codeforces;
 
-public class CodeforcesProblemsResult
+public class CodeforcesProblemSetResult
 {
     [JsonProperty("problems")]
     public List<CodeforcesProblem> Problems { get; set; } = [];

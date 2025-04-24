@@ -7,4 +7,5 @@ public interface IUpdateDataService
     Task UpdateUsers();
     Task UpdateSubmissions();
     Task UpdateSubmissionsByContestId(int contestId);
+    Task UpdateRanklistRowsByContestId(int contestId);
 }

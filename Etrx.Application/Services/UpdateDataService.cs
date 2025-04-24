@@ -175,4 +175,18 @@ public class UpdateDataService : BackgroundService, IUpdateDataService
 
         _logger.LogInformation($"Submissions updated successfully.");
     }
+
+    public async Task UpdateRanklistRowsByContestId(int contestId)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        var codeforcesService = scope.ServiceProvider.GetRequiredService<ICodeforcesService>();
+        var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
+        var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
+
+        var handles = await codeforcesApiService.GetCodeforcesContestUsersAsync(await usersService.GetHandlesAsync(), contestId);
+        var response = await codeforcesApiService.GetCodeforcesRanklistRowsAsync(handles, contestId);
+        await codeforcesService.PostRanklistRowsFromCodeforces(response);
+
+        _logger.LogInformation($"RanklistRows updated successfully.");
+    }
 }

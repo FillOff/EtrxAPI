@@ -16,6 +16,8 @@ public static class PersistenceExtension
         services.AddScoped<IGenericRepository<ContestTranslation, object>, GenericRepository<ContestTranslation, object>>();
         services.AddScoped<IGenericRepository<ProblemTranslation, object>, GenericRepository<ProblemTranslation, object>>();
         services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
+        services.AddScoped<IRanklistRowsRepository, RanklistRowsRepository>();
+        services.AddScoped<IGenericRepository<ProblemResult, object>, GenericRepository<ProblemResult, object>>();
 
         return services;
     }

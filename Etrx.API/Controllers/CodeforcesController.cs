@@ -54,4 +54,12 @@ public class CodeforcesController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPost("ranklistRows/{contestId:int}")]
+    public async Task<IActionResult> PostAndUpdateRanklistRows([FromRoute] int contestId)
+    {
+        await _updateDataService.UpdateRanklistRowsByContestId(contestId);
+
+        return Ok();
+    }
 }

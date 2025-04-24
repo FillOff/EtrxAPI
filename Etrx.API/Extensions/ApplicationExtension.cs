@@ -11,6 +11,7 @@ public static class ApplicationExtension
         services.AddScoped<IContestsService, ContestsService>();
         services.AddScoped<IUsersService, UsersService>();
         services.AddScoped<ISubmissionsService, SubmissionsService>();
+        services.AddScoped<IRanklistRowsService, RanklistRowsService>();
         services.AddScoped<ICodeforcesService, CodeforcesService>();
         services.AddScoped<ICodeforcesApiService, CodeforcesApiService>();
         services.AddScoped<IDlApiService, DlApiService>();

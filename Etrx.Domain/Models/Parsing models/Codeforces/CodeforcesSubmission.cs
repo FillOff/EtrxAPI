@@ -20,7 +20,7 @@ public class CodeforcesSubmission
     public CodeforcesSubmissionProblem Problem { get; set; } = null!;
 
     [JsonProperty("author")]
-    public CodeforcesSubmissionAuthor Author { get; set; } = null!;
+    public CodeforcesParty Author { get; set; } = null!;
 
     [JsonProperty("programmingLanguage")]
     public string ProgrammingLanguage { get; set; } = string.Empty;

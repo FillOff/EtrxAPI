@@ -17,5 +17,12 @@ namespace Etrx.Persistence.Repositories
                 .AsNoTracking()
                 .Select(u => u.Handle);
         }
+
+        public async Task<User?> GetByHandle(string handle)
+        {
+            return await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Handle ==  handle);
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Etrx.Core.Contracts.Submissions;
+using Etrx.Domain.Contracts.RanklistRows;
 using Etrx.Domain.Contracts.Submissions;
 
 namespace Etrx.Application.Interfaces;

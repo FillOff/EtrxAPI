@@ -15,6 +15,8 @@ public class CodeforcesService : ICodeforcesService
     private readonly IGenericRepository<ProblemTranslation, object> _problemTranslationsRepository;
     private readonly IUsersRepository _usersRepository;
     private readonly ISubmissionsRepository _submissionsRepository;
+    private readonly IRanklistRowsRepository _ranklistRowsRepository;
+    private readonly IGenericRepository<ProblemResult, object> _problemResultsRepository;
     private ILogger<CodeforcesService> _logger;
 
     public CodeforcesService(
@@ -24,7 +26,9 @@ public class CodeforcesService : ICodeforcesService
         IGenericRepository<ProblemTranslation, object> problemTranslationsRepository,
         IUsersRepository usersRepository,
         ISubmissionsRepository submissionsRepository,
-        ILogger<CodeforcesService> logger)
+        ILogger<CodeforcesService> logger,
+        IRanklistRowsRepository ranklistRowsRepository,
+        IGenericRepository<ProblemResult, object> problemResultsRepository)
     {
         _problemsRepository = problemsRepository;
         _contestsRepository = contestsRepository;
@@ -33,6 +37,8 @@ public class CodeforcesService : ICodeforcesService
         _usersRepository = usersRepository;
         _submissionsRepository = submissionsRepository;
         _logger = logger;
+        _ranklistRowsRepository = ranklistRowsRepository;
+        _problemResultsRepository = problemResultsRepository;
     }
 
     public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
@@ -215,5 +221,69 @@ public class CodeforcesService : ICodeforcesService
         }
 
         await _submissionsRepository.InsertOrUpdate(newSubmissions);
+    }
+
+    public async Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding)
+    {
+        List<RanklistRow> newRows = [];
+        for (int i = 0; i < contestStanding.Rows.Count; i++)
+        {
+            var row = contestStanding.Rows[i];
+
+            var newRow = new RanklistRow()
+            {
+                Handle = row.Party.Members[0].Handle,
+                ContestId = contestStanding.Contest.ContestId,
+                ParticipantType = row.Party.ParticipantType,
+
+                Rank = row.Rank,
+                Points = row.Points,
+                Penalty = row.Penalty,
+                SuccessfulHackCount = row.SuccessfulHackCount,
+                UnsuccessfulHackCount = row.UnsuccessfulHackCount,
+                LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds
+            };
+
+            newRows.Add(newRow);
+        }
+
+        await _ranklistRowsRepository.InsertOrUpdate(newRows);
+
+        for (int i = 0; i < contestStanding.Rows.Count; i++)
+        {
+            await PostProblemResultsFromCodeforces(
+                contestStanding.Rows[i].Party.Members[0].Handle,
+                contestStanding.Contest.ContestId,
+                contestStanding.Rows[i],
+                contestStanding.Problems.Select(p => p.Index).ToList());
+        }
+    }
+
+    public async Task PostProblemResultsFromCodeforces(string handle, int contestId, CodeforcesRanklistRow row, List<string> indexes)
+    {
+        List<ProblemResult> newProblemResults = [];
+
+        for (int i = 0; i < row.ProblemResults.Count; i++)
+        {
+            var result = row.ProblemResults[i];
+
+            var newProblemResult = new ProblemResult()
+            {
+                Handle = handle,
+                ContestId = contestId,
+                Index = indexes[i],
+                ParticipantType = row.Party.ParticipantType,
+
+                Points = result.Points,
+                Penalty = result.Penalty,
+                Type = result.Type,
+                BestSubmissionTimeSeconds = result.BestSubmissionTimeSeconds,
+                RejectedAttemptCount = result.RejectedAttemptCount
+            };
+
+            newProblemResults.Add(newProblemResult);
+        }
+
+        await _problemResultsRepository.InsertOrUpdate(newProblemResults);
     }
 }
