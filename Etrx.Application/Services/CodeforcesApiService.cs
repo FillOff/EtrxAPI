@@ -104,7 +104,7 @@ public class CodeforcesApiService : ICodeforcesApiService
         var handlesString = string.Join(";", handles);
 
         var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesContestStanding>>(
-            $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
+            $"https://codeforces.com/api/contest.standings?&showUnofficial=true&handles={handlesString}&contestId={contestId}");
 
         if (response.Result == null)
         {

@@ -1,5 +1,4 @@
 ﻿using Etrx.Core.Contracts.Submissions;
-using Etrx.Domain.Contracts.RanklistRows;
 using Etrx.Domain.Contracts.Submissions;
 
 namespace Etrx.Application.Interfaces;
@@ -11,4 +10,5 @@ public interface ISubmissionsService
     Task<List<string>> GetUserParticipantTypesAsync(string handle);
     Task<SubmissionsWithProblemIndexesResponseDto> GetSubmissionsWithSortAsync(int contestId,GetSubmissionRequestDto dto);
     Task<GetSubmissionsWithPropsProtocolResponseDto> GetProtocolAsync(GetSubmissionsProtocolRequestDto dto);
+    Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto);
 }

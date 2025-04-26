@@ -3,4 +3,5 @@
 public record class GetRanklistRowsRequestDto(
     string SortField = "points",
     bool SortOrder = true,
-    string FilterByParticipantType = "ALL");
+    string FilterByParticipantType = "ALL",
+    string Lang = "ru");

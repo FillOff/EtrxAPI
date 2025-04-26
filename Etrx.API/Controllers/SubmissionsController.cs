@@ -26,8 +26,8 @@ public class SubmissionsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<GetSubmissionsWithPropsProtocolResponseDto>> GetProtocol(
-        [FromQuery] GetSubmissionsProtocolRequestDto dto)
+        [FromQuery] GetGroupSubmissionsProtocolRequestDto dto)
     {
-        return Ok(await _submissionsService.GetProtocolAsync(dto));
+        return Ok(await _submissionsService.GetGroupProtocolAsync(dto));
     }
 }

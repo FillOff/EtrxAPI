@@ -56,7 +56,7 @@ public class UpdateDataService : BackgroundService, IUpdateDataService
             }
             catch (Exception ex)
             {
-                _nextRunTime = _nextRunTime.AddHours(1);
+                _nextRunTime = CalculateNextRunTime(DateTime.Now.AddHours(3));
 
                 _logger.LogWarning($"Task failed: {ex.Message}");
                 _logger.LogWarning($"Task failed, rescheduled to {_nextRunTime}");
@@ -183,8 +183,7 @@ public class UpdateDataService : BackgroundService, IUpdateDataService
         var codeforcesApiService = scope.ServiceProvider.GetRequiredService<ICodeforcesApiService>();
         var usersService = scope.ServiceProvider.GetRequiredService<IUsersService>();
 
-        var handles = await codeforcesApiService.GetCodeforcesContestUsersAsync(await usersService.GetHandlesAsync(), contestId);
-        var response = await codeforcesApiService.GetCodeforcesRanklistRowsAsync(handles, contestId);
+        var response = await codeforcesApiService.GetCodeforcesRanklistRowsAsync(await usersService.GetHandlesAsync(), contestId);
         await codeforcesService.PostRanklistRowsFromCodeforces(response);
 
         _logger.LogInformation($"RanklistRows updated successfully.");

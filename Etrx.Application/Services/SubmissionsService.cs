@@ -134,7 +134,6 @@ public class SubmissionsService : ISubmissionsService
     {
         var unixFromDateTime = (new DateTime(dto.FYear, dto.FMonth, dto.FDay).AddHours(3) - DateTimeOffset.UnixEpoch).TotalSeconds;
         var unixToDateTime = (new DateTime(dto.TYear, dto.TMonth, dto.TDay).AddHours(20).AddMinutes(59) - DateTimeOffset.UnixEpoch).TotalSeconds;
-        Console.WriteLine(unixToDateTime);
 
         if (dto.Page <= 0)
         {
@@ -167,6 +166,34 @@ public class SubmissionsService : ISubmissionsService
             Submissions: _mapper.Map<List<GetSubmissionsProtocolResponseDto>>(await submissions.ToListAsync()),
             Properties: typeof(GetSubmissionsProtocolResponseDto).GetProperties().Select(p => p.Name).ToArray(),
             PageCount: pageCount);
+    }
+
+    public async Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto)
+    {
+        var unixFromDateTime = (new DateTime(dto.FYear, dto.FMonth, dto.FDay).AddHours(3) - DateTimeOffset.UnixEpoch).TotalSeconds;
+        var unixToDateTime = (new DateTime(dto.TYear, dto.TMonth, dto.TDay).AddHours(20).AddMinutes(59) - DateTimeOffset.UnixEpoch).TotalSeconds;
+
+        var submissions = _submissionsRepository.GetAll()
+            .Where(s => s.CreationTimeSeconds >= unixFromDateTime && s.CreationTimeSeconds <= unixToDateTime);
+
+        if (dto.ContestId != null)
+        {
+            submissions = submissions.Where(s => s.ContestId == dto.ContestId);
+        }
+
+        var groupedSubmissions = await submissions
+            .Where(s => s.Verdict == "OK")
+            .GroupBy(s => s.Handle)
+            .Select(g => new GetGroupSubmissionsProtocolResponseDto
+            {
+                UserName = $"{g.First().User.LastName} {g.First().User.FirstName}",
+                ContestId = g.First().ContestId,
+                SolvedCount = g.Select(s => s.Index).Distinct().Count()
+            })
+            .OrderByDescending(dto => dto.SolvedCount)
+            .ToListAsync();
+
+        return groupedSubmissions;
     }
 
     private (int SolvedCount, List<int> Tries) GetTriesAndSolvedCountByHandleAsync(

@@ -15,5 +15,10 @@ public class SubmissionsProfile : Profile
             .ForMember(
                 dest => dest.LastName,
                 opt => opt.MapFrom(src => src.User.LastName));
+
+        CreateMap<Submission, GetGroupSubmissionsProtocolResponseDto>()
+            .ForMember(
+                dest => dest.UserName,
+                opt => opt.MapFrom(src => src.User.LastName + " " + src.User.FirstName));
     }
 }
