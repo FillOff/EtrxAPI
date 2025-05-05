@@ -18,6 +18,7 @@ public class UpdateDataBackgroundService : BackgroundService
     {
         _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
+        _nowMsk = DateTime.Now.AddHours(3);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,12 +31,8 @@ public class UpdateDataBackgroundService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             _nowMsk = DateTime.Now.AddHours(3);
+            _nextRunTime = CalculateNextRunTime(_nowMsk);
             var delay = _nextRunTime - _nowMsk;
-
-            if (delay < TimeSpan.Zero)
-            {
-                delay = TimeSpan.Zero;
-            }
 
             _logger.LogInformation($"Next execution scheduled at {_nextRunTime}.");
 

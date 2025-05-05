@@ -7,4 +7,5 @@ public class ContestResponseDto
     public int DurationSeconds { get; set; }
     public long? StartTime { get; set; }
     public long? RelativeTimeSeconds { get; set; }
+    public bool IsContestLoaded { get; set; }
 }

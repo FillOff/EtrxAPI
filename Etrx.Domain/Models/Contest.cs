@@ -19,6 +19,7 @@ public class Contest
     public string City { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
+    public bool IsContestLoaded { get; set; } = false;
 
     public List<ContestTranslation> ContestTranslations { get; set; } = [];
 }

@@ -257,6 +257,13 @@ public class CodeforcesService : ICodeforcesService
                 contestStanding.Rows[i],
                 contestStanding.Problems.Select(p => p.Index).ToList());
         }
+
+        var contest = await _contestsRepository.GetByKey(contestStanding.Contest.ContestId);
+        if (contest!.Phase == "FINISHED")
+        { 
+            contest.IsContestLoaded = true;
+            await _contestsRepository.Update(contest);
+        }
     }
 
     public async Task PostProblemResultsFromCodeforces(string handle, int contestId, CodeforcesRanklistRow row, List<string> indexes)
