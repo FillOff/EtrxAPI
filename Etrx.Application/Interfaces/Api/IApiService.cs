@@ -1,4 +1,4 @@
-﻿namespace Etrx.Application.Interfaces;
+﻿namespace Etrx.Application.Interfaces.Api;
 
 public interface IApiService
 {

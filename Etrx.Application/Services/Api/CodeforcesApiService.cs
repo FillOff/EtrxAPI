@@ -1,7 +1,7 @@
 ﻿using Etrx.Domain.Models.ParsingModels.Codeforces;
-using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces.Api;
 
-namespace Etrx.Application.Services;
+namespace Etrx.Application.Services.Api;
 
 public class CodeforcesApiService : ICodeforcesApiService
 {

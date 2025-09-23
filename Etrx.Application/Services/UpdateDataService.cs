@@ -1,4 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces.Api;
 using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services;

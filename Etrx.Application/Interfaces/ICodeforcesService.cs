@@ -5,7 +5,6 @@ namespace Etrx.Application.Interfaces;
 
 public interface ICodeforcesService
 {
-    Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList);
     Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser);
     Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode);
     Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode);

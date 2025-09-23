@@ -1,11 +1,13 @@
 ﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Services;
+using Etrx.Application.Services.Api;
 
 namespace Etrx.API.Extensions;
 
 public static class ApplicationExtension
 {
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    public static IServiceCollection AddServices(this IServiceCollection services)
     {
         services.AddScoped<IProblemsService, ProblemsService>();
         services.AddScoped<IContestsService, ContestsService>();

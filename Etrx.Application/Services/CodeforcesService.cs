@@ -1,8 +1,8 @@
-﻿using Etrx.Domain.Models.ParsingModels.Dl;
+﻿using Etrx.Application.Interfaces;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
+using Etrx.Domain.Models.ParsingModels.Dl;
 using Etrx.Persistence.Interfaces;
-using Etrx.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services;
@@ -17,7 +17,6 @@ public class CodeforcesService : ICodeforcesService
     private readonly ISubmissionsRepository _submissionsRepository;
     private readonly IRanklistRowsRepository _ranklistRowsRepository;
     private readonly IGenericRepository<ProblemResult, object> _problemResultsRepository;
-    private ILogger<CodeforcesService> _logger;
 
     public CodeforcesService(
         IProblemsRepository problemsRepository,
@@ -36,53 +35,8 @@ public class CodeforcesService : ICodeforcesService
         _problemTranslationsRepository = problemTranslationsRepository;
         _usersRepository = usersRepository;
         _submissionsRepository = submissionsRepository;
-        _logger = logger;
         _ranklistRowsRepository = ranklistRowsRepository;
         _problemResultsRepository = problemResultsRepository;
-    }
-
-    public async Task PostUsersFromDlCodeforces(List<DlUser> dlUsersList, List<CodeforcesUser> codeforcesUsersList)
-    {
-        List<User> users = [];
-        for (int i = 0; i < dlUsersList.Count; i++)
-        {
-            var user = codeforcesUsersList.FirstOrDefault(u => u.Handle.Equals(dlUsersList[i].Handle, StringComparison.CurrentCultureIgnoreCase));
-            var dlUser = dlUsersList[i];
-
-            if (user != null)
-            {
-                var newUser = new User()
-                {
-                    Handle = dlUser.Handle,
-                    Email = user.Email,
-                    VkId = user.VkId,
-                    OpenId = user.OpenId,
-                    FirstName = dlUser.FirstName,
-                    LastName = dlUser.LastName,
-                    Country = user.Country,
-                    City = dlUser.City,
-                    Organization = dlUser.Organization,
-                    Contribution = user.Contribution,
-                    Rank = user.Rank,
-                    Rating = user.Rating,
-                    MaxRank = user.MaxRank,
-                    MaxRating = user.MaxRating,
-                    LastOnlineTimeSeconds = user.LastOnlineTimeSeconds,
-                    RegistrationTimeSeconds = user.RegistrationTimeSeconds,
-                    FriendOfCount = user.FriendOfCount,
-                    Avatar = user.Avatar,
-                    TitlePhoto = user.TitlePhoto,
-                    Grade = dlUser.Grade
-                };
-
-                users.Add(newUser);
-            }
-            else
-            {
-                _logger.LogError($"User {dlUser.Handle} doesn't exist in Codeforces");
-            }
-        }
-        await _usersRepository.InsertOrUpdate(users);
     }
 
     public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
@@ -120,25 +74,24 @@ public class CodeforcesService : ICodeforcesService
         List<ProblemTranslation> newTranslations = [];
         for (int i = 0; i < problems.Count; i++)
         {
-            var problem = problems[i];
-            var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problem.ContestId && s.Index == problem.Index)!.SolvedCount;
+            var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problems[i].ContestId && s.Index == problems[i].Index)!.SolvedCount;
             var newProblem = new Problem()
             {
-                ContestId = problem.ContestId,
-                Index = problem.Index,
-                Type = problem.Type,
-                Points = problem.Points,
-                Rating = problem.Rating,
+                ContestId = problems[i].ContestId,
+                Index = problems[i].Index,
+                Type = problems[i].Type,
+                Points = problems[i].Points,
+                Rating = problems[i].Rating,
                 SolvedCount = solvedCount,
-                Tags = problem.Tags
+                Tags = problems[i].Tags
             };
 
             var newProblemTranslation = new ProblemTranslation()
             {
-                ContestId = problem.ContestId,
-                Index = problem.Index,
+                ContestId = problems[i].ContestId,
+                Index = problems[i].Index,
                 LanguageCode = languageCode,
-                Name = problem.Name
+                Name = problems[i].Name
             };
 
             newProblems.Add(newProblem);
@@ -153,6 +106,8 @@ public class CodeforcesService : ICodeforcesService
     {
         List<Contest> newContests = [];
         List<ContestTranslation> newTranslations = [];
+        var existedContests = _contestsRepository.GetAll();
+
         for (int i = 0; i < contests.Count; i++)
         {
             var contest = contests[i];
@@ -175,7 +130,8 @@ public class CodeforcesService : ICodeforcesService
                 Country = contest.Country,
                 City = contest.City,
                 Season = contest.Season,
-                Gym = gym
+                Gym = gym,
+                IsContestLoaded = existedContests.FirstOrDefault(c => c.ContestId == contest.ContestId)?.IsContestLoaded ?? false
             };
 
             var newContestTranslation = new ContestTranslation()

@@ -1,7 +1,8 @@
 ﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces.Api;
 using Etrx.Domain.Models.ParsingModels.Dl;
 
-namespace Etrx.Application.Services;
+namespace Etrx.Application.Services.Api;
 
 public class DlApiService : IDlApiService
 {
