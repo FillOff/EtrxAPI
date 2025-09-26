@@ -63,30 +63,52 @@ public class ContestsService : IContestsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        if (!typeof(Contest).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
+        var contestProperties = typeof(Contest).GetProperties().Select(p => p.Name).ToList();
+        if (!contestProperties.Contains(dto.SortField, StringComparer.InvariantCultureIgnoreCase) &&
+            !dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase))
         {
             throw new Exception($"Invalid field: SortField");
         }
 
         string order = dto.SortOrder == true ? "asc" : "desc";
-        var contests = _contestsRepository.GetAll()
+        var contestsQuery = _contestsRepository.GetAll()
             .AsQueryable()
             .AsNoTracking()
-            .OrderBy($"{dto.SortField} {order}")
             .Where(c => c.Phase != "BEFORE");
 
         if (dto.Gym != null)
         {
-            contests = contests.Where(c => c.Gym == dto.Gym);
+            contestsQuery = contestsQuery.Where(c => c.Gym == dto.Gym);
         }
 
-        int pageCount = contests.Count() % dto.PageSize == 0
-            ? contests.Count() / dto.PageSize
-            : contests.Count() / dto.PageSize + 1;
+        if (dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (order == "asc")
+            {
+                contestsQuery = contestsQuery
+                    .OrderBy(c => c.ContestTranslations
+                        .FirstOrDefault(t => t.LanguageCode == dto.Lang)!.Name);
+            }
+            else
+            {
+                contestsQuery = contestsQuery
+                    .OrderByDescending(c => c.ContestTranslations
+                        .FirstOrDefault(t => t.LanguageCode == dto.Lang)!.Name);
+            }
+        }
+        else
+        {
+            contestsQuery = contestsQuery.OrderBy($"{dto.SortField} {order}");
+        }
 
-        contests = contests
+        int pageCount = contestsQuery.Count() % dto.PageSize == 0
+            ? contestsQuery.Count() / dto.PageSize
+            : contestsQuery.Count() / dto.PageSize + 1;
+
+        var contests = contestsQuery
             .Skip((dto.Page - 1) * dto.PageSize)
-            .Take(dto.PageSize);
+            .Take(dto.PageSize)
+            .ToList();
 
         var response = new ContestWithPropsResponseDto
         (

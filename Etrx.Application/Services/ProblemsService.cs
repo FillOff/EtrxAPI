@@ -75,15 +75,17 @@ public class ProblemsService : IProblemsService
     }
 
     public ProblemWithPropsResponseDto GetProblemsByPageWithSortAndFilterTagsAsync(
-        GetSortProblemRequestDto dto)
+    GetSortProblemRequestDto dto)
     {
         if (dto.Lang != "ru" && dto.Lang != "en")
         {
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
+        var problemProperties = typeof(Problem).GetProperties().Select(p => p.Name).ToList();
         if (string.IsNullOrEmpty(dto.SortField) ||
-            !typeof(Problem).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
+            (!problemProperties.Contains(dto.SortField, StringComparer.InvariantCultureIgnoreCase) &&
+             !dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase)))
         {
             throw new Exception($"Invalid field: SortField");
         }
@@ -98,38 +100,57 @@ public class ProblemsService : IProblemsService
             throw new Exception($"Invalid field: PageSize");
         }
 
-        var problems = _problemsRepository.GetAll();
+        var problemsQuery = _problemsRepository.GetAll().AsQueryable();
         string order = dto.SortOrder == true ? "asc" : "desc";
 
         if (dto.Tags != null)
         {
             var tagsFilter = dto.Tags.Split(';');
-            problems = problems.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            problemsQuery = problemsQuery.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
         }
 
         if (dto.Indexes != null)
         {
             var indexesFilter = dto.Indexes.Split(";");
-            problems = problems.Where(p => indexesFilter.Contains(p.Index));
+            problemsQuery = problemsQuery.Where(p => indexesFilter.Contains(p.Index));
         }
 
-        if (dto.ProblemName != null)
+        if (!string.IsNullOrEmpty(dto.ProblemName))
         {
-            problems = problems.Where(p => p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name.Contains(dto.ProblemName));
+            problemsQuery = problemsQuery.Where(p =>
+                p.ProblemTranslations.Any(pt => pt.LanguageCode == dto.Lang && pt.Name.Contains(dto.ProblemName)));
         }
-        
-        problems = problems
+
+        problemsQuery = problemsQuery
             .Where(p => p.Rating >= dto.MinRating && p.Rating <= dto.MaxRating)
             .Where(p => p.Points >= dto.MinPoints && p.Points <= dto.MaxPoints);
 
-        int pageCount = problems.Count() % dto.PageSize == 0
-            ? problems.Count() / dto.PageSize
-            : problems.Count() / dto.PageSize + 1;
+        if (dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase))
+        {
+            if (order == "asc")
+            {
+                problemsQuery = problemsQuery.OrderBy(p =>
+                    p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name);
+            }
+            else
+            {
+                problemsQuery = problemsQuery.OrderByDescending(p =>
+                    p.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == dto.Lang)!.Name);
+            }
+        }
+        else
+        {
+            problemsQuery = problemsQuery.OrderBy($"{dto.SortField} {order}");
+        }
 
-        problems = problems
-            .OrderBy($"{dto.SortField} {order}")
+        int pageCount = problemsQuery.Count() % dto.PageSize == 0
+            ? problemsQuery.Count() / dto.PageSize
+            : problemsQuery.Count() / dto.PageSize + 1;
+
+        var problems = problemsQuery
             .Skip((dto.Page - 1) * dto.PageSize)
-            .Take(dto.PageSize);
+            .Take(dto.PageSize)
+            .ToList();
 
         ProblemWithPropsResponseDto response = new ProblemWithPropsResponseDto
         (
