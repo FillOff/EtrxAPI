@@ -17,7 +17,7 @@ public abstract class UpdateDataBackgroundService : BackgroundService
         _logger = logger;
     }
 
-    protected abstract Task ProcessAsync(IServiceProvider serviceProvider, ILogger logger, CancellationToken cancellationToken);
+    protected abstract Task ProcessAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken);
     protected abstract TimeSpan CalculateNextDelay(bool executionSucceeded);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -33,7 +33,7 @@ public abstract class UpdateDataBackgroundService : BackgroundService
             {
                 using var scope = _serviceScopeFactory.CreateScope();
 
-                await ProcessAsync(scope.ServiceProvider, _logger, stoppingToken);
+                await ProcessAsync(scope.ServiceProvider, stoppingToken);
 
                 executionSucceeded = true;
                 _logger.LogInformation("{ServiceName} finished task successfully.", GetType().Name);

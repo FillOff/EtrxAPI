@@ -12,7 +12,7 @@ public class UpdateDataEvery30MinutesBackgroundService : UpdateDataBackgroundSer
         : base(serviceScopeFactory, logger)
     { }
 
-    protected override async Task ProcessAsync(IServiceProvider serviceProvider, ILogger logger, CancellationToken cancellationToken)
+    protected override async Task ProcessAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
 

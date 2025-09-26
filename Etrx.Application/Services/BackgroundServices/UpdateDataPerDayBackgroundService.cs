@@ -14,7 +14,7 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
         : base(serviceScopeFactory, logger)
     { }
 
-    protected override async Task ProcessAsync(IServiceProvider serviceProvider, ILogger logger, CancellationToken cancellationToken)
+    protected override async Task ProcessAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
         var contestsRepository = serviceProvider.GetRequiredService<IContestsRepository>();
@@ -29,8 +29,6 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
         foreach (var contest in last10Contests)
         {
             await updateDataService.UpdateRanklistRowsByContestId(contest.ContestId);
-            logger.LogInformation("Updated data for context {ContestId}.", contest.ContestId);
-
             await Task.Delay(2000, cancellationToken);
         }
     }

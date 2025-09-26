@@ -71,7 +71,7 @@ public class UpdateDataService : IUpdateDataService
             await Task.Delay(2000);
         }
 
-        _logger.LogInformation($"Dl users updated successfully.");
+        _logger.LogInformation($"Users updated successfully.");
         _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
     }
 
@@ -98,7 +98,7 @@ public class UpdateDataService : IUpdateDataService
             await Task.Delay(2000);
         }
 
-        _logger.LogInformation($"Submissions updated successfully.");
+        _logger.LogInformation("Submissions updated successfully (contestId: {ContestId}).", contestId);
     }
 
     public async Task UpdateRanklistRowsByContestId(int contestId)
@@ -106,6 +106,6 @@ public class UpdateDataService : IUpdateDataService
         var response = await _codeforcesApiService.GetCodeforcesRanklistRowsAsync(await _usersService.GetHandlesAsync(), contestId);
         await _codeforcesService.PostRanklistRowsFromCodeforces(response);
 
-        _logger.LogInformation($"RanklistRows updated successfully.");
+        _logger.LogInformation("RanklistRows updated successfully (contestId: {ContestId}).", contestId);
     }
 }
