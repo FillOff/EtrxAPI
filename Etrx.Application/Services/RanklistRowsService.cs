@@ -40,12 +40,6 @@ public class RanklistRowsService : IRanklistRowsService
         var ranklistRowsQuery = _ranklistRowsRepository.GetAll()
             .Where(rr => rr.ContestId == contestId);
 
-        if (!dto.SortField.Contains("username", StringComparison.InvariantCultureIgnoreCase)
-            && !dto.SortField.Contains("solvedcount", StringComparison.InvariantCultureIgnoreCase))
-        {
-            ranklistRowsQuery = ranklistRowsQuery.OrderBy($"{dto.SortField} {order}");
-        }
-
         if (dto.FilterByParticipantType != "ALL")
         {
             ranklistRowsQuery = ranklistRowsQuery.Where(rr => rr.ParticipantType == dto.FilterByParticipantType);
@@ -79,29 +73,9 @@ public class RanklistRowsService : IRanklistRowsService
             rowsResponse.Add(rowResponse);
         }
 
-        if (dto.SortField.Contains("username", StringComparison.InvariantCultureIgnoreCase))
-        {
-            if (dto.SortOrder == true)
-            {
-                rowsResponse = rowsResponse.OrderBy(r => r.Username).ToList();
-            }
-            else
-            {
-                rowsResponse = rowsResponse.OrderByDescending(r => r.Username).ToList();
-            }
-        }
-
-        if (dto.SortField.Contains("solvedcount", StringComparison.InvariantCultureIgnoreCase))
-        {
-            if (dto.SortOrder == true)
-            {
-                rowsResponse = rowsResponse.OrderBy(r => r.SolvedCount).ToList();
-            }
-            else
-            {
-                rowsResponse = rowsResponse.OrderByDescending(r => r.SolvedCount).ToList();
-            }
-        }
+        rowsResponse = rowsResponse.AsQueryable()
+            .OrderBy($"{dto.SortField} {order}")
+            .ToList();
 
         var problems = await _problemsRepository.GetByContestId(contestId).ToListAsync();
         var problemsResponse = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
