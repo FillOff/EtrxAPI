@@ -2,6 +2,7 @@
 using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Services;
 using Etrx.Application.Services.Api;
+using Etrx.Application.Services.BackgroundServices;
 
 namespace Etrx.API.Extensions;
 
@@ -21,7 +22,8 @@ public static class ApplicationExtension
 
         services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
 
-        services.AddHostedService<UpdateDataBackgroundService>();
+        services.AddHostedService<UpdateDataEvery30MinutesBackgroundService>();
+        services.AddHostedService<UpdateDataPerDayBackgroundService>();
 
         services.AddHttpClient<IApiService, ApiService>();
 
