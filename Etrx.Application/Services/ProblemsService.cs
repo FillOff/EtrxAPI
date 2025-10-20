@@ -105,8 +105,22 @@ public class ProblemsService : IProblemsService
 
         if (dto.Tags != null)
         {
-            var tagsFilter = dto.Tags.Split(';');
-            problemsQuery = problemsQuery.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            if (dto.isOnly)
+            {
+                var tagsFilter = dto.Tags.Split(';');
+
+                problemsQuery = problemsQuery
+                    .Where(p =>
+                        p.Tags!.Count == tagsFilter.Length 
+                        && p.Tags.All(t => tagsFilter.Contains(t))
+                    );
+
+            }
+            else
+            {
+                var tagsFilter = dto.Tags.Split(';');
+                problemsQuery = problemsQuery.Where(p => tagsFilter.All(tag => p.Tags!.Contains(tag)));
+            }
         }
 
         if (dto.Indexes != null)
@@ -152,7 +166,7 @@ public class ProblemsService : IProblemsService
             .Take(dto.PageSize)
             .ToList();
 
-        ProblemWithPropsResponseDto response = new ProblemWithPropsResponseDto
+        var response = new ProblemWithPropsResponseDto
         (
             Problems: _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
             {

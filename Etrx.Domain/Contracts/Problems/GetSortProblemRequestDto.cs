@@ -12,4 +12,5 @@ public record class GetSortProblemRequestDto(
     double MaxPoints = 10000,
     string SortField = "id",
     bool SortOrder = true,
+    bool isOnly = false,
     string Lang = "ru");
