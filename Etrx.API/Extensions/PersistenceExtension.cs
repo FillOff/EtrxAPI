@@ -25,7 +25,7 @@ public static class PersistenceExtension
     public static IServiceCollection AddDbContexts(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<EtrxDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString(nameof(EtrxDbContext))));
+            options.UseNpgsql(configuration["ETRX_DB_CONNECTION_STRING"]));
 
         return services;
     }
