@@ -11,7 +11,7 @@ public interface IProblemsService
         string lang);
     Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang);
     ProblemWithPropsResponseDto GetProblemsByPageWithSortAndFilterTagsAsync(GetSortProblemRequestDto dto);
-    Task<List<string>> GetAllTagsAsync(int? minRating = null, int? maxRating = null);
+    Task<List<string>> GetAllTagsAsync(GetSortProblemRequestDto dto);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId);
-}
+} 

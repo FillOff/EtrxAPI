@@ -31,9 +31,9 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("tags")]
-    public async Task<ActionResult<List<string>>> GetTagsList([FromQuery] int? minRating, [FromQuery] int? maxRating)
+    public async Task<ActionResult<List<string>>> GetTagsList([FromQuery] GetSortProblemRequestDto dto)
     {
-        return Ok(await _problemsService.GetAllTagsAsync(minRating, maxRating));
+        return Ok(await _problemsService.GetAllTagsAsync(dto));
     }
 
     [HttpGet("indexes")]

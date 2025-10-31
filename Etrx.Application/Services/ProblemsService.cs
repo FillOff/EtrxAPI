@@ -179,27 +179,23 @@ public class ProblemsService : IProblemsService
         return response;
     }
 
-    public async Task<List<string>> GetAllTagsAsync(int? minRating = null, int? maxRating = null)
+    public async Task<List<string>> GetAllTagsAsync(GetSortProblemRequestDto dto)
     {
         var query = _problemsRepository.GetAll();
 
-        if (minRating.HasValue)
-            query = query.Where(p => p.Rating >= minRating.Value);
+        if (dto.MinRating > 0)
+            query = query.Where(p => p.Rating >= dto.MinRating);
 
-        if (maxRating.HasValue)
-            query = query.Where(p => p.Rating <= maxRating.Value);
+        if (dto.MaxRating < 10000)
+            query = query.Where(p => p.Rating <= dto.MaxRating);
 
-        var problems = await query.ToListAsync();
-
-        return problems
+        return await query
             .Where(p => p.Tags != null)
-            .SelectMany(p => p.Tags)
+            .SelectMany(p => p.Tags!)
             .Distinct()
             .OrderBy(tag => tag)
-            .ToList();
+            .ToListAsync();
     }
-
-
 
 
     public async Task<List<string>> GetAllIndexesAsync()
