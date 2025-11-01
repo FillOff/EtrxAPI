@@ -1,7 +1,10 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Domain.Dtos.Submissions;
+using Etrx.Domain.Interfaces;
+using Etrx.Domain.Models;
+using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
-using Etrx.Persistence.Interfaces;
+using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
@@ -11,32 +14,70 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
         : base(context)
     { }
 
-    public override IQueryable<Submission> GetAll()
+    public override async Task<List<Submission>> GetAllAsync()
     {
-        return base.GetAll()
-            .Include(s => s.User);
-    }
-
-    public IQueryable<Submission> GetByContestId(int contestId)
-    {
-        return _dbSet
+        return await _dbSet
             .AsNoTracking()
-            .Where(s => s.ContestId == contestId);
+            .Include(s => s.User)
+            .ToListAsync();
     }
 
-    public IQueryable<string> GetUserParticipantTypes(string handle)
+    public async Task<List<Submission>> GetByContestIdAsync(int contestId)
     {
-        return _dbSet
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.ContestId == contestId)
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetUserParticipantTypesAsync(string handle)
+    {
+        return await _dbSet
             .AsNoTracking()
             .Where(s => s.Handle == handle)
             .Select(s => s.ParticipantType)
-            .Distinct();
+            .Distinct()
+            .ToListAsync();
     }
 
-    public IQueryable<Submission> GetByHandle(string handle)
+    public async Task<List<Submission>> GetByHandleAsync(string handle)
     {
-        return _dbSet
+        return await _dbSet
             .AsNoTracking()
-            .Where(s => s.Handle == handle);
+            .Where(s => s.Handle == handle)
+            .ToListAsync();
+    }
+
+    public async Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolWithSortAsync(GroupProtocolQueryParameters parameters)
+    {
+        // Filter by unix time
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(s => 
+                s.CreationTimeSeconds >= parameters.UnixFrom && 
+                s.CreationTimeSeconds <= parameters.UnixTo);
+
+        // Filter by ContestId
+        if (parameters.ContestId != null)
+        {
+            query = query.Where(s => s.ContestId == parameters.ContestId);
+        }
+
+        // Format data to GetGroupSubmissionsProtocolResponseDto
+        var groupedData = query
+            .Where(s => s.Verdict == "OK")
+            .GroupBy(s => new { s.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
+            .Select(g => new GetGroupSubmissionsProtocolResponseDto
+            {
+                UserName = g.Key.LastName + " " + g.Key.FirstName,
+                ContestId = g.Key.ContestId,
+                SolvedCount = g.Select(s => s.Index).Distinct().Count()
+            });
+
+        //Sorting
+        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
+        groupedData = groupedData.OrderBy($"{parameters.Sorting.SortField} {order}");
+
+        return await groupedData.ToListAsync();
     }
 }

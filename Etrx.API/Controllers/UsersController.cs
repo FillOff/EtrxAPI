@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Users;
+using Etrx.Domain.Dtos.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;

@@ -1,5 +1,4 @@
-﻿using Etrx.Core.Contracts.Submissions;
-using Etrx.Domain.Contracts.Submissions;
+﻿using Etrx.Domain.Dtos.Submissions;
 
 namespace Etrx.Application.Interfaces;
 
@@ -8,7 +7,5 @@ public interface ISubmissionsService
     Task<List<SubmissionsResponseDto>> GetAllSubmissionsAsync();
     Task<List<SubmissionsResponseDto>> GetSubmissionsByContestIdAsync(int contestId);
     Task<List<string>> GetUserParticipantTypesAsync(string handle);
-    Task<SubmissionsWithProblemIndexesResponseDto> GetSubmissionsWithSortAsync(int contestId,GetSubmissionRequestDto dto);
-    Task<GetSubmissionsWithPropsProtocolResponseDto> GetProtocolAsync(GetSubmissionsProtocolRequestDto dto);
-    Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto);
+    Task<GetGroupSubmissionsProtocolWithPropsResponseDto> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto);
 }

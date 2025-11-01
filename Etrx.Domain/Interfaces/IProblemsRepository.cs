@@ -1,0 +1,16 @@
+﻿using Etrx.Domain.Dtos.Common;
+using Etrx.Domain.Models;
+using Etrx.Domain.Queries;
+
+namespace Etrx.Domain.Interfaces;
+
+public interface IProblemsRepository : IGenericRepository<Problem, object>
+{
+    new Task<List<Problem>> GetAllAsync();
+    Task<Problem?> GetByKeyAsync(int contestId, string index);
+    Task<List<Problem>> GetByContestIdAsync(int contestId);
+    Task<List<string>> GetAllTagsAsync();
+    Task<List<string>> GetAllIndexesAsync();
+    Task<List<string>> GetIndexesByContestIdAsync(int contestId);
+    Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters);
+}
