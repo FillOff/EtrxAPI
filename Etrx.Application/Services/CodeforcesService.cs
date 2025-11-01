@@ -1,8 +1,8 @@
 ﻿using Etrx.Application.Interfaces;
+using Etrx.Domain.Interfaces;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;
-using Etrx.Persistence.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services;
@@ -65,7 +65,7 @@ public class CodeforcesService : ICodeforcesService
             Grade = dlUser.Grade
         };
 
-        await _usersRepository.InsertOrUpdate([newUser]);
+        await _usersRepository.InsertOrUpdateAsync([newUser]);
     }
 
     public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
@@ -98,15 +98,15 @@ public class CodeforcesService : ICodeforcesService
             newTranslations.Add(newProblemTranslation);
         }
 
-        await _problemsRepository.InsertOrUpdate(newProblems);
-        await _problemTranslationsRepository.InsertOrUpdate(newTranslations);
+        await _problemsRepository.InsertOrUpdateAsync(newProblems);
+        await _problemTranslationsRepository.InsertOrUpdateAsync(newTranslations);
     }
 
     public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
     {
         List<Contest> newContests = [];
         List<ContestTranslation> newTranslations = [];
-        var existedContests = _contestsRepository.GetAll();
+        var existedContests = await _contestsRepository.GetAllAsync();
 
         for (int i = 0; i < contests.Count; i++)
         {
@@ -145,8 +145,8 @@ public class CodeforcesService : ICodeforcesService
             newTranslations.Add(newContestTranslation);
         }
 
-        await _contestsRepository.InsertOrUpdate(newContests);
-        await _contestTranslationsRepository.InsertOrUpdate(newTranslations);
+        await _contestsRepository.InsertOrUpdateAsync(newContests);
+        await _contestTranslationsRepository.InsertOrUpdateAsync(newTranslations);
     }
 
     public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
@@ -176,7 +176,7 @@ public class CodeforcesService : ICodeforcesService
             newSubmissions.Add(newSubmission);
         }
 
-        await _submissionsRepository.InsertOrUpdate(newSubmissions);
+        await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);
     }
 
     public async Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding)
@@ -203,7 +203,7 @@ public class CodeforcesService : ICodeforcesService
             newRows.Add(newRow);
         }
 
-        await _ranklistRowsRepository.InsertOrUpdate(newRows);
+        await _ranklistRowsRepository.InsertOrUpdateAsync(newRows);
 
         for (int i = 0; i < contestStanding.Rows.Count; i++)
         {
@@ -214,11 +214,11 @@ public class CodeforcesService : ICodeforcesService
                 contestStanding.Problems.Select(p => p.Index).ToList());
         }
 
-        var contest = await _contestsRepository.GetByKey(contestStanding.Contest.ContestId);
+        var contest = await _contestsRepository.GetByKeyAsync(contestStanding.Contest.ContestId);
         if (contest!.Phase == "FINISHED")
         { 
             contest.IsContestLoaded = true;
-            await _contestsRepository.Update(contest);
+            await _contestsRepository.UpdateAsync(contest);
         }
     }
 
@@ -247,6 +247,6 @@ public class CodeforcesService : ICodeforcesService
             newProblemResults.Add(newProblemResult);
         }
 
-        await _problemResultsRepository.InsertOrUpdate(newProblemResults);
+        await _problemResultsRepository.InsertOrUpdateAsync(newProblemResults);
     }
 }

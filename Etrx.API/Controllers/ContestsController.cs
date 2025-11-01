@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Contests;
+using Etrx.Domain.Dtos.Contests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
@@ -18,15 +18,15 @@ public class ContestsController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ContestResponseDto>> GetContestById(
         [FromRoute] int id,
-        [FromQuery] string lang)
+        [FromQuery] string lang = "ru")
     {
         return Ok(await _contestsService.GetContestByIdAsync(id, lang));
     }
 
     [HttpGet]
-    public ActionResult<ContestWithPropsResponseDto> GetContestsByPageWithSort(
+    public async Task<ActionResult<ContestWithPropsResponseDto>> GetContestsByPageWithSort(
         [FromQuery] GetSortContestRequestDto dto)
     {
-        return Ok(_contestsService.GetContestsByPageWithSortAsync(dto));
+        return Ok(await _contestsService.GetContestsByPageWithSortAsync(dto));
     }
 }

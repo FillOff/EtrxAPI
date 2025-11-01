@@ -1,6 +1,6 @@
 ﻿using EFCore.BulkExtensions;
+using Etrx.Domain.Interfaces;
 using Etrx.Persistence.Databases;
-using Etrx.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Persistence.Repositories;
@@ -17,29 +17,31 @@ public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey
         _dbSet = context.Set<TEntity>();
     }
 
-    public virtual IQueryable<TEntity> GetAll()
+    public virtual async Task<List<TEntity>> GetAllAsync()
     {
-        return _dbSet.AsNoTracking();
+        return await _dbSet
+            .AsNoTracking()
+            .ToListAsync();
     }
 
-    public virtual async Task<TEntity?> GetByKey(TKey key)
+    public virtual async Task<TEntity?> GetByKeyAsync(TKey key)
     {
         return await _dbSet.FindAsync(key);
     }
 
-    public virtual async Task Add(TEntity entity)
+    public virtual async Task AddAsync(TEntity entity)
     {
         await _dbSet.AddAsync(entity);
         await _context.SaveChangesAsync();
     }
 
-    public virtual async Task Update(TEntity entity)
+    public virtual async Task UpdateAsync(TEntity entity)
     {
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();
     }
 
-    public virtual async Task Delete(TKey key)
+    public virtual async Task DeleteAsync(TKey key)
     {
         var entity = await _dbSet.FindAsync(key);
 
@@ -50,7 +52,7 @@ public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey
         }
     }
 
-    public virtual async Task InsertOrUpdate(List<TEntity> entities)
+    public virtual async Task InsertOrUpdateAsync(List<TEntity> entities)
     {
         await _context.BulkInsertOrUpdateAsync(entities);
     }

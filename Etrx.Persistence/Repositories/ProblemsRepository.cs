@@ -1,62 +1,160 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Domain.Dtos.Common;
+using Etrx.Domain.Interfaces;
+using Etrx.Domain.Models;
+using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
-using Etrx.Persistence.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
-namespace Etrx.Persistence.Repositories
+namespace Etrx.Persistence.Repositories;
+
+public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsRepository
 {
-    public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsRepository
+    public ProblemsRepository(EtrxDbContext context)
+        : base(context)
+    { }
+
+    public override async Task<List<Problem>> GetAllAsync()
     {
-        public ProblemsRepository(EtrxDbContext context)
-            : base(context)
-        { }
+        return await _dbSet
+            .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .ToListAsync();
+    }
 
-        public override IQueryable<Problem> GetAll()
+    public async Task<Problem?> GetByKeyAsync(int contestId, string index)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
+    }
+
+    public async Task<List<Problem>> GetByContestIdAsync(int contestId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .Where(p => p.ContestId == contestId)
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetAllTagsAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(problem => problem.Tags != null)
+            .SelectMany(problem => problem.Tags!)
+            .Distinct()
+            .OrderBy(tag => tag)
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetAllIndexesAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Select(problem => problem.Index)
+            .Distinct()
+            .OrderBy(index => index)
+            .ToListAsync();
+    }
+
+    public async Task<List<string>> GetIndexesByContestIdAsync(int contestId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(p => p.ContestId == contestId)
+            .Select(p => p.Index)
+            .ToListAsync();
+    }
+
+    public async Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .AsQueryable();
+
+        // Filter by tags
+        if (!string.IsNullOrEmpty(parameters.Tags))
         {
-            return base.GetAll()
-                .Include(p => p.ProblemTranslations);
+            var tagsFilter = parameters.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            if (tagsFilter.Length > 0)
+            {
+                if (parameters.IsOnly)
+                {
+                    query = query.Where(
+                        p => p.Tags != null && 
+                        p.Tags.Count == tagsFilter.Length && 
+                        p.Tags.All(t => tagsFilter.Contains(t)));
+                }
+                else
+                {
+                    query = query.Where(
+                        p => p.Tags != null && 
+                        tagsFilter.All(tag => p.Tags.Contains(tag)));
+                }
+            }
         }
 
-        public async Task<Problem?> GetByKey(int contestId, string index)
+        // Filter by indexes
+        if (!string.IsNullOrEmpty(parameters.Indexes))
         {
-            return await _dbSet
-                .Include(p => p.ProblemTranslations)
-                .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
+            var indexesFilter = parameters.Indexes.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            if (indexesFilter.Length > 0)
+            {
+                query = query.Where(p => indexesFilter.Contains(p.Index));
+            }
         }
 
-        public IQueryable<Problem> GetByContestId(int contestId)
+        // Filter by problem name
+        if (!string.IsNullOrEmpty(parameters.ProblemName))
         {
-            return _dbSet
-                .Include(p => p.ProblemTranslations)
-                .Where(p => p.ContestId == contestId);
+            query = query.Where(p => p.ProblemTranslations.Any(
+                pt => pt.LanguageCode == parameters.Lang && 
+                pt.Name.Contains(parameters.ProblemName)));
         }
 
-        public IQueryable<string> GetAllTags()
+        // Filter by rating and points
+        query = query.Where(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
+        query = query.Where(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
+
+        // Sorting
+        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
+        switch (parameters.Sorting.SortField.ToLowerInvariant())
         {
-            return _dbSet
-                .AsNoTracking()
-                .Where(problem => problem.Tags != null)
-                .SelectMany(problem => problem.Tags!)
-                .Distinct()
-                .OrderBy(tag => tag);
+            case "name":
+                if (order == "asc")
+                {
+                    query = query.OrderBy(p => p.ProblemTranslations
+                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
+                }
+                else
+                {
+                    query = query.OrderByDescending(p => p.ProblemTranslations
+                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
+                }
+                break;
+            default:
+                query = query.OrderBy($"{parameters.Sorting.SortField} {order}");
+                break;
         }
 
-        public IQueryable<string> GetAllIndexes()
-        {
-            return _dbSet
-                .AsNoTracking()
-                .Select(problem => problem.Index)
-                .Distinct()
-                .OrderBy(index => index);
-        }
+        // Calculating total pages count
+        int totalCount = await query.CountAsync();
+        int totalPages = (totalCount > 0) ? (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize) : 0;
 
-        public IQueryable<string> GetIndexesByContestId(int contestId)
+        // Pagination
+        var items = await query
+            .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
+            .Take(parameters.Pagination.PageSize)
+            .ToListAsync();
+
+        return new PagedResultDto<Problem>
         {
-            return _dbSet
-                .AsNoTracking()
-                .Where(p => p.ContestId == contestId)
-                .Select(p => p.Index);
-        }
+            Items = items,
+            TotalPagesCount = totalPages
+        };
     }
 }

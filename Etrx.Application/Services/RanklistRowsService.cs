@@ -1,27 +1,24 @@
-﻿using System.Linq.Dynamic.Core;
-using AutoMapper;
+﻿using AutoMapper;
 using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Problems;
-using Etrx.Domain.Contracts.RanklistRows;
-using Etrx.Persistence.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Etrx.Domain.Dtos.Problems;
+using Etrx.Domain.Dtos.RanklistRows;
+using Etrx.Domain.Interfaces;
+using Etrx.Domain.Queries;
+using Etrx.Domain.Queries.Common;
 
 namespace Etrx.Application.Services;
 
 public class RanklistRowsService : IRanklistRowsService
 {
-    private readonly IUsersRepository _usersRepository;
     private readonly IRanklistRowsRepository _ranklistRowsRepository;
     private readonly IProblemsRepository _problemsRepository;
     private readonly IMapper _mapper;
 
     public RanklistRowsService(
-        IUsersRepository usersRepository,
         IRanklistRowsRepository ranklistRowsRepository,
         IProblemsRepository problemsRepository,
         IMapper mapper)
     {
-        _usersRepository = usersRepository;
         _ranklistRowsRepository = ranklistRowsRepository;
         _problemsRepository = problemsRepository;
         _mapper = mapper;
@@ -35,49 +32,15 @@ public class RanklistRowsService : IRanklistRowsService
             throw new Exception($"Invalid field: SortField");
         }
 
-        string order = dto.SortOrder == true ? "asc" : "desc";
+        var queryParams = new RanklistQueryParameters(
+            new SortingQueryParameters(dto.SortField, dto.SortOrder),
+            contestId,
+            dto.ParticipantType,
+            dto.Lang);
 
-        var ranklistRowsQuery = _ranklistRowsRepository.GetAll()
-            .Where(rr => rr.ContestId == contestId);
+        var rowsResponse = await _ranklistRowsRepository.GetByContestIdWithSortAndFilterAsync(queryParams);
 
-        if (dto.FilterByParticipantType != "ALL")
-        {
-            ranklistRowsQuery = ranklistRowsQuery.Where(rr => rr.ParticipantType == dto.FilterByParticipantType);
-        }
-
-        var ranklistRows = await ranklistRowsQuery.ToListAsync();
-
-        var rowsResponse = new List<GetRanklistRowsResponseDto>();
-        foreach (var row in ranklistRows)
-        {
-            var user = await _usersRepository.GetByHandle(row.Handle);
-            var rowResponse = new GetRanklistRowsResponseDto()
-            {
-                ContestId = row.ContestId,
-                Handle = row.Handle,
-                LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds,
-                ParticipantType = row.ParticipantType,
-                Penalty = row.Penalty,
-                Points = row.Points,
-                ProblemResults = row.ProblemResults,
-                Rank = row.Rank,
-                SuccessfulHackCount = row.SuccessfulHackCount,
-                UnsuccessfulHackCount = row.UnsuccessfulHackCount,
-                Username = user!.LastName + " " + user!.FirstName,
-                City = user!.City,
-                Organization = user!.Organization,
-                Grade = user!.Grade,
-                SolvedCount = row.ProblemResults.Where(pr => pr.Points != 0).Count(),
-            };
-
-            rowsResponse.Add(rowResponse);
-        }
-
-        rowsResponse = rowsResponse.AsQueryable()
-            .OrderBy($"{dto.SortField} {order}")
-            .ToList();
-
-        var problems = await _problemsRepository.GetByContestId(contestId).ToListAsync();
+        var problems = await _problemsRepository.GetByContestIdAsync(contestId);
         var problemsResponse = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
             opts.Items["lang"] = dto.Lang;

@@ -1,4 +1,4 @@
-﻿using Etrx.Core.Contracts.Users;
+﻿using Etrx.Domain.Dtos.Users;
 
 namespace Etrx.Application.Interfaces;
 

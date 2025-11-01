@@ -1,6 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Submissions;
-using Etrx.Domain.Contracts.RanklistRows;
+using Etrx.Domain.Dtos.RanklistRows;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
@@ -17,7 +16,7 @@ public class RanklistRowsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    public async Task<ActionResult<SubmissionsWithProblemIndexesResponseDto>> GetRanklistRowsByContestIdWithSort(
+    public async Task<ActionResult<GetRanklistRowsResponseWithPropsDto>> GetRanklistRowsByContestIdWithSort(
         [FromRoute] int contestId,
         [FromQuery] GetRanklistRowsRequestDto dto)
     {

@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Core.Contracts.Users;
+using Etrx.Domain.Dtos.Users;
 using Etrx.Domain.Models;
 
 namespace Etrx.Application.Profiles

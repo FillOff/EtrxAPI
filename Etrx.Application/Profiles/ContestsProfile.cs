@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Core.Contracts.Contests;
+using Etrx.Domain.Dtos.Contests;
 using Etrx.Domain.Models;
 
 namespace Etrx.Application.Profiles

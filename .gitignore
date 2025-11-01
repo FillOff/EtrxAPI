@@ -367,3 +367,9 @@ FodyWeavers.xsd
 
 # NuGet local packages folder
 packages/
+
+# Environment variables
+.env
+
+# Visual Studio Code 
+.vscode/

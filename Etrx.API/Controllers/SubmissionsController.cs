@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Submissions;
-using Etrx.Domain.Contracts.Submissions;
+using Etrx.Domain.Dtos.Submissions;
 
 namespace Etrx.API.Controllers;
 
@@ -16,16 +15,8 @@ public class SubmissionsController : ControllerBase
         _submissionsService = submissionsService;
     }
 
-    [HttpGet("{contestId:int}")]
-    public async Task<ActionResult<SubmissionsWithProblemIndexesResponseDto>> GetSubmissionsByContestIdWithSort(
-        [FromRoute] int contestId,
-        [FromQuery] GetSubmissionRequestDto dto)
-    {
-        return Ok(await _submissionsService.GetSubmissionsWithSortAsync(contestId, dto));
-    }
-
     [HttpGet]
-    public async Task<ActionResult<GetSubmissionsWithPropsProtocolResponseDto>> GetProtocol(
+    public async Task<ActionResult<GetGroupSubmissionsProtocolWithPropsResponseDto>> GetProtocol(
         [FromQuery] GetGroupSubmissionsProtocolRequestDto dto)
     {
         return Ok(await _submissionsService.GetGroupProtocolAsync(dto));

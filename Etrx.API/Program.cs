@@ -9,7 +9,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddServices();
 builder.Services.AddRepositories();
 builder.Services.AddDbContexts(builder.Configuration);
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();
 

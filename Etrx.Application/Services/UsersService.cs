@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
-using Etrx.Core.Contracts.Users;
 using Etrx.Domain.Models;
-using Etrx.Persistence.Interfaces;
-using System.Linq.Dynamic.Core;
-using Microsoft.EntityFrameworkCore;
+using Etrx.Domain.Interfaces;
+using Etrx.Domain.Queries.Common;
+using Etrx.Domain.Dtos.Users;
 
 namespace Etrx.Application.Services;
 
@@ -23,7 +22,7 @@ public class UsersService : IUsersService
 
     public async Task<UsersResponseDto?> GetUserByHandleAsync(string handle)
     {
-        var user = await _usersRepository.GetByKey(handle)
+        var user = await _usersRepository.GetByKeyAsync(handle)
             ?? throw new Exception($"User {handle} not found");
 
         var response = _mapper.Map<UsersResponseDto?>(user);
@@ -38,19 +37,15 @@ public class UsersService : IUsersService
             throw new Exception($"Invalid field: SortField");
         }
 
-        string order = dto.SortOrder == true ? "asc" : "desc";
-
-        var users = _usersRepository.GetAll();
-        var sortUsers = await users.OrderBy($"{dto.SortField} {order}").ToListAsync();
+        var users = await _usersRepository.GetWithSortAsync(new SortingQueryParameters(dto.SortField, dto.SortOrder));
 
         return new UsersWithPropsResponseDto(
-            Users: _mapper.Map<List<UsersResponseDto>>(sortUsers),
+            Users: _mapper.Map<List<UsersResponseDto>>(users),
             Properties: typeof(UsersResponseDto).GetProperties().Select(p => p.Name).ToArray());
     }
     
     public async Task<List<string>> GetHandlesAsync()
     {
-        return await _usersRepository.GetHandles()
-            .ToListAsync();
+        return await _usersRepository.GetHandlesAsync();
     }
 }

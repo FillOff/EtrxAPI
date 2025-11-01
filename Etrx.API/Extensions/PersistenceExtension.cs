@@ -1,6 +1,6 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Domain.Interfaces;
+using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
-using Etrx.Persistence.Interfaces;
 using Etrx.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +25,9 @@ public static class PersistenceExtension
     public static IServiceCollection AddDbContexts(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<EtrxDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString(nameof(EtrxDbContext))));
+            options
+                .UseNpgsql(configuration["ETRX_DB_CONNECTION_STRING"])
+                .UseSnakeCaseNamingConvention());
 
         return services;
     }

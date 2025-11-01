@@ -1,6 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Persistence.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using Etrx.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -19,12 +18,7 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
         var contestsRepository = serviceProvider.GetRequiredService<IContestsRepository>();
 
-        var last10Contests = await contestsRepository
-            .GetAll()
-            .Where(c => c.Phase == "FINISHED" && !c.IsContestLoaded)
-            .OrderByDescending(c => c.StartTime)
-            .Take(10)
-            .ToListAsync(cancellationToken);
+        var last10Contests = await contestsRepository.GetLast10Async();
 
         foreach (var contest in last10Contests)
         {
