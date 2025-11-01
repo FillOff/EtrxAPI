@@ -8,7 +8,7 @@ public interface IProblemsService
     Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(int contestId, string index, string lang);
     Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang);
     Task<ProblemWithPropsResponseDto> GetProblemsByPageWithSortAndFilterAsync(GetSortProblemRequestDto dto);
-    Task<List<string>> GetAllTagsAsync(GetSortProblemRequestDto dto);
+    Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId);
 } 

@@ -31,7 +31,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("tags")]
-    public async Task<ActionResult<List<string>>> GetTagsList([FromQuery] GetSortProblemRequestDto dto)
+    public async Task<ActionResult<List<string>>> GetTagsList([FromQuery] GetAllTagsRequestDto dto)
     {
         return Ok(await _problemsService.GetAllTagsAsync(dto));
     }

@@ -39,11 +39,14 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
             .ToListAsync();
     }
 
-    public async Task<List<string>> GetAllTagsAsync()
+    public async Task<List<string>> GetAllTagsAsync(int minRating, int maxRating)
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(problem => problem.Tags != null)
+            .Where(p => 
+                p.Tags != null &&
+                p.Rating >= minRating &&
+                p.Rating <= maxRating)
             .SelectMany(problem => problem.Tags!)
             .Distinct()
             .OrderBy(tag => tag)

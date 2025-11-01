@@ -123,24 +123,10 @@ public class ProblemsService : IProblemsService
         );
     }
 
-    public async Task<List<string>> GetAllTagsAsync(GetSortProblemRequestDto dto)
+    public async Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto)
     {
-        var query = _problemsRepository.GetAll();
-
-        if (dto.MinRating > 0)
-            query = query.Where(p => p.Rating >= dto.MinRating);
-
-        if (dto.MaxRating < 10000)
-            query = query.Where(p => p.Rating <= dto.MaxRating);
-
-        return await query
-            .Where(p => p.Tags != null)
-            .SelectMany(p => p.Tags!)
-            .Distinct()
-            .OrderBy(tag => tag)
-            .ToListAsync();
+        return await _problemsRepository.GetAllTagsAsync(dto.MinRating, dto.MaxRating);
     }
-
 
     public async Task<List<string>> GetAllIndexesAsync()
     {

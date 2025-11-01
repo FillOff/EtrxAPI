@@ -9,7 +9,7 @@ public interface IProblemsRepository : IGenericRepository<Problem, object>
     new Task<List<Problem>> GetAllAsync();
     Task<Problem?> GetByKeyAsync(int contestId, string index);
     Task<List<Problem>> GetByContestIdAsync(int contestId);
-    Task<List<string>> GetAllTagsAsync();
+    Task<List<string>> GetAllTagsAsync(int minRating, int maxRating);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
     Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters);
