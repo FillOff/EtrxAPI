@@ -11,4 +11,5 @@ public interface ISubmissionsRepository : IGenericRepository<Submission, ulong>
     Task<List<string>> GetUserParticipantTypesAsync(string handle);
     Task<List<Submission>> GetByHandleAsync(string handle);
     Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolWithSortAsync(GroupProtocolQueryParameters parameters);
+    Task<List<Submission>> GetByHandleAndContestIdAsync(HandleContestProtocolQueryParameters parameters);
 }

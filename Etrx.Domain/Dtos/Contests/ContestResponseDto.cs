@@ -8,4 +8,5 @@ public class ContestResponseDto
     public long? StartTime { get; set; }
     public long? RelativeTimeSeconds { get; set; }
     public bool IsContestLoaded { get; set; }
+    public bool Gym { get; set; }
 }

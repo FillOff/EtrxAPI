@@ -69,6 +69,7 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
             .GroupBy(s => new { s.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
             .Select(g => new GetGroupSubmissionsProtocolResponseDto
             {
+                Handle = g.Key.Handle,
                 UserName = g.Key.LastName + " " + g.Key.FirstName,
                 ContestId = g.Key.ContestId,
                 SolvedCount = g.Select(s => s.Index).Distinct().Count()
@@ -79,5 +80,18 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
         groupedData = groupedData.OrderBy($"{parameters.Sorting.SortField} {order}");
 
         return await groupedData.ToListAsync();
+    }
+
+    public async Task<List<Submission>> GetByHandleAndContestIdAsync(HandleContestProtocolQueryParameters parameters)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(s => s.User)
+            .Where(s =>
+                s.Handle == parameters.Handle &&
+                s.ContestId == parameters.ContestId &&
+                s.CreationTimeSeconds >= parameters.UnixFrom &&
+                s.CreationTimeSeconds <= parameters.UnixTo)
+            .ToListAsync();
     }
 }
