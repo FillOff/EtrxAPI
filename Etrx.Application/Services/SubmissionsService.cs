@@ -10,13 +10,19 @@ namespace Etrx.Application.Services;
 public class SubmissionsService : ISubmissionsService
 {
     private readonly ISubmissionsRepository _submissionsRepository;
+    private readonly IUsersRepository _usersRepository;
+    private readonly IContestsRepository _contestsRepository;
     private readonly IMapper _mapper;
 
     public SubmissionsService(
         ISubmissionsRepository submissionsRepository,
+        IUsersRepository usersRepository,
+        IContestsRepository contestsRepository,
         IMapper mapper)
     {
         _submissionsRepository = submissionsRepository;
+        _usersRepository = usersRepository;
+        _contestsRepository = contestsRepository;
         _mapper = mapper;
     }
 
@@ -52,5 +58,24 @@ public class SubmissionsService : ISubmissionsService
         return new GetGroupSubmissionsProtocolWithPropsResponseDto(
             Submissions: await _submissionsRepository.GetGroupProtocolWithSortAsync(queryParams),
             Properties: typeof(GetGroupSubmissionsProtocolResponseDto).GetProperties().Select(p => p.Name).ToList());
+    }
+
+    public async Task<List<GetUserContestProtocolResponseDto>> GetUserContestProtocolAsync(string handle, int contestId, GetUserContestProtocolRequestDto dto)
+    {
+        _ = await _usersRepository.GetByKeyAsync(handle)
+            ?? throw new Exception($"User {handle} not found");
+
+        _ = await _contestsRepository.GetByKeyAsync(contestId)
+            ?? throw new Exception($"Contest {contestId} not found");
+
+        var queryParams = new HandleContestProtocolQueryParameters(
+            handle, contestId,
+            (long)(new DateTime(dto.FYear, dto.FMonth, dto.FDay).AddHours(3) - DateTimeOffset.UnixEpoch).TotalSeconds,
+            (long)(new DateTime(dto.TYear, dto.TMonth, dto.TDay).AddHours(20).AddMinutes(59) - DateTimeOffset.UnixEpoch).TotalSeconds);
+
+        var submissions = await _submissionsRepository.GetByHandleAndContestIdAsync(queryParams);
+        var response = _mapper.Map<List<GetUserContestProtocolResponseDto>>(submissions);
+
+        return response;
     }
 }
