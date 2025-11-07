@@ -10,7 +10,8 @@ public class SubmissionConfiguration : IEntityTypeConfiguration<Submission>
     {
         builder.HasKey(s => s.Id);
 
-        builder.HasOne(s => s.User)
+        builder
+            .HasOne(s => s.User)
             .WithMany()
             .HasForeignKey(s => s.UserId);
 

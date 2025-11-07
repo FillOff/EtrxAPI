@@ -51,6 +51,10 @@ public class CodeforcesService : ICodeforcesService
         var existingTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(existingProblemGuids, languageCode);
         var existingTranslationsDict = existingTranslations.ToDictionary(pt => pt.ProblemId);
 
+        var contestIdsFromApi = problems.Select(p => p.ContestId).ToList();
+        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
+        var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
+
         var statisticsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
 
         List<Problem> problemsToUpsert = [];
@@ -60,6 +64,13 @@ public class CodeforcesService : ICodeforcesService
         {
             Guid problemId;
             Problem problemEntity;
+
+            var existingContest = existingContestsDict[incomingProblem.ContestId];
+
+            if (existingContest is null)
+            {
+                continue;
+            }
 
             var problemKey = (incomingProblem.ContestId, incomingProblem.Index);
             statisticsDict.TryGetValue(problemKey, out var stats);
@@ -79,6 +90,7 @@ public class CodeforcesService : ICodeforcesService
             }
 
             problemEntity.SolvedCount = solvedCount;
+            problemEntity.GuidContestId = existingContest.Id;
             problemsToUpsert.Add(problemEntity);
 
             ProblemTranslation problemTranslationEntity;

@@ -8,4 +8,5 @@ public class ProblemResponseDto
     public double? Points { get; set; }
     public int? Rating { get; set; }
     public string[] Tags { get; set; } = [];
+    public int Difficulty { get; set; }
 }

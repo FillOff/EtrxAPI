@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Etrx.Application.Services;
 using Etrx.Domain.Dtos.Problems;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
@@ -13,14 +14,13 @@ public class ProblemsProfile : Profile
             .ForMember(
                 dest => dest.Name,
                 opt => opt.MapFrom((src, dest, destMember, context) =>
-                    src.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == (string)context.Items["lang"])?.Name
-                )
-            );
+                    src.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == (string)context.Items["lang"])?.Name));
 
         CreateMap<CodeforcesProblem, Problem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.SolvedCount, opt => opt.Ignore())
-            .ForMember(dest => dest.ProblemTranslations, opt => opt.Ignore());
+            .ForMember(dest => dest.ProblemTranslations, opt => opt.Ignore())
+            .ForMember(dest => dest.GuidContestId, opt => opt.Ignore());
 
         CreateMap<CodeforcesProblem, ProblemTranslation>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

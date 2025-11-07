@@ -19,6 +19,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .ToListAsync();
     }
 
@@ -27,6 +28,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
     }
 
@@ -35,6 +37,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .Where(p => p.ContestId == contestId)
             .ToListAsync();
     }
@@ -77,6 +80,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         var query = _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .AsQueryable();
 
         // Filter by tags
@@ -139,6 +143,8 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
                         .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
                 }
                 break;
+            case "difficulty":
+                break;
             default:
                 query = query.OrderBy($"{parameters.Sorting.SortField} {order}");
                 break;
@@ -154,6 +160,16 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Take(parameters.Pagination.PageSize)
             .ToListAsync();
 
+        // Sorting by difficulty
+        // This block is separate due to the need to upload contests using ToList() or ToListAsync() method
+        if (parameters.Sorting.SortField.Equals("difficulty", StringComparison.InvariantCultureIgnoreCase))
+        {
+            items = items
+                .AsQueryable()
+                .OrderBy($"{parameters.Sorting.SortField} {order}")
+                .ToList();
+        }
+
         return new PagedResultDto<Problem>
         {
             Items = items,
@@ -163,7 +179,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
 
     public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)
     {
-        if (identifiers == null || !identifiers.Any())
+        if (identifiers == null || identifiers.Count == 0)
         {
             return [];
         }
@@ -172,6 +188,8 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
 
         var problemsFromDb = await _dbSet
             .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .Where(p => contestIds.Contains(p.ContestId))
             .ToListAsync();
 

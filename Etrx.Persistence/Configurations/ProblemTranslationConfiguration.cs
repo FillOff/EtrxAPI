@@ -8,10 +8,10 @@ public class ProblemTranslationConfiguration : IEntityTypeConfiguration<ProblemT
 {
     public void Configure(EntityTypeBuilder<ProblemTranslation> builder)
     {
-        builder.HasKey(p => p.Id);
+        builder.HasKey(pt => pt.Id);
 
         builder
-            .HasIndex(p => new { p.ProblemId, p.LanguageCode })
+            .HasIndex(pt => new { pt.ProblemId, pt.LanguageCode })
             .IsUnique();
     }
 }
