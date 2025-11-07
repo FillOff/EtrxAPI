@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.API.Extensions;
 
-public static class PersistenceExtension
+public static class PersistenceExtensions
 {
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
@@ -34,5 +34,27 @@ public static class PersistenceExtension
                 .UseSnakeCaseNamingConvention());
 
         return services;
+    }
+
+    public static async Task ApplyMigrationsAsync(this IHost app, CancellationToken cancellationToken = default)
+    {
+        using var scope = app.Services.CreateScope();
+        var serviceProvider = scope.ServiceProvider;
+
+        var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger(nameof(PersistenceExtensions));
+
+        try
+        {
+            var dbContext = serviceProvider.GetRequiredService<EtrxDbContext>();
+            await dbContext.Database.MigrateAsync(cancellationToken);
+
+            logger.LogInformation("Database migrations applied successfully");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while applying database migrations");
+            throw;
+        }
     }
 }
