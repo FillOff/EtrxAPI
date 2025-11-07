@@ -7,11 +7,18 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class UsersRepository : GenericRepository<User, string>, IUsersRepository
+public class UsersRepository : GenericRepository<User>, IUsersRepository
 {
     public UsersRepository(EtrxDbContext context)
         : base(context)
     { }
+
+    public async Task<User?> GetByHandleAsync(string handle)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Handle == handle);
+    }
 
     public async Task<List<string>> GetHandlesAsync()
     {

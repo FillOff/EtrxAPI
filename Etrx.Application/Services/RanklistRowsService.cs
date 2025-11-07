@@ -2,7 +2,7 @@
 using Etrx.Application.Interfaces;
 using Etrx.Domain.Dtos.Problems;
 using Etrx.Domain.Dtos.RanklistRows;
-using Etrx.Domain.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Etrx.Domain.Queries;
 using Etrx.Domain.Queries.Common;
 
@@ -10,17 +10,14 @@ namespace Etrx.Application.Services;
 
 public class RanklistRowsService : IRanklistRowsService
 {
-    private readonly IRanklistRowsRepository _ranklistRowsRepository;
-    private readonly IProblemsRepository _problemsRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public RanklistRowsService(
-        IRanklistRowsRepository ranklistRowsRepository,
-        IProblemsRepository problemsRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper)
     {
-        _ranklistRowsRepository = ranklistRowsRepository;
-        _problemsRepository = problemsRepository;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -38,9 +35,9 @@ public class RanklistRowsService : IRanklistRowsService
             dto.ParticipantType,
             dto.Lang);
 
-        var rowsResponse = await _ranklistRowsRepository.GetByContestIdWithSortAndFilterAsync(queryParams);
+        var rowsResponse = await _unitOfWork.RanklistRows.GetByContestIdWithSortAndFilterAsync(queryParams);
 
-        var problems = await _problemsRepository.GetByContestIdAsync(contestId);
+        var problems = await _unitOfWork.Problems.GetByContestIdAsync(contestId);
         var problemsResponse = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
             opts.Items["lang"] = dto.Lang;

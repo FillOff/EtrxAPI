@@ -8,7 +8,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsRepository
+public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepository
 {
     public ProblemsRepository(EtrxDbContext context)
         : base(context)
@@ -19,14 +19,16 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .ToListAsync();
     }
 
-    public async Task<Problem?> GetByKeyAsync(int contestId, string index)
+    public async Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index)
     {
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
     }
 
@@ -35,6 +37,7 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
         return await _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .Where(p => p.ContestId == contestId)
             .ToListAsync();
     }
@@ -77,6 +80,7 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
         var query = _dbSet
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .AsQueryable();
 
         // Filter by tags
@@ -139,25 +143,67 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
                         .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
                 }
                 break;
+            case "difficulty":
+                break;
             default:
                 query = query.OrderBy($"{parameters.Sorting.SortField} {order}");
                 break;
         }
 
+        // Working with Difficulty property
+        // This block is separate due to the need to upload contests using ToList() method
+        IEnumerable<Problem> items = query.ToList();
+
+        items = items
+            .Where(i =>
+                i.Difficulty >= parameters.MinDifficulty &&
+                i.Difficulty <= parameters.MaxDifficulty);
+        
+        if (parameters.Sorting.SortField.Equals("difficulty", StringComparison.InvariantCultureIgnoreCase))
+        {
+            items = items
+                .AsQueryable()
+                .OrderBy($"{parameters.Sorting.SortField} {order}");
+        }
+
         // Calculating total pages count
-        int totalCount = await query.CountAsync();
+        int totalCount = items.Count();
         int totalPages = (totalCount > 0) ? (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize) : 0;
 
         // Pagination
-        var items = await query
+        items = items
             .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
-            .Take(parameters.Pagination.PageSize)
-            .ToListAsync();
+            .Take(parameters.Pagination.PageSize);
 
         return new PagedResultDto<Problem>
         {
-            Items = items,
+            Items = items.ToList(),
             TotalPagesCount = totalPages
         };
+    }
+
+    public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)
+    {
+        if (identifiers == null || identifiers.Count == 0)
+        {
+            return [];
+        }
+
+        var contestIds = identifiers.Select(id => id.ContestId).Distinct().ToList();
+
+        var problemsFromDb = await _dbSet
+            .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
+            .Where(p => contestIds.Contains(p.ContestId))
+            .ToListAsync();
+
+        var identifiersSet = identifiers.ToHashSet();
+
+        var result = problemsFromDb
+            .Where(p => identifiersSet.Contains((p.ContestId, p.Index)))
+            .ToList();
+
+        return result;
     }
 }

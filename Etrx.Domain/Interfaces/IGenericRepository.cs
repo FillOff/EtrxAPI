@@ -1,12 +1,14 @@
-﻿namespace Etrx.Domain.Interfaces;
+﻿using Etrx.Domain.Models;
 
-public interface IGenericRepository<TEntity, TKey> 
-    where TEntity : class
+namespace Etrx.Domain.Interfaces;
+
+public interface IGenericRepository<TEntity> 
+    where TEntity : Entity
 {
     Task<List<TEntity>> GetAllAsync();
     Task AddAsync(TEntity entity);
-    Task DeleteAsync(TKey id);
-    Task<TEntity?> GetByKeyAsync(TKey id);
-    Task UpdateAsync(TEntity entity);
+    void Delete(TEntity entity);
+    Task<TEntity?> GetByKeyAsync(Guid id);
+    void Update(TEntity entity);
     Task InsertOrUpdateAsync(List<TEntity> entities);
 }

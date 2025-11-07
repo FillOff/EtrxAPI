@@ -1,252 +1,282 @@
-﻿using Etrx.Application.Interfaces;
-using Etrx.Domain.Interfaces;
+﻿using AutoMapper;
+using Etrx.Application.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;
-using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services;
 
 public class CodeforcesService : ICodeforcesService
 {
-    private readonly IProblemsRepository _problemsRepository;
-    private readonly IContestsRepository _contestsRepository;
-    private readonly IGenericRepository<ContestTranslation, object> _contestTranslationsRepository;
-    private readonly IGenericRepository<ProblemTranslation, object> _problemTranslationsRepository;
-    private readonly IUsersRepository _usersRepository;
-    private readonly ISubmissionsRepository _submissionsRepository;
-    private readonly IRanklistRowsRepository _ranklistRowsRepository;
-    private readonly IGenericRepository<ProblemResult, object> _problemResultsRepository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
 
     public CodeforcesService(
-        IProblemsRepository problemsRepository,
-        IContestsRepository contestsRepository,
-        IGenericRepository<ContestTranslation, object> contestTranslationsRepository,
-        IGenericRepository<ProblemTranslation, object> problemTranslationsRepository,
-        IUsersRepository usersRepository,
-        ISubmissionsRepository submissionsRepository,
-        ILogger<CodeforcesService> logger,
-        IRanklistRowsRepository ranklistRowsRepository,
-        IGenericRepository<ProblemResult, object> problemResultsRepository)
+        IUnitOfWork unitOfWork, 
+        IMapper mapper)
     {
-        _problemsRepository = problemsRepository;
-        _contestsRepository = contestsRepository;
-        _contestTranslationsRepository = contestTranslationsRepository;
-        _problemTranslationsRepository = problemTranslationsRepository;
-        _usersRepository = usersRepository;
-        _submissionsRepository = submissionsRepository;
-        _ranklistRowsRepository = ranklistRowsRepository;
-        _problemResultsRepository = problemResultsRepository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
     }
 
     public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
     {
-        var newUser = new User()
-        {
-            Handle = cfUser.Handle,
-            Email = cfUser.Email,
-            VkId = cfUser.VkId,
-            OpenId = cfUser.OpenId,
-            FirstName = dlUser.FirstName,
-            LastName = dlUser.LastName,
-            Country = cfUser.Country,
-            City = dlUser.City,
-            Organization = dlUser.Organization,
-            Contribution = cfUser.Contribution,
-            Rank = cfUser.Rank,
-            Rating = cfUser.Rating,
-            MaxRank = cfUser.MaxRank,
-            MaxRating = cfUser.MaxRating,
-            LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
-            RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
-            FriendOfCount = cfUser.FriendOfCount,
-            Avatar = cfUser.Avatar,
-            TitlePhoto = cfUser.TitlePhoto,
-            Grade = dlUser.Grade
-        };
+        var existedUser = await _unitOfWork.Users.GetByHandleAsync(cfUser.Handle);
 
-        await _usersRepository.InsertOrUpdateAsync([newUser]);
+        User userEntity;
+
+        if (existedUser is not null)
+        {
+            userEntity = existedUser;
+            _mapper.Map(cfUser, userEntity);
+            _mapper.Map(dlUser, userEntity);
+        }
+        else
+        {
+            userEntity = _mapper.Map<User>(cfUser);
+            _mapper.Map(dlUser, userEntity);
+        }
+
+        await _unitOfWork.Users.InsertOrUpdateAsync([userEntity]);
     }
 
     public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
     {
-        List<Problem> newProblems = [];
-        List<ProblemTranslation> newTranslations = [];
-        for (int i = 0; i < problems.Count; i++)
+        var identifiers = problems.Select(p => (p.ContestId, p.Index)).ToList();
+        var existingProblems = await _unitOfWork.Problems.GetByContestAndIndexAsync(identifiers);
+        var existingProblemsDict = existingProblems.ToDictionary(p => (p.ContestId, p.Index));
+
+        var existingProblemGuids = existingProblems.Select(p => p.Id).ToList();
+        var existingTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(existingProblemGuids, languageCode);
+        var existingTranslationsDict = existingTranslations.ToDictionary(pt => pt.ProblemId);
+
+        var contestIdsFromApi = problems.Select(p => p.ContestId).ToList();
+        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
+        var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
+
+        var statisticsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
+
+        List<Problem> problemsToUpsert = [];
+        List<ProblemTranslation> translationsToUpsert = [];
+
+        foreach (var incomingProblem in problems)
         {
-            var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problems[i].ContestId && s.Index == problems[i].Index)!.SolvedCount;
-            var newProblem = new Problem()
-            {
-                ContestId = problems[i].ContestId,
-                Index = problems[i].Index,
-                Type = problems[i].Type,
-                Points = problems[i].Points,
-                Rating = problems[i].Rating,
-                SolvedCount = solvedCount,
-                Tags = problems[i].Tags
-            };
+            Guid problemId;
+            Problem problemEntity;
 
-            var newProblemTranslation = new ProblemTranslation()
-            {
-                ContestId = problems[i].ContestId,
-                Index = problems[i].Index,
-                LanguageCode = languageCode,
-                Name = problems[i].Name
-            };
+            var existingContest = existingContestsDict[incomingProblem.ContestId];
 
-            newProblems.Add(newProblem);
-            newTranslations.Add(newProblemTranslation);
+            if (existingContest is null)
+            {
+                continue;
+            }
+
+            var problemKey = (incomingProblem.ContestId, incomingProblem.Index);
+            statisticsDict.TryGetValue(problemKey, out var stats);
+            var solvedCount = stats?.SolvedCount ?? 0;
+
+            if (existingProblemsDict.TryGetValue(problemKey, out var existingProblem))
+            {
+                problemEntity = existingProblem;
+                problemId = existingProblem.Id;
+                _mapper.Map(incomingProblem, problemEntity);
+            }
+            else
+            {
+                problemEntity = _mapper.Map<Problem>(incomingProblem);
+                problemId = Guid.NewGuid();
+                problemEntity.Id = problemId;
+            }
+
+            problemEntity.SolvedCount = solvedCount;
+            problemEntity.GuidContestId = existingContest.Id;
+            problemsToUpsert.Add(problemEntity);
+
+            ProblemTranslation problemTranslationEntity;
+            if (existingTranslationsDict.TryGetValue(problemId, out var existingTranslation))
+            {
+                problemTranslationEntity = existingTranslation;
+                _mapper.Map(incomingProblem, problemTranslationEntity);
+            }
+            else
+            {
+                problemTranslationEntity = _mapper.Map<ProblemTranslation>(incomingProblem);
+                problemTranslationEntity.ProblemId = problemId;
+                problemTranslationEntity.LanguageCode = languageCode;
+            }
+            translationsToUpsert.Add(problemTranslationEntity);
         }
 
-        await _problemsRepository.InsertOrUpdateAsync(newProblems);
-        await _problemTranslationsRepository.InsertOrUpdateAsync(newTranslations);
+        await _unitOfWork.Problems.InsertOrUpdateAsync(problemsToUpsert);
+        await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(translationsToUpsert);
     }
 
     public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
     {
-        List<Contest> newContests = [];
-        List<ContestTranslation> newTranslations = [];
-        var existedContests = await _contestsRepository.GetAllAsync();
+        var contestIdsFromApi = contests.Select(c => c.ContestId).ToList();
+        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
+        var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
 
-        for (int i = 0; i < contests.Count; i++)
+        var existingContestGuids = existingContests.Select(c => c.Id).ToList();
+        var existingTranslations = await _unitOfWork.ContestTranslations.GetByContestIdsAndLanguageAsync(existingContestGuids, languageCode);
+        var existingTranslationsDict = existingTranslations.ToDictionary(ct => ct.ContestId);
+
+        List<Contest> contestsToUpsert = [];
+        List<ContestTranslation> translationsToUpsert = [];
+
+        foreach (var incomingContest in contests)
         {
-            var contest = contests[i];
+            Guid contestGuid;
+            Contest contestEntity;
 
-            var newContest = new Contest()
+            if (existingContestsDict.TryGetValue(incomingContest.ContestId, out var existingContest))
             {
-                ContestId = contest.ContestId,
-                Type = contest.Type,
-                Phase = contest.Phase,
-                Frozen = contest.Frozen,
-                DurationSeconds = contest.DurationSeconds,
-                StartTime = contest.StartTime,
-                RelativeTimeSeconds = contest.RelativeTimeSeconds,
-                PreparedBy = contest.PreparedBy,
-                WebsiteUrl = contest.WebsiteUrl,
-                Description = contest.Description,
-                Difficulty = contest.Difficulty,
-                Kind = contest.Kind,
-                IcpcRegion = contest.IcpcRegion,
-                Country = contest.Country,
-                City = contest.City,
-                Season = contest.Season,
-                Gym = gym,
-                IsContestLoaded = existedContests.FirstOrDefault(c => c.ContestId == contest.ContestId)?.IsContestLoaded ?? false
-            };
-
-            var newContestTranslation = new ContestTranslation()
+                contestEntity = existingContest;
+                contestGuid = existingContest.Id;
+                _mapper.Map(incomingContest, contestEntity);
+            }
+            else
             {
-                ContestId = contest.ContestId,
-                LanguageCode = languageCode,
-                Name = contest.Name
-            };
+                contestEntity = _mapper.Map<Contest>(incomingContest);
+                contestGuid = Guid.NewGuid();
+                contestEntity.Id = contestGuid;
+                contestEntity.IsContestLoaded = false;
+            }
 
-            newContests.Add(newContest);
-            newTranslations.Add(newContestTranslation);
+            contestEntity.Gym = gym;
+            contestsToUpsert.Add(contestEntity);
+
+            ContestTranslation contestTranslationEntity;
+            if (existingTranslationsDict.TryGetValue(contestGuid, out var existingTranslation))
+            {
+                contestTranslationEntity = existingTranslation;
+                _mapper.Map(incomingContest, contestTranslationEntity);
+            }
+            else
+            {
+                contestTranslationEntity = _mapper.Map<ContestTranslation>(incomingContest);
+                contestTranslationEntity.ContestId = contestGuid;
+                contestTranslationEntity.LanguageCode = languageCode;
+            }
+            translationsToUpsert.Add(contestTranslationEntity);
         }
 
-        await _contestsRepository.InsertOrUpdateAsync(newContests);
-        await _contestTranslationsRepository.InsertOrUpdateAsync(newTranslations);
+        await _unitOfWork.Contests.InsertOrUpdateAsync(contestsToUpsert);
+        await _unitOfWork.ContestTranslations.InsertOrUpdateAsync(translationsToUpsert);
     }
 
     public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
     {
-        List<Submission> newSubmissions = [];
-        for (int i = 0; i < submissions.Count; i++)
+        if (submissions == null || submissions.Count == 0)
         {
-            var submission = submissions[i];
-
-            var newSubmission = new Submission()
-            {
-                Id = submission.Id,
-                ContestId = submission.ContestId,
-                Index = submission.Problem.Index,
-                CreationTimeSeconds = submission.CreationTimeSeconds,
-                RelativeTimeSeconds = submission.RelativeTimeSeconds,
-                ProgrammingLanguage = submission.ProgrammingLanguage,
-                Handle = handle,
-                ParticipantType = submission.Author.ParticipantType,
-                Verdict = submission.Verdict,
-                Testset = submission.Testset,
-                PassedTestCount = submission.PassedTestCount,
-                TimeConsumedMillis = submission.TimeConsumedMillis,
-                MemoryConsumedBytes = submission.MemoryConsumedBytes
-            };
-
-            newSubmissions.Add(newSubmission);
+            return;
         }
 
-        await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);
+        var submissionIdsFromApi = submissions.Select(s => s.Id).ToList();
+        var existingSubmissions = await _unitOfWork.Submissions.GetBySubmissionIdsAsync(submissionIdsFromApi);
+        var existingSubmissionsDict = existingSubmissions.ToDictionary(s => s.SubmissionId);
+
+        var user = await _unitOfWork.Users.GetByHandleAsync(handle)
+            ?? throw new Exception($"User {handle} not found");
+
+        List<Submission> submissionsToUpsert = [];
+
+        foreach (var incomingSubmission in submissions)
+        {
+            Submission submissionEntity;
+
+            if (existingSubmissionsDict.TryGetValue(incomingSubmission.Id, out var existingSubmission))
+            {
+                submissionEntity = existingSubmission;
+                _mapper.Map(incomingSubmission, submissionEntity);
+            }
+            else
+            {
+                submissionEntity = _mapper.Map<Submission>(incomingSubmission);
+                submissionEntity.Id = Guid.NewGuid();
+            }
+
+            submissionEntity.UserId = user.Id;
+            submissionsToUpsert.Add(submissionEntity);
+        }
+
+        await _unitOfWork.Submissions.InsertOrUpdateAsync(submissionsToUpsert);
     }
 
     public async Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding)
     {
-        List<RanklistRow> newRows = [];
-        for (int i = 0; i < contestStanding.Rows.Count; i++)
-        {
-            var row = contestStanding.Rows[i];
+        var contestId = contestStanding.Contest.ContestId;
+        var problemIndexes = contestStanding.Problems.Select(p => p.Index).ToList();
 
-            var newRow = new RanklistRow()
+        var existingRows = await _unitOfWork.RanklistRows.GetByContestIdAsync(contestId);
+        var existingRowsDict = existingRows.ToDictionary(rr => (rr.Handle, rr.ParticipantType));
+
+        var existingRowGuids = existingRows.Select(rr => rr.Id).ToList();
+        var existingProblemResults = await _unitOfWork.ProblemResults.GetByRanklistRowIdsAsync(existingRowGuids);
+
+        var existingProblemResultsDict = existingProblemResults
+            .GroupBy(pr => pr.RanklistRowId)
+            .ToDictionary(g => g.Key, g => g.ToDictionary(pr => pr.Index));
+
+        List<RanklistRow> ranklistRowsToUpsert = [];
+        List<ProblemResult> problemResultsToUpsert = [];
+
+        foreach (var row in contestStanding.Rows)
+        {
+            var handle = row.Party.Members[0].Handle;
+            Guid ranklistRowId;
+            RanklistRow ranklistRowEntity;
+
+            var rowKey = (handle, row.Party.ParticipantType);
+
+            if (existingRowsDict.TryGetValue(rowKey, out var existingRow))
             {
-                Handle = row.Party.Members[0].Handle,
-                ContestId = contestStanding.Contest.ContestId,
-                ParticipantType = row.Party.ParticipantType,
+                ranklistRowEntity = existingRow;
+                ranklistRowId = existingRow.Id;
+                _mapper.Map(row, ranklistRowEntity);
+            }
+            else
+            {
+                ranklistRowEntity = _mapper.Map<RanklistRow>(row);
+                ranklistRowId = Guid.NewGuid();
+                ranklistRowEntity.Id = ranklistRowId;
+                ranklistRowEntity.ContestId = contestId;
+            }
+            ranklistRowsToUpsert.Add(ranklistRowEntity);
 
-                Rank = row.Rank,
-                Points = row.Points,
-                Penalty = row.Penalty,
-                SuccessfulHackCount = row.SuccessfulHackCount,
-                UnsuccessfulHackCount = row.UnsuccessfulHackCount,
-                LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds
-            };
+            for (int i = 0; i < row.ProblemResults.Count; i++)
+            {
+                var result = row.ProblemResults[i];
+                var problemIndex = problemIndexes[i];
+                ProblemResult problemResultEntity;
 
-            newRows.Add(newRow);
+                if (existingProblemResultsDict.TryGetValue(ranklistRowId, out var resultsForThisRow) &&
+                    resultsForThisRow.TryGetValue(problemIndex, out var existingResult))
+                {
+                    problemResultEntity = existingResult;
+                    _mapper.Map(result, problemResultEntity);
+                }
+                else
+                {
+                    problemResultEntity = _mapper.Map<ProblemResult>(result);
+                    problemResultEntity.Id = Guid.NewGuid();
+                    problemResultEntity.RanklistRowId = ranklistRowId;
+                    problemResultEntity.Index = problemIndex;
+                }
+                problemResultsToUpsert.Add(problemResultEntity);
+            }
         }
+        
+        await _unitOfWork.RanklistRows.InsertOrUpdateAsync(ranklistRowsToUpsert);
+        await _unitOfWork.ProblemResults.InsertOrUpdateAsync(problemResultsToUpsert);
 
-        await _ranklistRowsRepository.InsertOrUpdateAsync(newRows);
-
-        for (int i = 0; i < contestStanding.Rows.Count; i++)
-        {
-            await PostProblemResultsFromCodeforces(
-                contestStanding.Rows[i].Party.Members[0].Handle,
-                contestStanding.Contest.ContestId,
-                contestStanding.Rows[i],
-                contestStanding.Problems.Select(p => p.Index).ToList());
-        }
-
-        var contest = await _contestsRepository.GetByKeyAsync(contestStanding.Contest.ContestId);
+        var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestStanding.Contest.ContestId);
         if (contest!.Phase == "FINISHED")
-        { 
-            contest.IsContestLoaded = true;
-            await _contestsRepository.UpdateAsync(contest);
-        }
-    }
-
-    public async Task PostProblemResultsFromCodeforces(string handle, int contestId, CodeforcesRanklistRow row, List<string> indexes)
-    {
-        List<ProblemResult> newProblemResults = [];
-
-        for (int i = 0; i < row.ProblemResults.Count; i++)
         {
-            var result = row.ProblemResults[i];
-
-            var newProblemResult = new ProblemResult()
-            {
-                Handle = handle,
-                ContestId = contestId,
-                Index = indexes[i],
-                ParticipantType = row.Party.ParticipantType,
-
-                Points = result.Points,
-                Penalty = result.Penalty,
-                Type = result.Type,
-                BestSubmissionTimeSeconds = result.BestSubmissionTimeSeconds,
-                RejectedAttemptCount = result.RejectedAttemptCount
-            };
-
-            newProblemResults.Add(newProblemResult);
+            contest.IsContestLoaded = true;
+            _unitOfWork.Contests.Update(contest);
+            await _unitOfWork.SaveAsync();
         }
-
-        await _problemResultsRepository.InsertOrUpdateAsync(newProblemResults);
     }
 }

@@ -8,11 +8,15 @@ public class RanklistRowConfiguration : IEntityTypeConfiguration<RanklistRow>
 {
     public void Configure(EntityTypeBuilder<RanklistRow> builder)
     {
-        builder.HasKey(rr => new { rr.Handle, rr.ContestId, rr.ParticipantType });
+        builder.HasKey(rr => rr.Id);
 
         builder
             .HasMany(rr => rr.ProblemResults)
             .WithOne()
-            .HasForeignKey(pr => new { pr.Handle, pr.ContestId, pr.ParticipantType });
+            .HasForeignKey(pr => new { pr.RanklistRowId });
+
+        builder
+            .HasIndex(rr => new { rr.Handle, rr.ContestId, rr.ParticipantType })
+            .IsUnique();
     }
 }

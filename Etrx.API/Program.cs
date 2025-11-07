@@ -18,6 +18,8 @@ if (app.Environment.IsDevelopment())
     app.ConfigureSwagger();
 }
 
+await app.ApplyMigrationsAsync();
+
 app.UseAuthorization();
 app.MapControllers();
 

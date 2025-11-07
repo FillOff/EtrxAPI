@@ -31,7 +31,7 @@ public abstract class UpdateDataBackgroundService : BackgroundService
 
             try
             {
-                using var scope = _serviceScopeFactory.CreateScope();
+                await using var scope = _serviceScopeFactory.CreateAsyncScope();
 
                 await ProcessAsync(scope.ServiceProvider, stoppingToken);
 

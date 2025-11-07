@@ -6,7 +6,7 @@ using Etrx.Application.Services.BackgroundServices;
 
 namespace Etrx.API.Extensions;
 
-public static class ApplicationExtension
+public static class ApplicationExtensions
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {

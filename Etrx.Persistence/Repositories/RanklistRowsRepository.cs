@@ -1,4 +1,5 @@
-﻿using Etrx.Domain.Dtos.RanklistRows;
+﻿using Etrx.Domain.Dtos.ProblemResults;
+using Etrx.Domain.Dtos.RanklistRows;
 using Etrx.Domain.Interfaces;
 using Etrx.Domain.Models;
 using Etrx.Domain.Queries;
@@ -8,7 +9,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class RanklistRowsRepository : GenericRepository<RanklistRow, object>, IRanklistRowsRepository
+public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistRowsRepository
 {
     public RanklistRowsRepository(EtrxDbContext context) : base(context)
     { }
@@ -55,7 +56,9 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow, object>, IR
                 ParticipantType = ranklistRow.ParticipantType,
                 Penalty = ranklistRow.Penalty,
                 Points = ranklistRow.Points,
-                ProblemResults = ranklistRow.ProblemResults,
+                ProblemResults = ranklistRow.ProblemResults
+                    .Select(p => new GetProblemResultsResponseDto(p.Index, p.Points, p.Penalty, p.RejectedAttemptCount, p.Type, p.BestSubmissionTimeSeconds))
+                    .ToList(),
                 Rank = ranklistRow.Rank,
                 SuccessfulHackCount = ranklistRow.SuccessfulHackCount,
                 UnsuccessfulHackCount = ranklistRow.UnsuccessfulHackCount,

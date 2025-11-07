@@ -2,7 +2,7 @@
 
 namespace Etrx.API.Extensions;
 
-public static class SwaggerExtension
+public static class SwaggerExtensions
 {
     public static void ConfigureSwagger(this WebApplication? app)
     {

@@ -1,8 +1,11 @@
 ﻿namespace Etrx.Domain.Models;
 
-public class Contest
+public class Contest : Entity
 {
     public int ContestId { get; set; }
+
+    public List<ContestTranslation> ContestTranslations { get; set; } = [];
+
     public string Type { get; set; } = string.Empty;
     public string Phase { get; set; } = string.Empty;
     public bool Frozen { get; set; }
@@ -20,6 +23,4 @@ public class Contest
     public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
     public bool IsContestLoaded { get; set; } = false;
-
-    public List<ContestTranslation> ContestTranslations { get; set; } = [];
 }

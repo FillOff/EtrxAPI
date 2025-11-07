@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Domain.Dtos.ProblemResults;
 
 namespace Etrx.Domain.Dtos.RanklistRows;
 
@@ -19,5 +19,5 @@ public class GetRanklistRowsResponseDto
     public long? LastSubmissionTimeSeconds { get; set; }
     public int? SolvedCount { get; set; }
 
-    public List<ProblemResult> ProblemResults { get; set; } = [];
+    public List<GetProblemResultsResponseDto> ProblemResults { get; set; } = [];
 }

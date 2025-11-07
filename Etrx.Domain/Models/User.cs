@@ -1,9 +1,9 @@
 ﻿namespace Etrx.Domain.Models;
 
-public class User
+public class User : Entity
 {
-    public int Id { get; set; }
     public string Handle { get; set; } = string.Empty;
+
     public string Email { get; set; } = string.Empty;
     public string VkId { get; set; } = string.Empty;
     public string OpenId { get; set; } = string.Empty;

@@ -1,16 +1,16 @@
 ﻿namespace Etrx.Domain.Models;
 
-public class Submission
+public class Submission : Entity
 {
-    public ulong Id { get; set; }
-    public int ContestId { get; set; } = 0;
+    public ulong SubmissionId { get; set; }
+
+    public Guid UserId { get; set; }
+    public User User { get; set; } = null!;
+
+    public int ContestId { get; set; }
     public string Index { get; set; } = string.Empty;
     public long CreationTimeSeconds { get; set; }
     public long RelativeTimeSeconds { get; set; }
-
-    public string Handle { get; set; } = string.Empty;
-    public User User { get; set; } = null!;
-
     public string ParticipantType { get; set; } = string.Empty;
     public string ProgrammingLanguage { get; set; } = string.Empty;
     public string? Verdict { get; set; }

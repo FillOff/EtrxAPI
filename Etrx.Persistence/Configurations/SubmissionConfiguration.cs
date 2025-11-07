@@ -10,11 +10,13 @@ public class SubmissionConfiguration : IEntityTypeConfiguration<Submission>
     {
         builder.HasKey(s => s.Id);
 
-        builder.Property(s => s.Id)
-            .ValueGeneratedNever();
-
-        builder.HasOne(s => s.User)
+        builder
+            .HasOne(s => s.User)
             .WithMany()
-            .HasForeignKey(s => s.Handle);
+            .HasForeignKey(s => s.UserId);
+
+        builder
+            .HasIndex(s => s.SubmissionId)
+            .IsUnique();
     }
 }

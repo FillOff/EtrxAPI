@@ -8,9 +8,7 @@ public class EtrxDbContext : DbContext
 {
     public EtrxDbContext(DbContextOptions<EtrxDbContext> options)
         : base(options)
-    {
-        Database.EnsureCreated();
-    }
+    { }
 
     public DbSet<Problem> Problems { get; set; }
     public DbSet<ProblemTranslation> ProblemTranslations { get; set; }

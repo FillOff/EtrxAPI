@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
 using Etrx.Domain.Dtos.Problems;
-using Etrx.Domain.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Domain.Queries;
 using Etrx.Domain.Queries.Common;
@@ -10,14 +10,14 @@ namespace Etrx.Application.Services;
 
 public class ProblemsService : IProblemsService
 {
-    private readonly IProblemsRepository _problemsRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public ProblemsService(
-        IProblemsRepository problemsRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper)
     {
-        _problemsRepository = problemsRepository;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -28,7 +28,7 @@ public class ProblemsService : IProblemsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        var problems = await _problemsRepository.GetAllAsync();
+        var problems = await _unitOfWork.Problems.GetAllAsync();
         var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
             opts.Items["lang"] = lang;
@@ -47,7 +47,7 @@ public class ProblemsService : IProblemsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        var problem = await _problemsRepository.GetByKeyAsync(contestId, index);
+        var problem = await _unitOfWork.Problems.GetByContestIdAndIndexAsync(contestId, index);
         var response = _mapper.Map<ProblemResponseDto>(problem, opts =>
         {
             opts.Items["lang"] = lang;
@@ -63,7 +63,7 @@ public class ProblemsService : IProblemsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        var problems = await _problemsRepository.GetByContestIdAsync(contestId);
+        var problems = await _unitOfWork.Problems.GetByContestIdAsync(contestId);
         var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
         {
             opts.Items["lang"] = lang;
@@ -106,11 +106,13 @@ public class ProblemsService : IProblemsService
             dto.MaxRating,
             dto.MinPoints,
             dto.MaxPoints,
+            dto.MinDifficulty,
+            dto.MaxDifficulty,
             dto.IsOnly,
             dto.Lang
         );
 
-        var pagedResult = await _problemsRepository.GetByPageWithSortAndFilterAsync(queryParams);
+        var pagedResult = await _unitOfWork.Problems.GetByPageWithSortAndFilterAsync(queryParams);
 
         return new ProblemWithPropsResponseDto
         (
@@ -125,16 +127,16 @@ public class ProblemsService : IProblemsService
 
     public async Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto)
     {
-        return await _problemsRepository.GetAllTagsAsync(dto.MinRating, dto.MaxRating);
+        return await _unitOfWork.Problems.GetAllTagsAsync(dto.MinRating, dto.MaxRating);
     }
 
     public async Task<List<string>> GetAllIndexesAsync()
     {
-        return await _problemsRepository.GetAllIndexesAsync();
+        return await _unitOfWork.Problems.GetAllIndexesAsync();
     }
 
     public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
     {
-        return await _problemsRepository.GetIndexesByContestIdAsync(contestId);
+        return await _unitOfWork.Problems.GetIndexesByContestIdAsync(contestId);
     }
 }
