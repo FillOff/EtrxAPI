@@ -39,6 +39,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
             .Where(p => p.ContestId == contestId)
+            .OrderBy("index asc")
             .ToListAsync();
     }
 
@@ -75,7 +76,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToListAsync();
     }
 
-    public async Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters)
+    public PagedResultDto<Problem> GetByPageWithSortAndFilter(ProblemQueryParameters parameters)
     {
         var query = _dbSet
             .AsNoTracking()

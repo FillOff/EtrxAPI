@@ -12,6 +12,6 @@ public interface IProblemsRepository : IGenericRepository<Problem>
     Task<List<string>> GetAllTagsAsync(int minRating, int maxRating);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
-    Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters);
+    PagedResultDto<Problem> GetByPageWithSortAndFilter(ProblemQueryParameters parameters);
     Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers);
 }

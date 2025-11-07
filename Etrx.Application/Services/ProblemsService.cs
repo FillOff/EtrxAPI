@@ -112,7 +112,7 @@ public class ProblemsService : IProblemsService
             dto.Lang
         );
 
-        var pagedResult = await _unitOfWork.Problems.GetByPageWithSortAndFilterAsync(queryParams);
+        var pagedResult = _unitOfWork.Problems.GetByPageWithSortAndFilter(queryParams);
 
         return new ProblemWithPropsResponseDto
         (
