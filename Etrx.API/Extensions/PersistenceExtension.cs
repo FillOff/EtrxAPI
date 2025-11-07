@@ -1,7 +1,9 @@
 ﻿using Etrx.Domain.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Etrx.Persistence.Repositories;
+using Etrx.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.API.Extensions;
@@ -13,11 +15,13 @@ public static class PersistenceExtension
         services.AddScoped<IProblemsRepository, ProblemsRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<IContestsRepository, ContestsRepository>();
-        services.AddScoped<IGenericRepository<ContestTranslation, object>, GenericRepository<ContestTranslation, object>>();
-        services.AddScoped<IGenericRepository<ProblemTranslation, object>, GenericRepository<ProblemTranslation, object>>();
+        services.AddScoped<IContestTranslationsRepository, ContestTranslationsRepository>();
+        services.AddScoped<IProblemTranslationsRepository, ProblemTranslationsRepository>();
         services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
         services.AddScoped<IRanklistRowsRepository, RanklistRowsRepository>();
-        services.AddScoped<IGenericRepository<ProblemResult, object>, GenericRepository<ProblemResult, object>>();
+        services.AddScoped<IGenericRepository<ProblemResult>, GenericRepository<ProblemResult>>();
+
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

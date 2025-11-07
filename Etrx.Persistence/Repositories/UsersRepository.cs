@@ -7,7 +7,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class UsersRepository : GenericRepository<User, string>, IUsersRepository
+public class UsersRepository : GenericRepository<User>, IUsersRepository
 {
     public UsersRepository(EtrxDbContext context)
         : base(context)

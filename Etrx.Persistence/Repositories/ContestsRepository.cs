@@ -8,7 +8,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class ContestsRepository : GenericRepository<Contest, int>, IContestsRepository
+public class ContestsRepository : GenericRepository<Contest>, IContestsRepository
 {
     public ContestsRepository(EtrxDbContext context) : base(context)
     { }
@@ -21,7 +21,7 @@ public class ContestsRepository : GenericRepository<Contest, int>, IContestsRepo
             .ToListAsync();
     }
 
-    public override async Task<Contest?> GetByKeyAsync(int key)
+    public async Task<Contest?> GetByContestIdAsync(int key)
     {
         return await _dbSet
             .AsNoTracking()
@@ -95,4 +95,18 @@ public class ContestsRepository : GenericRepository<Contest, int>, IContestsRepo
             TotalPagesCount = totalPages
         };
     }
+
+    public async Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds)
+    {
+        if (contestIds == null || contestIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(c => contestIds.Contains(c.ContestId))
+            .ToListAsync();
+    }
+
 }

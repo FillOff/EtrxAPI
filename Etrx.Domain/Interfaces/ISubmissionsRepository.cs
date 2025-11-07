@@ -4,11 +4,12 @@ using Etrx.Domain.Queries;
 
 namespace Etrx.Domain.Interfaces;
 
-public interface ISubmissionsRepository : IGenericRepository<Submission, ulong>
+public interface ISubmissionsRepository : IGenericRepository<Submission>
 {
     new Task<List<Submission>> GetAllAsync();
     Task<List<Submission>> GetByContestIdAsync(int contestId);
     Task<List<string>> GetUserParticipantTypesAsync(string handle);
     Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolWithSortAsync(GroupProtocolQueryParameters parameters);
     Task<List<Submission>> GetByHandleAndContestIdAsync(HandleContestProtocolQueryParameters parameters);
+    Task<List<Submission>> GetBySubmissionIdsAsync(List<ulong> submissionIds);
 }

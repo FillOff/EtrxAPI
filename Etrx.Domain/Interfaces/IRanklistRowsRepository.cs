@@ -4,7 +4,7 @@ using Etrx.Domain.Queries;
 
 namespace Etrx.Domain.Interfaces;
 
-public interface IRanklistRowsRepository : IGenericRepository<RanklistRow, object>
+public interface IRanklistRowsRepository : IGenericRepository<RanklistRow>
 {
     new Task<List<RanklistRow>> GetAllAsync();
     Task<List<RanklistRow>> GetByContestIdAsync(int contestId);

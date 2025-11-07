@@ -3,7 +3,7 @@ using Etrx.Domain.Queries.Common;
 
 namespace Etrx.Domain.Interfaces;
 
-public interface IUsersRepository : IGenericRepository<User, string>
+public interface IUsersRepository : IGenericRepository<User>
 {
     Task<User?> GetByHandleAsync(string handle);
     Task<List<string>> GetHandlesAsync();

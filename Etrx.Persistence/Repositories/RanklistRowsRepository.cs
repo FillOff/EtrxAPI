@@ -9,7 +9,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class RanklistRowsRepository : GenericRepository<RanklistRow, object>, IRanklistRowsRepository
+public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistRowsRepository
 {
     public RanklistRowsRepository(EtrxDbContext context) : base(context)
     { }

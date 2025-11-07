@@ -4,10 +4,11 @@ using Etrx.Domain.Queries;
 
 namespace Etrx.Domain.Interfaces;
 
-public interface IContestsRepository : IGenericRepository<Contest, int>
+public interface IContestsRepository : IGenericRepository<Contest>
 {
     new Task<List<Contest>> GetAllAsync();
-    new Task<Contest?> GetByKeyAsync(int key);
+    Task<Contest?> GetByContestIdAsync(int key);
     Task<List<Contest>> GetLast10Async();
     Task<PagedResultDto<Contest>> GetPagedWithSortAndFilterAsync(ContestQueryParameters parameters);
+    Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds);
 }

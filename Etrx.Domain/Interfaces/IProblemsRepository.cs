@@ -4,13 +4,14 @@ using Etrx.Domain.Queries;
 
 namespace Etrx.Domain.Interfaces;
 
-public interface IProblemsRepository : IGenericRepository<Problem, object>
+public interface IProblemsRepository : IGenericRepository<Problem>
 {
     new Task<List<Problem>> GetAllAsync();
-    Task<Problem?> GetByKeyAsync(int contestId, string index);
+    Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index);
     Task<List<Problem>> GetByContestIdAsync(int contestId);
     Task<List<string>> GetAllTagsAsync(int minRating, int maxRating);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
     Task<PagedResultDto<Problem>> GetByPageWithSortAndFilterAsync(ProblemQueryParameters parameters);
+    Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers);
 }

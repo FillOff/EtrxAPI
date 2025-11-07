@@ -8,7 +8,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsRepository
+public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepository
 {
     public ProblemsRepository(EtrxDbContext context)
         : base(context)
@@ -22,7 +22,7 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
             .ToListAsync();
     }
 
-    public async Task<Problem?> GetByKeyAsync(int contestId, string index)
+    public async Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index)
     {
         return await _dbSet
             .AsNoTracking()
@@ -159,5 +159,28 @@ public class ProblemsRepository : GenericRepository<Problem, object>, IProblemsR
             Items = items,
             TotalPagesCount = totalPages
         };
+    }
+
+    public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)
+    {
+        if (identifiers == null || !identifiers.Any())
+        {
+            return [];
+        }
+
+        var contestIds = identifiers.Select(id => id.ContestId).Distinct().ToList();
+
+        var problemsFromDb = await _dbSet
+            .AsNoTracking()
+            .Where(p => contestIds.Contains(p.ContestId))
+            .ToListAsync();
+
+        var identifiersSet = identifiers.ToHashSet();
+
+        var result = problemsFromDb
+            .Where(p => identifiersSet.Contains((p.ContestId, p.Index)))
+            .ToList();
+
+        return result;
     }
 }

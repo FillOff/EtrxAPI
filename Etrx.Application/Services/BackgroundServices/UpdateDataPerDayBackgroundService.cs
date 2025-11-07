@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Domain.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -16,9 +16,9 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
     protected override async Task ProcessAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
-        var contestsRepository = serviceProvider.GetRequiredService<IContestsRepository>();
+        var unitOfWork = serviceProvider.GetRequiredService<IUnitOfWork>();
 
-        var last10Contests = await contestsRepository.GetLast10Async();
+        var last10Contests = await unitOfWork.Contests.GetLast10Async();
 
         foreach (var contest in last10Contests)
         {

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
 using Etrx.Domain.Dtos.Contests;
-using Etrx.Domain.Interfaces;
+using Etrx.Domain.Interfaces.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Domain.Queries;
 using Etrx.Domain.Queries.Common;
@@ -10,14 +10,14 @@ namespace Etrx.Application.Services;
 
 public class ContestsService : IContestsService
 {
-    private readonly IContestsRepository _contestsRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
     public ContestsService(
-        IContestsRepository contestsRepository,
+        IUnitOfWork unitOfWork,
         IMapper mapper)
     {
-        _contestsRepository = contestsRepository;
+        _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
 
@@ -28,7 +28,7 @@ public class ContestsService : IContestsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        var contests = await _contestsRepository.GetAllAsync();
+        var contests = await _unitOfWork.Contests.GetAllAsync();
         var response = _mapper.Map<List<ContestResponseDto>>(contests, opt =>
         {
             opt.Items["lang"] = lang;
@@ -44,7 +44,7 @@ public class ContestsService : IContestsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        var contest = await _contestsRepository.GetByKeyAsync(contestId)
+        var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
             ?? throw new Exception($"Contest {contestId} not found");
 
         var response = _mapper.Map<ContestResponseDto>(contest, opt =>
@@ -85,7 +85,7 @@ public class ContestsService : IContestsService
             dto.Lang
         );
 
-        var pagedResult = await _contestsRepository.GetPagedWithSortAndFilterAsync(queryParams);
+        var pagedResult = await _unitOfWork.Contests.GetPagedWithSortAndFilterAsync(queryParams);
 
         return new ContestWithPropsResponseDto
         (

@@ -8,7 +8,7 @@ using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;
 
-public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubmissionsRepository
+public class SubmissionsRepository : GenericRepository<Submission>, ISubmissionsRepository
 {
     public SubmissionsRepository(EtrxDbContext context)
         : base(context)
@@ -87,4 +87,18 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
                 s.CreationTimeSeconds <= parameters.UnixTo)
             .ToListAsync();
     }
+
+    public async Task<List<Submission>> GetBySubmissionIdsAsync(List<ulong> submissionIds)
+    {
+        if (submissionIds == null || submissionIds.Count == 0)
+        {
+            return [];
+        }
+
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => submissionIds.Contains(s.SubmissionId))
+            .ToListAsync();
+    }
+
 }
