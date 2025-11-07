@@ -8,14 +8,15 @@ public class ProblemConfiguration : IEntityTypeConfiguration<Problem>
 {
     public void Configure(EntityTypeBuilder<Problem> builder)
     {
-        builder.HasKey(p => new { p.ContestId, p.Index });
-
-        builder.Property(p => p.Id)
-            .ValueGeneratedOnAdd();
+        builder.HasKey(ct => ct.Id);
 
         builder
             .HasMany(p => p.ProblemTranslations)
             .WithOne()
-            .HasForeignKey(pt => new { pt.ContestId, pt.Index });
+            .HasForeignKey(pt => pt.ProblemId);
+
+        builder
+            .HasIndex(p => new { p.ContestId, p.Index })
+            .IsUnique();
     }
 }

@@ -62,7 +62,7 @@ public class SubmissionsService : ISubmissionsService
 
     public async Task<List<GetUserContestProtocolResponseDto>> GetUserContestProtocolAsync(string handle, int contestId, GetUserContestProtocolRequestDto dto)
     {
-        _ = await _usersRepository.GetByKeyAsync(handle)
+        _ = await _usersRepository.GetByHandleAsync(handle)
             ?? throw new Exception($"User {handle} not found");
 
         _ = await _contestsRepository.GetByKeyAsync(contestId)

@@ -34,17 +34,10 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(s => s.Handle == handle)
+            .Include(s => s.User)
+            .Where(s => s.User.Handle == handle)
             .Select(s => s.ParticipantType)
             .Distinct()
-            .ToListAsync();
-    }
-
-    public async Task<List<Submission>> GetByHandleAsync(string handle)
-    {
-        return await _dbSet
-            .AsNoTracking()
-            .Where(s => s.Handle == handle)
             .ToListAsync();
     }
 
@@ -66,7 +59,7 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
         // Format data to GetGroupSubmissionsProtocolResponseDto
         var groupedData = query
             .Where(s => s.Verdict == "OK")
-            .GroupBy(s => new { s.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
+            .GroupBy(s => new { s.User.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
             .Select(g => new GetGroupSubmissionsProtocolResponseDto
             {
                 Handle = g.Key.Handle,
@@ -88,7 +81,7 @@ public class SubmissionsRepository : GenericRepository<Submission, ulong>, ISubm
             .AsNoTracking()
             .Include(s => s.User)
             .Where(s =>
-                s.Handle == parameters.Handle &&
+                s.User.Handle == parameters.Handle &&
                 s.ContestId == parameters.ContestId &&
                 s.CreationTimeSeconds >= parameters.UnixFrom &&
                 s.CreationTimeSeconds <= parameters.UnixTo)

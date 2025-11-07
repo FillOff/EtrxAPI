@@ -8,6 +8,10 @@ public class ContestTranslationConfiguration : IEntityTypeConfiguration<ContestT
 {
     public void Configure(EntityTypeBuilder<ContestTranslation> builder)
     {
-        builder.HasKey(ct => new { ct.ContestId, ct.LanguageCode });
+        builder.HasKey(ct => ct.Id);
+
+        builder
+            .HasIndex(ct => new { ct.ContestId, ct.LanguageCode })
+            .IsUnique();
     }
 }

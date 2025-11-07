@@ -5,6 +5,7 @@ using Etrx.Domain.Interfaces;
 using Etrx.Domain.Models;
 using Etrx.Domain.Queries;
 using Etrx.Domain.Queries.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Application.Services;
 

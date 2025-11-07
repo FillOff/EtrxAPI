@@ -41,212 +41,398 @@ public class CodeforcesService : ICodeforcesService
 
     public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
     {
-        var newUser = new User()
-        {
-            Handle = cfUser.Handle,
-            Email = cfUser.Email,
-            VkId = cfUser.VkId,
-            OpenId = cfUser.OpenId,
-            FirstName = dlUser.FirstName,
-            LastName = dlUser.LastName,
-            Country = cfUser.Country,
-            City = dlUser.City,
-            Organization = dlUser.Organization,
-            Contribution = cfUser.Contribution,
-            Rank = cfUser.Rank,
-            Rating = cfUser.Rating,
-            MaxRank = cfUser.MaxRank,
-            MaxRating = cfUser.MaxRating,
-            LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
-            RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
-            FriendOfCount = cfUser.FriendOfCount,
-            Avatar = cfUser.Avatar,
-            TitlePhoto = cfUser.TitlePhoto,
-            Grade = dlUser.Grade
-        };
+        var existedUser = await _usersRepository.GetByHandleAsync(cfUser.Handle);
 
-        await _usersRepository.InsertOrUpdateAsync([newUser]);
+        User userEntity;
+
+        if (existedUser is not null)
+        {
+            userEntity = existedUser;
+
+            userEntity.Email = cfUser.Email;
+            userEntity.VkId = cfUser.VkId;
+            userEntity.OpenId = cfUser.OpenId;
+            userEntity.FirstName = dlUser.FirstName;
+            userEntity.LastName = dlUser.LastName;
+            userEntity.Country = cfUser.Country;
+            userEntity.City = dlUser.City;
+            userEntity.Organization = dlUser.Organization;
+            userEntity.Contribution = cfUser.Contribution;
+            userEntity.Rank = cfUser.Rank;
+            userEntity.Rating = cfUser.Rating;
+            userEntity.MaxRank = cfUser.MaxRank;
+            userEntity.MaxRating = cfUser.MaxRating;
+            userEntity.LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds;
+            userEntity.RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds;
+            userEntity.FriendOfCount = cfUser.FriendOfCount;
+            userEntity.Avatar = cfUser.Avatar;
+            userEntity.TitlePhoto = cfUser.TitlePhoto;
+            userEntity.Grade = dlUser.Grade;
+        }
+        else
+        {
+            userEntity = new User()
+            {
+                Handle = cfUser.Handle,
+                Email = cfUser.Email,
+                VkId = cfUser.VkId,
+                OpenId = cfUser.OpenId,
+                FirstName = dlUser.FirstName,
+                LastName = dlUser.LastName,
+                Country = cfUser.Country,
+                City = dlUser.City,
+                Organization = dlUser.Organization,
+                Contribution = cfUser.Contribution,
+                Rank = cfUser.Rank,
+                Rating = cfUser.Rating,
+                MaxRank = cfUser.MaxRank,
+                MaxRating = cfUser.MaxRating,
+                LastOnlineTimeSeconds = cfUser.LastOnlineTimeSeconds,
+                RegistrationTimeSeconds = cfUser.RegistrationTimeSeconds,
+                FriendOfCount = cfUser.FriendOfCount,
+                Avatar = cfUser.Avatar,
+                TitlePhoto = cfUser.TitlePhoto,
+                Grade = dlUser.Grade
+            };
+        }
+
+        await _usersRepository.InsertOrUpdateAsync([userEntity]);
     }
 
     public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
     {
-        List<Problem> newProblems = [];
-        List<ProblemTranslation> newTranslations = [];
-        for (int i = 0; i < problems.Count; i++)
+        var identifiers = problems
+            .Select(p => new Tuple<int, string>(p.ContestId, p.Index))
+            .ToList();
+
+        var existingProblems = await _problemsRepository.GetAllAsync();
+        var existingProblemsDict = existingProblems.ToDictionary(p => (p.ContestId, p.Index));
+
+        var existingTranslations = await _problemTranslationsRepository.GetAllAsync();
+        var existingTranslationsDict = existingTranslations.ToDictionary(pt => (pt.ProblemId, pt.LanguageCode));
+
+        var statisticsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
+
+        List<Problem> problemsToUpsert = [];
+        List<ProblemTranslation> translationsToUpsert = [];
+
+        foreach (var incomingProblem in problems)
         {
-            var solvedCount = problemStatistics.FirstOrDefault(s => s.ContestId == problems[i].ContestId && s.Index == problems[i].Index)!.SolvedCount;
-            var newProblem = new Problem()
-            {
-                ContestId = problems[i].ContestId,
-                Index = problems[i].Index,
-                Type = problems[i].Type,
-                Points = problems[i].Points,
-                Rating = problems[i].Rating,
-                SolvedCount = solvedCount,
-                Tags = problems[i].Tags
-            };
+            Guid problemId;
+            Problem problemEntity;
 
-            var newProblemTranslation = new ProblemTranslation()
-            {
-                ContestId = problems[i].ContestId,
-                Index = problems[i].Index,
-                LanguageCode = languageCode,
-                Name = problems[i].Name
-            };
+            var problemKey = (incomingProblem.ContestId, incomingProblem.Index);
+            statisticsDict.TryGetValue(problemKey, out var stats);
+            var solvedCount = stats?.SolvedCount ?? 0;
 
-            newProblems.Add(newProblem);
-            newTranslations.Add(newProblemTranslation);
+            if (existingProblemsDict.TryGetValue(problemKey, out var existingProblem))
+            {
+                problemId = existingProblem.Id;
+                problemEntity = existingProblem;
+
+                problemEntity.Type = incomingProblem.Type;
+                problemEntity.Points = incomingProblem.Points;
+                problemEntity.Rating = incomingProblem.Rating;
+                problemEntity.Tags = incomingProblem.Tags;
+                problemEntity.SolvedCount = solvedCount;
+            }
+            else
+            {
+                problemId = Guid.NewGuid();
+                problemEntity = new Problem
+                {
+                    Id = problemId,
+                    ContestId = incomingProblem.ContestId,
+                    Index = incomingProblem.Index,
+                    Type = incomingProblem.Type,
+                    Points = incomingProblem.Points,
+                    Rating = incomingProblem.Rating,
+                    Tags = incomingProblem.Tags,
+                    SolvedCount = solvedCount
+                };
+            }
+
+            problemsToUpsert.Add(problemEntity);
+
+            ProblemTranslation problemTranslationEntity;
+            if (existingTranslationsDict.TryGetValue((problemId, languageCode), out var existingTranslation))
+            {
+                existingTranslation.Name = incomingProblem.Name;
+                problemTranslationEntity = existingTranslation;
+            }
+            else
+            {
+                problemTranslationEntity = new ProblemTranslation()
+                {
+                    ProblemId = problemId,
+                    LanguageCode = languageCode,
+                    Name = incomingProblem.Name,
+                };
+            }
+            translationsToUpsert.Add(problemTranslationEntity);
+
         }
 
-        await _problemsRepository.InsertOrUpdateAsync(newProblems);
-        await _problemTranslationsRepository.InsertOrUpdateAsync(newTranslations);
+        await _problemsRepository.InsertOrUpdateAsync(problemsToUpsert);
+        await _problemTranslationsRepository.InsertOrUpdateAsync(translationsToUpsert);
     }
 
     public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
     {
-        List<Contest> newContests = [];
-        List<ContestTranslation> newTranslations = [];
-        var existedContests = await _contestsRepository.GetAllAsync();
+        var contestIdsFromApi = contests.Select(c => c.ContestId).ToList();
 
-        for (int i = 0; i < contests.Count; i++)
+        var existingContests = await _contestsRepository.GetAllAsync();
+        var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
+        
+        var existingTranslations = await _contestTranslationsRepository.GetAllAsync();
+        var existingTranslationsDict = existingTranslations.ToDictionary(ct => (ct.ContestId, ct.LanguageCode));
+
+        List<Contest> contestsToUpsert = [];
+        List<ContestTranslation> translationsToUpsert = [];
+
+        foreach (var incomingContest in contests)
         {
-            var contest = contests[i];
+            Guid contestGuid;
+            Contest contestEntity;
 
-            var newContest = new Contest()
+            if (existingContestsDict.TryGetValue(incomingContest.ContestId, out var existingContest))
             {
-                ContestId = contest.ContestId,
-                Type = contest.Type,
-                Phase = contest.Phase,
-                Frozen = contest.Frozen,
-                DurationSeconds = contest.DurationSeconds,
-                StartTime = contest.StartTime,
-                RelativeTimeSeconds = contest.RelativeTimeSeconds,
-                PreparedBy = contest.PreparedBy,
-                WebsiteUrl = contest.WebsiteUrl,
-                Description = contest.Description,
-                Difficulty = contest.Difficulty,
-                Kind = contest.Kind,
-                IcpcRegion = contest.IcpcRegion,
-                Country = contest.Country,
-                City = contest.City,
-                Season = contest.Season,
-                Gym = gym,
-                IsContestLoaded = existedContests.FirstOrDefault(c => c.ContestId == contest.ContestId)?.IsContestLoaded ?? false
-            };
+                contestGuid = existingContest.Id;
+                contestEntity = existingContest;
 
-            var newContestTranslation = new ContestTranslation()
+                contestEntity.Type = incomingContest.Type;
+                contestEntity.Phase = incomingContest.Phase;
+                contestEntity.Frozen = incomingContest.Frozen;
+                contestEntity.DurationSeconds = incomingContest.DurationSeconds;
+                contestEntity.StartTime = incomingContest.StartTime;
+                contestEntity.RelativeTimeSeconds = incomingContest.RelativeTimeSeconds;
+                contestEntity.PreparedBy = incomingContest.PreparedBy;
+                contestEntity.WebsiteUrl = incomingContest.WebsiteUrl;
+                contestEntity.Description = incomingContest.Description;
+                contestEntity.Difficulty = incomingContest.Difficulty;
+                contestEntity.Kind = incomingContest.Kind;
+                contestEntity.IcpcRegion = incomingContest.IcpcRegion;
+                contestEntity.Country = incomingContest.Country;
+                contestEntity.City = incomingContest.City;
+                contestEntity.Season = incomingContest.Season;
+                contestEntity.Gym = gym;
+
+            }
+            else
             {
-                ContestId = contest.ContestId,
-                LanguageCode = languageCode,
-                Name = contest.Name
-            };
+                contestGuid = Guid.NewGuid();
+                contestEntity = new Contest
+                {
+                    Id = contestGuid,
+                    ContestId = incomingContest.ContestId,
+                    Type = incomingContest.Type,
+                    Phase = incomingContest.Phase,
+                    Frozen = incomingContest.Frozen,
+                    DurationSeconds = incomingContest.DurationSeconds,
+                    StartTime = incomingContest.StartTime,
+                    RelativeTimeSeconds = incomingContest.RelativeTimeSeconds,
+                    PreparedBy = incomingContest.PreparedBy,
+                    WebsiteUrl = incomingContest.WebsiteUrl,
+                    Description = incomingContest.Description,
+                    Difficulty = incomingContest.Difficulty,
+                    Kind = incomingContest.Kind,
+                    IcpcRegion = incomingContest.IcpcRegion,
+                    Country = incomingContest.Country,
+                    City = incomingContest.City,
+                    Season = incomingContest.Season,
+                    Gym = gym,
+                    IsContestLoaded = false
+                };
+            }
 
-            newContests.Add(newContest);
-            newTranslations.Add(newContestTranslation);
+            contestsToUpsert.Add(contestEntity);
+
+            ContestTranslation contestTranslationEntity;
+            if (existingTranslationsDict.TryGetValue((contestGuid, languageCode), out var existingTranslation))
+            {
+                existingTranslation.Name = incomingContest.Name;
+                contestTranslationEntity = existingTranslation;
+            }
+            else
+            {
+                contestTranslationEntity = new ContestTranslation()
+                {
+                    ContestId = contestGuid,
+                    LanguageCode = languageCode,
+                    Name = incomingContest.Name
+                };
+            }
+
+            translationsToUpsert.Add(contestTranslationEntity);
         }
 
-        await _contestsRepository.InsertOrUpdateAsync(newContests);
-        await _contestTranslationsRepository.InsertOrUpdateAsync(newTranslations);
+        await _contestsRepository.InsertOrUpdateAsync(contestsToUpsert);
+        await _contestTranslationsRepository.InsertOrUpdateAsync(translationsToUpsert);
     }
 
     public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
     {
-        List<Submission> newSubmissions = [];
-        for (int i = 0; i < submissions.Count; i++)
+        var existingSubmissions = await _submissionsRepository.GetAllAsync();
+        var existingSubmissionsDict = existingSubmissions.ToDictionary(s => s.SubmissionId);
+        var user = await _usersRepository.GetByHandleAsync(handle)
+            ?? throw new Exception($"User {handle} not found");
+
+        List<Submission> submissionsToUpsert = [];
+
+        foreach (var incomingubmission in submissions)
         {
-            var submission = submissions[i];
+            Submission submissionEntity;
 
-            var newSubmission = new Submission()
+            if (existingSubmissionsDict.TryGetValue(incomingubmission.Id, out var existingSubmission))
             {
-                Id = submission.Id,
-                ContestId = submission.ContestId,
-                Index = submission.Problem.Index,
-                CreationTimeSeconds = submission.CreationTimeSeconds,
-                RelativeTimeSeconds = submission.RelativeTimeSeconds,
-                ProgrammingLanguage = submission.ProgrammingLanguage,
-                Handle = handle,
-                ParticipantType = submission.Author.ParticipantType,
-                Verdict = submission.Verdict,
-                Testset = submission.Testset,
-                PassedTestCount = submission.PassedTestCount,
-                TimeConsumedMillis = submission.TimeConsumedMillis,
-                MemoryConsumedBytes = submission.MemoryConsumedBytes
-            };
+                submissionEntity = existingSubmission;
 
-            newSubmissions.Add(newSubmission);
+                existingSubmission.ContestId = incomingubmission.ContestId;
+                existingSubmission.Index = incomingubmission.Problem.Index;
+                existingSubmission.CreationTimeSeconds = incomingubmission.CreationTimeSeconds;
+                existingSubmission.RelativeTimeSeconds = incomingubmission.RelativeTimeSeconds;
+                existingSubmission.ProgrammingLanguage = incomingubmission.ProgrammingLanguage;
+                existingSubmission.UserId = user.Id;
+                existingSubmission.ParticipantType = incomingubmission.Author.ParticipantType;
+                existingSubmission.Verdict = incomingubmission.Verdict;
+                existingSubmission.Testset = incomingubmission.Testset;
+                existingSubmission.PassedTestCount = incomingubmission.PassedTestCount;
+                existingSubmission.TimeConsumedMillis = incomingubmission.TimeConsumedMillis;
+                existingSubmission.MemoryConsumedBytes = incomingubmission.MemoryConsumedBytes;
+            }
+            else
+            {
+                submissionEntity = new Submission()
+                {
+                    Id = Guid.NewGuid(),
+                    SubmissionId = incomingubmission.Id,
+
+                    ContestId = incomingubmission.ContestId,
+                    Index = incomingubmission.Problem.Index,
+                    CreationTimeSeconds = incomingubmission.CreationTimeSeconds,
+                    RelativeTimeSeconds = incomingubmission.RelativeTimeSeconds,
+                    ProgrammingLanguage = incomingubmission.ProgrammingLanguage,
+                    UserId = user.Id,
+                    ParticipantType = incomingubmission.Author.ParticipantType,
+                    Verdict = incomingubmission.Verdict,
+                    Testset = incomingubmission.Testset,
+                    PassedTestCount = incomingubmission.PassedTestCount,
+                    TimeConsumedMillis = incomingubmission.TimeConsumedMillis,
+                    MemoryConsumedBytes = incomingubmission.MemoryConsumedBytes
+                };
+            }
+            
+            submissionsToUpsert.Add(submissionEntity);
         }
 
-        await _submissionsRepository.InsertOrUpdateAsync(newSubmissions);
+        await _submissionsRepository.InsertOrUpdateAsync(submissionsToUpsert);
     }
 
     public async Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding)
     {
-        List<RanklistRow> newRows = [];
-        for (int i = 0; i < contestStanding.Rows.Count; i++)
-        {
-            var row = contestStanding.Rows[i];
+        var contestId = contestStanding.Contest.ContestId;
+        var problemIndexes = contestStanding.Problems.Select(p => p.Index).ToList();
 
-            var newRow = new RanklistRow()
+        var existingRows = await _ranklistRowsRepository.GetByContestIdAsync(contestId);
+        var existingRowsDict = existingRows.ToDictionary(rr => (rr.Handle, rr.ParticipantType));
+
+        var existingRowGuids = existingRows.Select(rr => rr.Id).ToList();
+        var existingProblemResults = await _problemResultsRepository.GetAllAsync();
+
+        var existingProblemResultsDict = existingProblemResults
+            .GroupBy(pr => pr.RanklistRowId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.ToDictionary(pr => pr.Index)
+            );
+
+        List<RanklistRow> ranklistRowsToUpsert = [];
+        List<ProblemResult> problemResultsToUpsert = [];
+
+        foreach (var row in contestStanding.Rows)
+        {
+            var handle = row.Party.Members[0].Handle;
+            Guid ranklistRowId;
+            RanklistRow ranklistRowEntity;
+
+            var rowKey = (handle, row.Party.ParticipantType);
+
+            if (existingRowsDict.TryGetValue(rowKey, out var existingRow))
             {
-                Handle = row.Party.Members[0].Handle,
-                ContestId = contestStanding.Contest.ContestId,
-                ParticipantType = row.Party.ParticipantType,
+                ranklistRowId = existingRow.Id;
+                ranklistRowEntity = existingRow;
 
-                Rank = row.Rank,
-                Points = row.Points,
-                Penalty = row.Penalty,
-                SuccessfulHackCount = row.SuccessfulHackCount,
-                UnsuccessfulHackCount = row.UnsuccessfulHackCount,
-                LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds
-            };
+                ranklistRowEntity.Rank = row.Rank;
+                ranklistRowEntity.Points = row.Points;
+                ranklistRowEntity.Penalty = row.Penalty;
+                ranklistRowEntity.SuccessfulHackCount = row.SuccessfulHackCount;
+                ranklistRowEntity.UnsuccessfulHackCount = row.UnsuccessfulHackCount;
+                ranklistRowEntity.LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds;
+            }
+            else
+            {
+                ranklistRowId = Guid.NewGuid();
+                ranklistRowEntity = new RanklistRow
+                {
+                    Id = ranklistRowId,
+                    Handle = handle,
+                    ContestId = contestId,
+                    ParticipantType = row.Party.ParticipantType,
 
-            newRows.Add(newRow);
+                    Rank = row.Rank,
+                    Points = row.Points,
+                    Penalty = row.Penalty,
+                    SuccessfulHackCount = row.SuccessfulHackCount,
+                    UnsuccessfulHackCount = row.UnsuccessfulHackCount,
+                    LastSubmissionTimeSeconds = row.LastSubmissionTimeSeconds
+                };
+            }
+
+            ranklistRowsToUpsert.Add(ranklistRowEntity);
+
+            for (int i = 0; i < row.ProblemResults.Count; i++)
+            {
+                var result = row.ProblemResults[i];
+                var problemIndex = problemIndexes[i];
+                ProblemResult problemResultEntity;
+
+                if (existingProblemResultsDict.TryGetValue(ranklistRowId, out var resultsForThisRow) &&
+                    resultsForThisRow.TryGetValue(problemIndex, out var existingResult))
+                {
+                    problemResultEntity = existingResult;
+
+                    problemResultEntity.Points = result.Points;
+                    problemResultEntity.Penalty = result.Penalty;
+                    problemResultEntity.Type = result.Type;
+                    problemResultEntity.BestSubmissionTimeSeconds = result.BestSubmissionTimeSeconds;
+                    problemResultEntity.RejectedAttemptCount = result.RejectedAttemptCount;
+                }
+                else
+                {
+                    problemResultEntity = new ProblemResult
+                    {
+                        Id = Guid.NewGuid(),
+                        RanklistRowId = ranklistRowId,
+                        Index = problemIndex,
+                        Points = result.Points,
+                        Penalty = result.Penalty,
+                        Type = result.Type,
+                        BestSubmissionTimeSeconds = result.BestSubmissionTimeSeconds,
+                        RejectedAttemptCount = result.RejectedAttemptCount
+                    };
+                }
+                problemResultsToUpsert.Add(problemResultEntity);
+            }
         }
 
-        await _ranklistRowsRepository.InsertOrUpdateAsync(newRows);
+        await _ranklistRowsRepository.InsertOrUpdateAsync(ranklistRowsToUpsert);
+        await _problemResultsRepository.InsertOrUpdateAsync(problemResultsToUpsert);
 
-        for (int i = 0; i < contestStanding.Rows.Count; i++)
-        {
-            await PostProblemResultsFromCodeforces(
-                contestStanding.Rows[i].Party.Members[0].Handle,
-                contestStanding.Contest.ContestId,
-                contestStanding.Rows[i],
-                contestStanding.Problems.Select(p => p.Index).ToList());
-        }
-
-        var contest = await _contestsRepository.GetByKeyAsync(contestStanding.Contest.ContestId);
+        var contest = await _contestsRepository.GetByKeyAsync(contestId);
         if (contest!.Phase == "FINISHED")
-        { 
+        {
             contest.IsContestLoaded = true;
             await _contestsRepository.UpdateAsync(contest);
         }
-    }
-
-    public async Task PostProblemResultsFromCodeforces(string handle, int contestId, CodeforcesRanklistRow row, List<string> indexes)
-    {
-        List<ProblemResult> newProblemResults = [];
-
-        for (int i = 0; i < row.ProblemResults.Count; i++)
-        {
-            var result = row.ProblemResults[i];
-
-            var newProblemResult = new ProblemResult()
-            {
-                Handle = handle,
-                ContestId = contestId,
-                Index = indexes[i],
-                ParticipantType = row.Party.ParticipantType,
-
-                Points = result.Points,
-                Penalty = result.Penalty,
-                Type = result.Type,
-                BestSubmissionTimeSeconds = result.BestSubmissionTimeSeconds,
-                RejectedAttemptCount = result.RejectedAttemptCount
-            };
-
-            newProblemResults.Add(newProblemResult);
-        }
-
-        await _problemResultsRepository.InsertOrUpdateAsync(newProblemResults);
     }
 }

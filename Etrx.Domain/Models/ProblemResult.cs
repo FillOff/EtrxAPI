@@ -1,11 +1,9 @@
 ﻿namespace Etrx.Domain.Models;
 
-public class ProblemResult
+public class ProblemResult : Entity
 {
-    public string Handle { get; set; } = string.Empty;
-    public int ContestId { get; set; }
+    public Guid RanklistRowId { get; set; }
     public string Index { get; set; } = string.Empty;
-    public string ParticipantType { get; set; } = string.Empty;
 
     public double Points { get; set; }
     public int? Penalty { get; set; }

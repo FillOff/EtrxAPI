@@ -8,11 +8,10 @@ public class ProblemResultConfiguration : IEntityTypeConfiguration<ProblemResult
 {
     public void Configure(EntityTypeBuilder<ProblemResult> builder)
     {
-        builder.HasKey(pr => new { pr.Handle, pr.ContestId, pr.Index, pr.ParticipantType });
+        builder.HasKey(pr => pr.Id);
 
         builder
-            .HasOne<RanklistRow>()
-            .WithMany(rr => rr.ProblemResults)
-            .HasForeignKey(pr => new { pr.Handle, pr.ContestId, pr.ParticipantType });
+            .HasIndex(pr => new { pr.RanklistRowId, pr.Index })
+            .IsUnique();
     }
 }

@@ -22,7 +22,7 @@ public class UsersService : IUsersService
 
     public async Task<UsersResponseDto?> GetUserByHandleAsync(string handle)
     {
-        var user = await _usersRepository.GetByKeyAsync(handle)
+        var user = await _usersRepository.GetByHandleAsync(handle)
             ?? throw new Exception($"User {handle} not found");
 
         var response = _mapper.Map<UsersResponseDto?>(user);
