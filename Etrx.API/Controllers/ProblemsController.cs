@@ -24,7 +24,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ProblemWithPropsResponseDto>> GetProblemsByPageWithSortAndFilterTags(
+    public async Task<ActionResult<ProblemWithPropsResponseDto>> GetProblemsByPageWithSortAndFilter(
         [FromQuery] GetSortProblemRequestDto dto)
     {
         return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto));

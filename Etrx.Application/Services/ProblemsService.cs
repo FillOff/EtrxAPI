@@ -106,6 +106,8 @@ public class ProblemsService : IProblemsService
             dto.MaxRating,
             dto.MinPoints,
             dto.MaxPoints,
+            dto.MinDifficulty,
+            dto.MaxDifficulty,
             dto.IsOnly,
             dto.Lang
         );

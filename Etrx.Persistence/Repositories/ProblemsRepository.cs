@@ -150,29 +150,34 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
                 break;
         }
 
-        // Calculating total pages count
-        int totalCount = await query.CountAsync();
-        int totalPages = (totalCount > 0) ? (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize) : 0;
+        // Working with Difficulty property
+        // This block is separate due to the need to upload contests using ToList() method
+        IEnumerable<Problem> items = query.ToList();
 
-        // Pagination
-        var items = await query
-            .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
-            .Take(parameters.Pagination.PageSize)
-            .ToListAsync();
-
-        // Sorting by difficulty
-        // This block is separate due to the need to upload contests using ToList() or ToListAsync() method
+        items = items
+            .Where(i =>
+                i.Difficulty >= parameters.MinDifficulty &&
+                i.Difficulty <= parameters.MaxDifficulty);
+        
         if (parameters.Sorting.SortField.Equals("difficulty", StringComparison.InvariantCultureIgnoreCase))
         {
             items = items
                 .AsQueryable()
-                .OrderBy($"{parameters.Sorting.SortField} {order}")
-                .ToList();
+                .OrderBy($"{parameters.Sorting.SortField} {order}");
         }
+
+        // Calculating total pages count
+        int totalCount = items.Count();
+        int totalPages = (totalCount > 0) ? (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize) : 0;
+
+        // Pagination
+        items = items
+            .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
+            .Take(parameters.Pagination.PageSize);
 
         return new PagedResultDto<Problem>
         {
-            Items = items,
+            Items = items.ToList(),
             TotalPagesCount = totalPages
         };
     }
