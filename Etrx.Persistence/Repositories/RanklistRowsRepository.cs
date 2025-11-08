@@ -44,42 +44,38 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
             query = query.Where(rr => rr.ParticipantType == parameters.ParticipantType);
         }
 
-        // Join with Users and select the raw data needed
+        // Joining ranklist rows and users tables
         var combinedQuery = query.Join(
             _context.Users.AsNoTracking(),
             ranklistRow => ranklistRow.Handle,
             user => user.Handle,
-            (ranklistRow, user) => new 
+            (ranklistRow, user) => new GetRanklistRowsResponseDto
             {
-                RanklistRowData = ranklistRow,
-                UserData = user
+                ContestId = ranklistRow.ContestId,
+                Handle = ranklistRow.Handle,
+                LastSubmissionTimeSeconds = ranklistRow.LastSubmissionTimeSeconds,
+                ParticipantType = ranklistRow.ParticipantType,
+                Penalty = ranklistRow.Penalty,
+                Points = ranklistRow.Points,
+                ProblemResults = ranklistRow.ProblemResults
+                    .OrderBy(p => p.Index)
+                    .Select(p => new GetProblemResultsResponseDto(p.Index, p.Points, p.Penalty, p.RejectedAttemptCount, p.Type, p.BestSubmissionTimeSeconds))
+                    .ToList(),
+                Rank = ranklistRow.Rank,
+                SuccessfulHackCount = ranklistRow.SuccessfulHackCount,
+                UnsuccessfulHackCount = ranklistRow.UnsuccessfulHackCount,
+                Username = user.LastName + " " + user.FirstName,
+                City = user.City,
+                Organization = user.Organization,
+                Grade = user.Grade,
+                SolvedCount = ranklistRow.ProblemResults.Count(pr => pr.Points != 0)
             }
         );
 
-        var resultsFromDb = await combinedQuery.ToListAsync();
+        // Sorting
+        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
+        combinedQuery = combinedQuery.OrderBy($"{parameters.Sorting.SortField} {order}");
 
-        var finalResponse = resultsFromDb.Select(data => new GetRanklistRowsResponseDto
-        {
-            ContestId = data.RanklistRowData.ContestId,
-            Handle = data.RanklistRowData.Handle,
-            LastSubmissionTimeSeconds = data.RanklistRowData.LastSubmissionTimeSeconds,
-            ParticipantType = data.RanklistRowData.ParticipantType,
-            Penalty = data.RanklistRowData.Penalty,
-            Points = data.RanklistRowData.Points,
-            Rank = data.RanklistRowData.Rank,
-            SuccessfulHackCount = data.RanklistRowData.SuccessfulHackCount,
-            UnsuccessfulHackCount = data.RanklistRowData.UnsuccessfulHackCount,
-            Username = data.UserData.LastName + " " + data.UserData.FirstName,
-            City = data.UserData.City,
-            Organization = data.UserData.Organization,
-            Grade = data.UserData.Grade,
-            SolvedCount = data.RanklistRowData.ProblemResults.Count(pr => pr.Points != 0),
-            ProblemResults = data.RanklistRowData.ProblemResults
-                .Select(p => new GetProblemResultsResponseDto(p.Index, p.Points, p.Penalty, p.RejectedAttemptCount, p.Type, p.BestSubmissionTimeSeconds))
-                .OrderBy(p => p.Index)
-                .ToList()
-        }).ToList();
-
-        return finalResponse;
+        return await combinedQuery.ToListAsync();
     }
 }
