@@ -1,7 +1,0 @@
-﻿namespace Etrx.Domain.Dtos.Submissions;
-
-public record GetUserContestProtocolResponseDto(
-    string Index,
-    string ParticipantType,
-    string ProgrammingLanguage,
-    string? Verdict);

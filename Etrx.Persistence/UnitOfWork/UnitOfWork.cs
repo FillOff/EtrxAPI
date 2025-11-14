@@ -1,5 +1,6 @@
-﻿using Etrx.Domain.Interfaces;
-using Etrx.Domain.Interfaces.UnitOfWork;
+﻿using AutoMapper;
+using Etrx.Application.Repositories;
+using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Persistence.Databases;
 using Etrx.Persistence.Repositories;
 
@@ -8,6 +9,7 @@ namespace Etrx.Persistence.UnitOfWork;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly EtrxDbContext _dbContext;
+    private readonly IMapper _mapper;
 
     private IContestsRepository? _contestsRepository;
     private IContestTranslationsRepository? _contestTranslationsRespository;
@@ -18,16 +20,17 @@ public class UnitOfWork : IUnitOfWork
     private ISubmissionsRepository? _submissionsRepository;
     private IUsersRepository? _usersRepository;
 
-    public UnitOfWork(EtrxDbContext dbContext)
+    public UnitOfWork(EtrxDbContext dbContext, IMapper mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
 
     public IContestsRepository Contests
     {
         get
         {
-            _contestsRepository ??= new ContestsRepository(_dbContext);
+            _contestsRepository ??= new ContestsRepository(_dbContext, _mapper);
             return _contestsRepository;
         }
     }
@@ -45,7 +48,7 @@ public class UnitOfWork : IUnitOfWork
     {
         get
         {
-            _problemsRepository ??= new ProblemsRepository(_dbContext);
+            _problemsRepository ??= new ProblemsRepository(_dbContext, _mapper);
             return _problemsRepository;
         }
     }

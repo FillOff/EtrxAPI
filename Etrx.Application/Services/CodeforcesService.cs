@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
-using Etrx.Domain.Interfaces.UnitOfWork;
+using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;

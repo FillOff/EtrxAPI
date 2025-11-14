@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Domain.Dtos.Users;
+using Etrx.Application.Dtos.Users;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Application.Services;
-using Etrx.Domain.Dtos.Problems;
+using Etrx.Application.Dtos.Problems;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 
@@ -10,11 +9,25 @@ public class ProblemsProfile : Profile
 {
     public ProblemsProfile()
     {
+        string lang = "en";
+
         CreateMap<Problem, ProblemResponseDto>()
-            .ForMember(
-                dest => dest.Name,
-                opt => opt.MapFrom((src, dest, destMember, context) =>
-                    src.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == (string)context.Items["lang"])?.Name));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+                src.ProblemTranslations
+                   .Where(pt => pt.LanguageCode == lang)
+                   .Select(pt => pt.Name)
+                   .FirstOrDefault() ?? "Unnamed Problem"))
+            .AfterMap((src, dest, context) =>
+            {
+                if (context.Items.TryGetValue("lang", out var langObj) && langObj is string langValue)
+                {
+                    dest.Name = src.ProblemTranslations?
+                        .FirstOrDefault(ct => ct.LanguageCode == langValue)?.Name ?? "Unnamed Problem";
+                }
+            })
+            .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src =>
+                src.Contest.StartTime))
+            .ForMember(dest => dest.Difficulty, opt => opt.MapFrom(ProblemExpressions.DifficultyExpression));
 
         CreateMap<CodeforcesProblem, Problem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

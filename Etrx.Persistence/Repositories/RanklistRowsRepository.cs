@@ -1,8 +1,8 @@
-﻿using Etrx.Domain.Dtos.ProblemResults;
-using Etrx.Domain.Dtos.RanklistRows;
-using Etrx.Domain.Interfaces;
+﻿using Etrx.Application.Dtos.ProblemResults;
+using Etrx.Application.Dtos.RanklistRows;
+using Etrx.Application.Queries;
+using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
@@ -11,7 +11,8 @@ namespace Etrx.Persistence.Repositories;
 
 public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistRowsRepository
 {
-    public RanklistRowsRepository(EtrxDbContext context) : base(context)
+    public RanklistRowsRepository(EtrxDbContext context)
+        : base(context)
     { }
 
     public override async Task<List<RanklistRow>> GetAllAsync()

@@ -1,8 +1,12 @@
-﻿using Etrx.Domain.Dtos.Common;
-using Etrx.Domain.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Etrx.Application.Dtos.Common;
+using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories;
+using Etrx.Application.Specifications;
 using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
@@ -10,9 +14,13 @@ namespace Etrx.Persistence.Repositories;
 
 public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepository
 {
-    public ProblemsRepository(EtrxDbContext context)
+    private readonly IMapper _mapper;
+
+    public ProblemsRepository(EtrxDbContext context, IMapper mapper)
         : base(context)
-    { }
+    {
+        _mapper = mapper;
+    }
 
     public override async Task<List<Problem>> GetAllAsync()
     {
@@ -76,110 +84,31 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToListAsync();
     }
 
-    public PagedResultDto<Problem> GetByPageWithSortAndFilter(ProblemQueryParameters parameters)
+    public async Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(
+        BaseSpecification<Problem> spec,
+        PaginationQueryParameters pagination,
+        string lang)
     {
         var query = _dbSet
             .AsNoTracking()
-            .Include(p => p.ProblemTranslations)
-            .Include(p => p.Contest)
-            .AsQueryable();
+            .AsExpandable();
 
-        // Filter by tags
-        if (!string.IsNullOrEmpty(parameters.Tags))
+        query = ApplySpecification(spec, query);
+
+        var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
+
+        var totalCount = await projectedQuery.CountAsync();
+
+        var items = await projectedQuery
+            .Skip((pagination.Page - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
+            .ToListAsync();
+
+        return new PagedResultDto<TResult>
         {
-            var tagsFilter = parameters.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            if (tagsFilter.Length > 0)
-            {
-                if (parameters.IsOnly)
-                {
-                    query = query.Where(
-                        p => p.Tags != null && 
-                        p.Tags.Count == tagsFilter.Length && 
-                        p.Tags.All(t => tagsFilter.Contains(t)));
-                }
-                else
-                {
-                    query = query.Where(
-                        p => p.Tags != null && 
-                        tagsFilter.All(tag => p.Tags.Contains(tag)));
-                }
-            }
-        }
-
-        // Filter by indexes
-        if (!string.IsNullOrEmpty(parameters.Indexes))
-        {
-            var indexesFilter = parameters.Indexes.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            if (indexesFilter.Length > 0)
-            {
-                query = query.Where(p => indexesFilter.Contains(p.Index));
-            }
-        }
-
-        // Filter by problem name
-        if (!string.IsNullOrEmpty(parameters.ProblemName))
-        {
-            query = query.Where(p => p.ProblemTranslations.Any(
-                pt => pt.LanguageCode == parameters.Lang && 
-                pt.Name.Contains(parameters.ProblemName)));
-        }
-
-        // Filter by rating and points
-        query = query.Where(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
-        query = query.Where(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
-
-        // Sorting
-        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
-        switch (parameters.Sorting.SortField.ToLowerInvariant())
-        {
-            case "name":
-                if (order == "asc")
-                {
-                    query = query.OrderBy(p => p.ProblemTranslations
-                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
-                }
-                else
-                {
-                    query = query.OrderByDescending(p => p.ProblemTranslations
-                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
-                }
-                break;
-            case "difficulty":
-                break;
-            default:
-                query = query.OrderBy($"{parameters.Sorting.SortField} {order}");
-                break;
-        }
-
-        // Working with Difficulty property
-        // This block is separate due to the need to upload contests using ToList() method
-        IEnumerable<Problem> items = query.ToList();
-
-        items = items
-            .Where(i =>
-                i.Difficulty >= parameters.MinDifficulty &&
-                i.Difficulty <= parameters.MaxDifficulty);
-        
-        if (parameters.Sorting.SortField.Equals("difficulty", StringComparison.InvariantCultureIgnoreCase))
-        {
-            items = items
-                .AsQueryable()
-                .OrderBy($"{parameters.Sorting.SortField} {order}");
-        }
-
-        // Calculating total pages count
-        int totalCount = items.Count();
-        int totalPages = (totalCount > 0) ? (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize) : 0;
-
-        // Pagination
-        items = items
-            .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
-            .Take(parameters.Pagination.PageSize);
-
-        return new PagedResultDto<Problem>
-        {
-            Items = items.ToList(),
-            TotalPagesCount = totalPages
+            Items = items,
+            TotalItemsCount = totalCount,
+            TotalPagesCount = (totalCount > 0) ? (int)Math.Ceiling(totalCount / (double)pagination.PageSize) : 0
         };
     }
 

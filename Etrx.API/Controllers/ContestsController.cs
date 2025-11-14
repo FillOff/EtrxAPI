@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Contests;
+using Etrx.Application.Dtos.Contests;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;

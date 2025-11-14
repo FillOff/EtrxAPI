@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.RanklistRows;
+using Etrx.Application.Dtos.RanklistRows;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;

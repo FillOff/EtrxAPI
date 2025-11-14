@@ -1,5 +1,6 @@
 ﻿using EFCore.BulkExtensions;
-using Etrx.Domain.Interfaces;
+using Etrx.Application.Repositories;
+using Etrx.Application.Specifications;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
@@ -48,5 +49,24 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
     public virtual async Task InsertOrUpdateAsync(List<TEntity> entities)
     {
         await _context.BulkInsertOrUpdateAsync(entities);
+    }
+
+    protected static IQueryable<TEntity> ApplySpecification(BaseSpecification<TEntity> spec, IQueryable<TEntity> query)
+    {
+        if (spec.FilterCondition != null)
+        {
+            query = query.Where(spec.FilterCondition);
+        }
+
+        if (spec.OrderBy != null)
+        {
+            query = query.OrderBy(spec.OrderBy);
+        }
+        else if (spec.OrderByDescending != null)
+        {
+            query = query.OrderByDescending(spec.OrderByDescending);
+        }
+
+        return query;
     }
 }

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
+using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Problems;
-using Etrx.Domain.Interfaces.UnitOfWork;
-using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
-using Etrx.Domain.Queries.Common;
+using Etrx.Application.Queries;
+using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories.UnitOfWork;
+using Etrx.Application.Specifications;
 
 namespace Etrx.Application.Services;
 
@@ -79,22 +79,14 @@ public class ProblemsService : IProblemsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        if (string.IsNullOrEmpty(dto.SortField) ||
-            (!typeof(Problem).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)) &&
-             !dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase)))
+        var allowedSortFields = new List<string> { "name", "difficulty", "rating", "points", "starttime", "solvedcount", "index", "contestid" };
+        if (!string.IsNullOrEmpty(dto.SortField) && !allowedSortFields.Contains(dto.SortField.ToLowerInvariant()))
         {
-            throw new Exception($"Invalid field: SortField");
+            throw new Exception($"Invalid sort field. Allowed values are: {string.Join(", ", allowedSortFields)}");
         }
 
-        if (dto.Page <= 0)
-        {
-            throw new Exception($"Invalid field: Page");
-        }
-
-        if (dto.PageSize <= 0)
-        {
-            throw new Exception($"Invalid field: PageSize");
-        }
+        if (dto.Page <= 0) throw new Exception("Invalid field: Page");
+        if (dto.PageSize <= 0) throw new Exception("Invalid field: PageSize");
 
         var queryParams = new ProblemQueryParameters(
             new PaginationQueryParameters(dto.Page, dto.PageSize),
@@ -112,15 +104,17 @@ public class ProblemsService : IProblemsService
             dto.Lang
         );
 
-        var pagedResult = _unitOfWork.Problems.GetByPageWithSortAndFilter(queryParams);
+        var spec = new ProblemsSpecification(queryParams);
+
+        var pagedResult = await _unitOfWork.Problems.GetPagedAsync<ProblemResponseDto>(
+            spec,
+            queryParams.Pagination,
+            dto.Lang);
 
         return new ProblemWithPropsResponseDto
         (
-            Problems: _mapper.Map<List<ProblemResponseDto>>(pagedResult.Items, opts =>
-            {
-                opts.Items["lang"] = dto.Lang;
-            }),
-            Properties: typeof(ProblemResponseDto).GetProperties().Select(p => p.Name).ToArray()!,
+            Problems: pagedResult.Items, 
+            Properties: allowedSortFields,
             PageCount: pagedResult.TotalPagesCount
         );
     }
