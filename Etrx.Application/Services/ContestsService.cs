@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
+using Etrx.Application.Dtos.Contests;
 using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Contests;
-using Etrx.Domain.Interfaces.UnitOfWork;
-using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
-using Etrx.Domain.Queries.Common;
+using Etrx.Application.Queries;
+using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories.UnitOfWork;
+using Etrx.Application.Specifications;
 
 namespace Etrx.Application.Services;
 
@@ -62,21 +62,14 @@ public class ContestsService : IContestsService
             throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
         }
 
-        if (!typeof(Contest).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)) &&
-            !dto.SortField.Equals("Name", StringComparison.InvariantCultureIgnoreCase))
+        var allowedSortFields = new List<string> { "name", "starttime", "durationseconds", "relativetimeseconds", "contestid", "gym", "iscontestloaded" };
+        if (!string.IsNullOrEmpty(dto.SortField) && !allowedSortFields.Contains(dto.SortField.ToLowerInvariant()))
         {
-            throw new Exception($"Invalid field: SortField");
+            throw new Exception($"Invalid sort field. Allowed values: {string.Join(", ", allowedSortFields)}");
         }
 
-        if (dto.Page <= 0)
-        {
-            throw new Exception($"Invalid field: Page");
-        }
-
-        if (dto.PageSize <= 0)
-        {
-            throw new Exception($"Invalid field: PageSize");
-        }
+        if (dto.Page <= 0) throw new Exception($"Invalid field: Page");
+        if (dto.PageSize <= 0) throw new Exception($"Invalid field: PageSize");
 
         var queryParams = new ContestQueryParameters(
             new PaginationQueryParameters(dto.Page, dto.PageSize),
@@ -85,15 +78,17 @@ public class ContestsService : IContestsService
             dto.Lang
         );
 
-        var pagedResult = await _unitOfWork.Contests.GetPagedWithSortAndFilterAsync(queryParams);
+        var spec = new ContestsSpecification(queryParams);
+
+        var pagedResult = await _unitOfWork.Contests.GetPagedAsync<ContestResponseDto>(
+            spec,
+            queryParams.Pagination,
+            dto.Lang);
 
         return new ContestWithPropsResponseDto
         (
-            Contests: _mapper.Map<List<ContestResponseDto>>(pagedResult.Items, opt =>
-            {
-                opt.Items["lang"] = dto.Lang;
-            }),
-            Properties: typeof(ContestResponseDto).GetProperties().Select(p => p.Name).ToArray(),
+            Contests: pagedResult.Items,
+            Properties: allowedSortFields,
             PageCount: pagedResult.TotalPagesCount
         );
     }

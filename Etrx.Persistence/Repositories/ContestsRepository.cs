@@ -1,8 +1,12 @@
-﻿using Etrx.Domain.Dtos.Common;
-using Etrx.Domain.Interfaces;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Etrx.Application.Dtos.Common;
+using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories;
+using Etrx.Application.Specifications;
 using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
@@ -10,8 +14,13 @@ namespace Etrx.Persistence.Repositories;
 
 public class ContestsRepository : GenericRepository<Contest>, IContestsRepository
 {
-    public ContestsRepository(EtrxDbContext context) : base(context)
-    { }
+    private readonly IMapper _mapper;
+
+    public ContestsRepository(EtrxDbContext context, IMapper mapper)
+        : base(context)
+    { 
+        _mapper = mapper;    
+    }
 
     public override async Task<List<Contest>> GetAllAsync()
     {
@@ -40,59 +49,31 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
             .ToListAsync();
     }
 
-    public async Task<PagedResultDto<Contest>> GetPagedWithSortAndFilterAsync(ContestQueryParameters parameters)
+    public async Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(
+        BaseSpecification<Contest> spec,
+        PaginationQueryParameters pagination,
+        string lang)
     {
         var query = _dbSet
             .AsNoTracking()
-            .Include(c => c.ContestTranslations)
-            .Where(c => c.Phase != "BEFORE");
+            .AsExpandable();
 
-        // Filter by gym
-        if (parameters.Gym != null)
-        {
-            query = query.Where(c => c.Gym == parameters.Gym);
-        }
+        query = ApplySpecification(spec, query);
 
-        // Sorting
-        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
-        switch (parameters.Sorting.SortField.ToLowerInvariant())
-        {
-            case "name":
-                if (order == "asc")
-                {
-                    query = query.OrderBy(c => c.ContestTranslations
-                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
-                }
-                else
-                {
-                    query = query.OrderByDescending(c => c.ContestTranslations
-                        .FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name);
-                }
-                break;
-            default:
-                query = query.OrderBy($"{parameters.Sorting.SortField} {order}");
-                break;
-        }
+        var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
 
-        // Calculating total pages count
-        int totalCount = await query.CountAsync();
-        int totalPages = 0;
+        var totalCount = await projectedQuery.CountAsync();
 
-        if (totalCount > 0)
-        {
-            totalPages = (int)Math.Ceiling((double)totalCount / parameters.Pagination.PageSize);
-        }
-
-        // Pagination
-        var items = await query
-            .Skip((parameters.Pagination.Page - 1) * parameters.Pagination.PageSize)
-            .Take(parameters.Pagination.PageSize)
+        var items = await projectedQuery
+            .Skip((pagination.Page - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
             .ToListAsync();
 
-        return new PagedResultDto<Contest>
+        return new PagedResultDto<TResult>
         {
             Items = items,
-            TotalPagesCount = totalPages
+            TotalItemsCount = totalCount,
+            TotalPagesCount = (totalCount > 0) ? (int)Math.Ceiling(totalCount / (double)pagination.PageSize) : 0
         };
     }
 

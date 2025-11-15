@@ -1,5 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Problems;
+using Etrx.Application.Dtos.Problems;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;

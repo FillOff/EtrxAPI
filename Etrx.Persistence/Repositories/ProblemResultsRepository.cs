@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Interfaces;
+﻿using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;

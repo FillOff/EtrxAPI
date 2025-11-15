@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Domain.Dtos.Submissions;
+using Etrx.Application.Dtos.Submissions;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 

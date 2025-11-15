@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Dtos.RanklistRows;
+﻿using Etrx.Application.Dtos.RanklistRows;
 
 namespace Etrx.Application.Interfaces;
 

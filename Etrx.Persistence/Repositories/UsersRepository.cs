@@ -1,8 +1,8 @@
-﻿using Etrx.Domain.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories;
+using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
-using Etrx.Domain.Interfaces;
-using Etrx.Domain.Queries.Common;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 
 namespace Etrx.Persistence.Repositories;

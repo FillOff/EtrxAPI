@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Submissions;
+using Etrx.Application.Dtos.Submissions;
 
 namespace Etrx.API.Controllers;
 

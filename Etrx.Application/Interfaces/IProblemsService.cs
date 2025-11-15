@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Dtos.Problems;
+﻿using Etrx.Application.Dtos.Problems;
 
 namespace Etrx.Application.Interfaces;
 

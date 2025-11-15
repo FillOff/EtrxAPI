@@ -1,7 +1,7 @@
-﻿using Etrx.Domain.Dtos.Submissions;
-using Etrx.Domain.Interfaces;
+﻿using Etrx.Application.Dtos.Submissions;
+using Etrx.Application.Queries;
+using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
-using Etrx.Domain.Queries;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;

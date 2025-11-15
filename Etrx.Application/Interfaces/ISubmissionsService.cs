@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Dtos.Submissions;
+﻿using Etrx.Application.Dtos.Submissions;
 
 namespace Etrx.Application.Interfaces;
 

@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Dtos.Contests;
+﻿using Etrx.Application.Dtos.Contests;
 
 namespace Etrx.Application.Interfaces;
 

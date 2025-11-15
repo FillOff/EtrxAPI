@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Etrx.Domain.Dtos.Contests;
+using Etrx.Application.Dtos.Contests;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 
@@ -9,13 +9,22 @@ public class ContestsProfile : Profile
 {
     public ContestsProfile()
     {
+        string lang = "en";
+
         CreateMap<Contest, ContestResponseDto>()
-            .ForMember(
-                dest => dest.Name,
-                opt => opt.MapFrom((src, dest, destMember, context) =>
-                    src.ContestTranslations.FirstOrDefault(сt => сt.LanguageCode == (string)context.Items["lang"])?.Name
-                )
-            );
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>
+                src.ContestTranslations
+                   .Where(ct => ct.LanguageCode == lang)
+                   .Select(ct => ct.Name)
+                   .FirstOrDefault() ?? "Unnamed Contest"))
+            .AfterMap((src, dest, context) =>
+            {
+                if (context.Items.TryGetValue("lang", out var langObj) && langObj is string langValue)
+                {
+                    dest.Name = src.ContestTranslations?
+                        .FirstOrDefault(ct => ct.LanguageCode == langValue)?.Name ?? "Unnamed Contest";
+                }
+            });
 
         CreateMap<CodeforcesContest, Contest>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

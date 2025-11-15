@@ -1,5 +1,5 @@
-﻿using Etrx.Domain.Interfaces;
-using Etrx.Domain.Interfaces.UnitOfWork;
+﻿using Etrx.Application.Repositories;
+using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using Etrx.Persistence.Repositories;

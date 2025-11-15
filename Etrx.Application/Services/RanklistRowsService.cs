@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
-using Etrx.Domain.Dtos.Problems;
-using Etrx.Domain.Dtos.RanklistRows;
-using Etrx.Domain.Interfaces.UnitOfWork;
-using Etrx.Domain.Queries;
-using Etrx.Domain.Queries.Common;
+using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Dtos.RanklistRows;
+using Etrx.Application.Repositories.UnitOfWork;
+using Etrx.Application.Queries;
+using Etrx.Application.Queries.Common;
 
 namespace Etrx.Application.Services;
 
