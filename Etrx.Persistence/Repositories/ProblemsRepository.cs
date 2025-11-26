@@ -55,7 +55,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(p => 
+            .Where(p =>
                 p.Tags != null &&
                 p.Rating >= minRating &&
                 p.Rating <= maxRating)
@@ -91,25 +91,61 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         var query = _dbSet
             .AsNoTracking()
+            .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
             .AsExpandable();
 
         query = ApplySpecification(spec, query);
 
-        var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
-
-        var totalCount = await projectedQuery.CountAsync();
-
-        var items = await projectedQuery
-            .Skip((pagination.Page - 1) * pagination.PageSize)
-            .Take(pagination.PageSize)
-            .ToListAsync();
-
-        return new PagedResultDto<TResult>
+        if (typeof(TResult) == typeof(Etrx.Application.Dtos.Problems.ProblemResponseDto))
         {
-            Items = items,
-            TotalItemsCount = totalCount,
-            TotalPagesCount = (totalCount > 0) ? (int)Math.Ceiling(totalCount / (double)pagination.PageSize) : 0
-        };
+            var projectedQuery = query.Select(p => new Etrx.Application.Dtos.Problems.ProblemResponseDto
+            {
+                ContestId = p.ContestId,
+                Index = p.Index,
+                Name = p.ProblemTranslations
+                    .Where(t => t.LanguageCode == lang)
+                    .Select(t => t.Name)
+                    .FirstOrDefault() ?? string.Empty,
+                Points = p.Points,
+                Rating = p.Rating,
+                Difficulty = p.Difficulty,
+                Tags = p.Tags != null ? p.Tags.ToList() : new List<string>(),
+                Division = p.Rating >= 2100 ? "Div. 1"
+                         : p.Rating >= 1600 ? "Div. 2"
+                         : p.Rating >= 1400 ? "Div. 3"
+                         : "Div. 4"
+            });
+
+            var totalCount = projectedQuery.Count(); 
+            var items = projectedQuery
+                .Skip((pagination.Page - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToList();
+
+            return new PagedResultDto<TResult>
+            {
+                Items = items.Cast<TResult>().ToList(),
+                TotalItemsCount = totalCount,
+                TotalPagesCount = (totalCount > 0) ? (int)Math.Ceiling(totalCount / (double)pagination.PageSize) : 0
+            };
+        }
+        else
+        {
+            var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
+            var totalCount = await projectedQuery.CountAsync();
+            var items = await projectedQuery
+                .Skip((pagination.Page - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToListAsync();
+
+            return new PagedResultDto<TResult>
+            {
+                Items = items,
+                TotalItemsCount = totalCount,
+                TotalPagesCount = (totalCount > 0) ? (int)Math.Ceiling(totalCount / (double)pagination.PageSize) : 0
+            };
+        }
     }
 
     public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)

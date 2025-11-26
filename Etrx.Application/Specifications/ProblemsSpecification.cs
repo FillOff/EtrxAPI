@@ -11,8 +11,6 @@ public class ProblemsSpecification : BaseSpecification<Problem>
     {
         var predicate = PredicateBuilder.New<Problem>(true);
 
-        // Filtering
-
         if (!string.IsNullOrEmpty(parameters.Tags))
         {
             var tagsFilter = parameters.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries);
@@ -45,6 +43,40 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 pt.Name.Contains(parameters.ProblemName)));
         }
 
+        if (!string.IsNullOrWhiteSpace(parameters.Divisions))
+        {
+            var divs = parameters.Divisions
+                .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                .Select(d => d.Trim().ToLowerInvariant())
+                .Where(d => !string.IsNullOrEmpty(d))
+                .ToArray();
+
+            if (divs.Length > 0)
+            {
+                var div1 = divs.Contains("div1");
+                var div2 = divs.Contains("div2");
+                var div3 = divs.Contains("div3");
+                var div4 = divs.Contains("div4");
+
+                Expression<Func<Problem, bool>> divPredicate = p => false;
+
+                if (div1)
+                    divPredicate = divPredicate.Or(p => p.Rating >= 2100);
+                if (div2)
+                    divPredicate = divPredicate.Or(p => p.Rating >= 1600 && p.Rating <= 2099);
+                if (div3)
+                    divPredicate = divPredicate.Or(p => p.Rating >= 1400 && p.Rating <= 1599);
+                if (div4)
+                    divPredicate = divPredicate.Or(p => p.Rating >= 0 && p.Rating <= 1399);
+
+                if (div1 || div2 || div3 || div4)
+                {
+                    predicate = predicate.And(divPredicate.Expand());
+                }
+            }
+        }
+
+
         predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
         predicate = predicate.And(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
 
@@ -55,7 +87,6 @@ public class ProblemsSpecification : BaseSpecification<Problem>
 
         FilterCondition = predicate;
 
-        // Sorting
 
         bool isAscending = parameters.Sorting.SortOrder == true;
 

@@ -94,6 +94,7 @@ public class ProblemsService : IProblemsService
             dto.Tags,
             dto.Indexes,
             dto.ProblemName,
+            dto.Divisions,
             dto.MinRating,
             dto.MaxRating,
             dto.MinPoints,

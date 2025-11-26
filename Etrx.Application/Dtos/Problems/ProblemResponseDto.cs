@@ -11,4 +11,5 @@ public class ProblemResponseDto
     public int SolvedCount { get; set; }
     public long StartTime { get; set; } 
     public int Difficulty { get; set; }
+    public string Division { get; set; } = string.Empty;
 }

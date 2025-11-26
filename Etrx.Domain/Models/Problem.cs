@@ -1,3 +1,5 @@
+using Etrx.Domain.Enums;
+using Etrx.Domain.Helpers;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Etrx.Domain.Models;
@@ -16,7 +18,8 @@ public class Problem : Entity
     public int Rating { get; set; } = 0;
     public int SolvedCount { get; set; } = 0;
     public List<string> Tags { get; set; } = [];
-
+    [NotMapped]
+    public Divisions Division => DivisionHelper.GetDivisionByRating(Rating);
     public int Difficulty
     {
         get
