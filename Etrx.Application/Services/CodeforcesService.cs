@@ -1,9 +1,16 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
+using Etrx.Application.Repositories;
 using Etrx.Application.Repositories.UnitOfWork;
+using Etrx.Domain.Entities;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Etrx.Application.Services;
 
@@ -11,13 +18,16 @@ public class CodeforcesService : ICodeforcesService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly ITagRepository _tagRepository;
 
     public CodeforcesService(
-        IUnitOfWork unitOfWork, 
-        IMapper mapper)
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ITagRepository tagRepository)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _tagRepository = tagRepository;
     }
 
     public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
@@ -80,6 +90,9 @@ public class CodeforcesService : ICodeforcesService
             {
                 problemEntity = existingProblem;
                 problemId = existingProblem.Id;
+
+                // Важно: Если при выполнении этой строки будет ошибка (AutoMapper не сможет превратить string[] в List<Tag>),
+                // тебе нужно зайти в настройки AutoMapper (Profile) и добавить .ForMember(x => x.Tags, opt => opt.Ignore())
                 _mapper.Map(incomingProblem, problemEntity);
             }
             else
@@ -88,6 +101,35 @@ public class CodeforcesService : ICodeforcesService
                 problemId = Guid.NewGuid();
                 problemEntity.Id = problemId;
             }
+
+            // === Логика тегов ===
+            var problemTags = new List<Tag>();
+
+            if (incomingProblem.Tags != null && incomingProblem.Tags.Any())
+            {
+                foreach (var tagName in incomingProblem.Tags)
+                {
+                    var tag = await _tagRepository.GetByNameAsync(tagName, CancellationToken.None);
+
+                    if (tag == null)
+                    {
+                        tag = new Tag
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = tagName,
+                            Complexity = 0
+                        };
+                        // Создаем и сразу сохраняем, чтобы получить ID
+                        await _tagRepository.CreateAsync(tag, CancellationToken.None);
+                    }
+
+                    problemTags.Add(tag);
+                }
+            }
+
+            // Перезаписываем теги правильными объектами из базы
+            problemEntity.Tags = problemTags;
+            // ====================
 
             problemEntity.SolvedCount = solvedCount;
             problemEntity.GuidContestId = existingContest.Id;
@@ -267,7 +309,7 @@ public class CodeforcesService : ICodeforcesService
                 problemResultsToUpsert.Add(problemResultEntity);
             }
         }
-        
+
         await _unitOfWork.RanklistRows.InsertOrUpdateAsync(ranklistRowsToUpsert);
         await _unitOfWork.ProblemResults.InsertOrUpdateAsync(problemResultsToUpsert);
 

@@ -1,7 +1,9 @@
 ﻿using Etrx.Application.Queries;
+using Etrx.Domain.Entities;
 using Etrx.Domain.Models;
 using LinqKit;
 using System.Linq.Expressions;
+using System.Linq;
 
 namespace Etrx.Application.Specifications;
 
@@ -11,7 +13,6 @@ public class ProblemsSpecification : BaseSpecification<Problem>
     {
         var predicate = PredicateBuilder.New<Problem>(true);
 
-        // Filtering
 
         if (!string.IsNullOrEmpty(parameters.Tags))
         {
@@ -20,11 +21,12 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             {
                 if (parameters.IsOnly)
                 {
-                    predicate = predicate.And(p => p.Tags.Count == tagsFilter.Length && p.Tags.All(t => tagsFilter.Contains(t)));
+                    predicate = predicate.And(p => p.Tags.Count == tagsFilter.Length &&
+                                                   p.Tags.All(t => tagsFilter.Contains(t.Name)));
                 }
                 else
                 {
-                    predicate = predicate.And(p => tagsFilter.All(tag => p.Tags.Contains(tag)));
+                    predicate = predicate.And(p => tagsFilter.All(tag => p.Tags.Any(t => t.Name == tag)));
                 }
             }
         }

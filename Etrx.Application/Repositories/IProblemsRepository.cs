@@ -2,7 +2,7 @@
 using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Specifications;
-using Etrx.Domain.Models;
+using Etrx.Domain.Entities;
 
 namespace Etrx.Application.Repositories;
 

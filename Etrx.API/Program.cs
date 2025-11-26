@@ -1,4 +1,6 @@
 using Etrx.API.Extensions;
+using Etrx.Persistence.Repositories;
+using Etrx.Application.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,8 @@ builder.Services.AddServices();
 builder.Services.AddRepositories();
 builder.Services.AddDbContexts(builder.Configuration);
 builder.Services.AddAutoMapper(cfg => { }, AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 
 var app = builder.Build();
 

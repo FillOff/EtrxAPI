@@ -1,6 +1,8 @@
+using Etrx.Domain.Models;
+using Etrx.Domain.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Etrx.Domain.Models;
+namespace Etrx.Domain.Entities;
 
 public class Problem : Entity
 {
@@ -15,7 +17,7 @@ public class Problem : Entity
     public double Points { get; set; } = 0;
     public int Rating { get; set; } = 0;
     public int SolvedCount { get; set; } = 0;
-    public List<string> Tags { get; set; } = [];
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
 
     public int Difficulty
     {

@@ -1,4 +1,4 @@
-﻿using Etrx.Domain.Models;
+﻿using Etrx.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -25,5 +25,9 @@ public class ProblemConfiguration : IEntityTypeConfiguration<Problem>
         builder
             .HasIndex(p => new { p.ContestId, p.Index })
             .IsUnique();
+
+        builder
+            .HasMany(p => p.Tags)
+            .WithMany(t => t.Problems);
     }
 }

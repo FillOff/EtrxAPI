@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Etrx.Application.Dtos.Problems;
+using Etrx.Domain.Entities;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 

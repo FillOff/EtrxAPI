@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using Etrx.Domain.Entities;
+using System.Linq.Expressions;
 
 namespace Etrx.Domain.Models;
 
