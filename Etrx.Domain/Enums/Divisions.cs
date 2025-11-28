@@ -8,10 +8,9 @@ namespace Etrx.Domain.Enums
 {
     public enum Divisions
     {
-        Unknown = 0,
         Div1 = 2100,
         Div2 = 1600,
         Div3 = 1400,
-        Div4 = 1400
+        Div4 = 0
     }
 }
