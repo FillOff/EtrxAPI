@@ -18,8 +18,7 @@ public class Problem : Entity
     public int Rating { get; set; } = 0;
     public int SolvedCount { get; set; } = 0;
     public List<string> Tags { get; set; } = [];
-    [NotMapped]
-    public string Division => DivisionHelper.GetDivisionName(Rating);
+    public string Division => DivisionExpressions.GetDivisionName(Rating);
 
     public int Difficulty
     {

@@ -4,13 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Etrx.Domain.Enums
+namespace Etrx.Domain.Enums;
+
+public enum Divisions
 {
-    public enum Divisions
-    {
-        Div1 = 2100,
-        Div2 = 1600,
-        Div3 = 1400,
-        Div4 = 0
-    }
+    Div1 = 2100,
+    Div2 = 1600,
+    Div3 = 1400,
+    Div4 = 0
 }

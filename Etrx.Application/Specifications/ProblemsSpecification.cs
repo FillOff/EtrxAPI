@@ -1,4 +1,6 @@
 ﻿using Etrx.Application.Queries;
+using Etrx.Domain.Enums;
+using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using LinqKit;
 using System.Linq.Expressions;
@@ -10,6 +12,8 @@ public class ProblemsSpecification : BaseSpecification<Problem>
     public ProblemsSpecification(ProblemQueryParameters parameters)
     {
         var predicate = PredicateBuilder.New<Problem>(true);
+
+        // Filtering
 
         if (!string.IsNullOrEmpty(parameters.Tags))
         {
@@ -47,27 +51,27 @@ public class ProblemsSpecification : BaseSpecification<Problem>
         {
             var divs = parameters.Divisions
                 .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Select(d => d.Trim().ToLowerInvariant())
+                .Select(d => d.Trim())
                 .Where(d => !string.IsNullOrEmpty(d))
                 .ToArray();
 
             if (divs.Length > 0)
             {
-                var div1 = divs.Contains("div1");
-                var div2 = divs.Contains("div2");
-                var div3 = divs.Contains("div3");
-                var div4 = divs.Contains("div4");
+                var div1 = divs.Contains(nameof(Divisions.Div1));
+                var div2 = divs.Contains(nameof(Divisions.Div2));
+                var div3 = divs.Contains(nameof(Divisions.Div3));
+                var div4 = divs.Contains(nameof(Divisions.Div4));
 
                 Expression<Func<Problem, bool>> divPredicate = p => false;
 
                 if (div1)
-                    divPredicate = divPredicate.Or(p => p.Rating >= 2100);
+                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div1);
                 if (div2)
-                    divPredicate = divPredicate.Or(p => p.Rating >= 1600 && p.Rating <= 2099);
+                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div2 && p.Rating < (int)Divisions.Div1);
                 if (div3)
-                    divPredicate = divPredicate.Or(p => p.Rating >= 1400 && p.Rating <= 1599);
+                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div3 && p.Rating < (int)Divisions.Div2);
                 if (div4)
-                    divPredicate = divPredicate.Or(p => p.Rating >= 0 && p.Rating <= 1399);
+                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div4 && p.Rating < (int)Divisions.Div3);
 
                 if (div1 || div2 || div3 || div4)
                 {
@@ -87,6 +91,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
 
         FilterCondition = predicate;
 
+        // Sorting
 
         bool isAscending = parameters.Sorting.SortOrder == true;
 

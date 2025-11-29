@@ -5,6 +5,7 @@ using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Application.Specifications;
+using Etrx.Domain.Models;
 
 namespace Etrx.Application.Services;
 
@@ -114,7 +115,7 @@ public class ProblemsService : IProblemsService
 
         return new ProblemWithPropsResponseDto
         (
-            Problems: pagedResult.Items, 
+            Problems: _mapper.Map<List<ProblemResponseDto>>(pagedResult.Items), 
             Properties: allowedSortFields,
             PageCount: pagedResult.TotalPagesCount
         );

@@ -1,6 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using Etrx.Domain.Models;
+using System.Linq.Expressions;
 
-namespace Etrx.Domain.Models;
+namespace Etrx.Domain.Expressions;
 
 public static class ProblemExpressions
 {
