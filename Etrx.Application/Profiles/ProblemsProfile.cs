@@ -1,8 +1,6 @@
 ﻿using AutoMapper;
 using Etrx.Application.Dtos.Problems;
-using Etrx.Application.Services;
 using Etrx.Domain.Expressions;
-using Etrx.Domain.Helpers;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 
@@ -31,7 +29,8 @@ public class ProblemsProfile : Profile
             .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src =>
                 src.Contest.StartTime))
             .ForMember(dest => dest.Difficulty, opt => opt.MapFrom(ProblemExpressions.DifficultyExpression))
-            .ForMember(dest => dest.SolvedCount, opt => opt.MapFrom(src => src.SolvedCount));
+            .ForMember(dest => dest.SolvedCount, opt => opt.MapFrom(src => src.SolvedCount))
+            .ForMember(dest => dest.Division, opt => opt.MapFrom(src => DivisionExpressions.GetDivision(src.Rating)));
 
         CreateMap<CodeforcesProblem, Problem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

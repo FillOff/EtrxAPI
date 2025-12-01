@@ -1,5 +1,5 @@
 using Etrx.Domain.Enums;
-using Etrx.Domain.Helpers;
+using Etrx.Domain.Expressions;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Etrx.Domain.Models;
@@ -18,42 +18,4 @@ public class Problem : Entity
     public int Rating { get; set; } = 0;
     public int SolvedCount { get; set; } = 0;
     public List<string> Tags { get; set; } = [];
-    public string Division => DivisionExpressions.GetDivisionName(Rating);
-
-    public int Difficulty
-    {
-        get
-        {
-            if (Contest == null)
-            {
-                throw new InvalidOperationException(
-                    "For calculating difficulty it is necessary to load 'Contest' navigation property. " +
-                    "Use .Include(p => p.Contest) when querying the database.");
-            }
-
-            if (SolvedCount <= 0)
-            {
-                return 100;
-            }
-
-            var startTime = DateTimeOffset.FromUnixTimeSeconds(Contest.StartTime).UtcDateTime;
-            var now = DateTime.UtcNow;
-
-            var daysSincePublished = (now - startTime).TotalDays;
-
-            if (daysSincePublished < 1)
-            {
-                return 1;
-            }
-
-            double difficultyValue = daysSincePublished / SolvedCount;
-
-            if (difficultyValue < 1)
-            {
-                return 1;
-            }
-
-            return (int)Math.Round(difficultyValue);
-        }
-    }
 }

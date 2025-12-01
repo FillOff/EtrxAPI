@@ -1,23 +1,33 @@
 ﻿using Etrx.Domain.Enums;
+using Etrx.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Etrx.Domain.Helpers;
+namespace Etrx.Domain.Expressions;
 
 public static class DivisionExpressions
 {
-    public static string GetDivisionName(int rating)
+    public static DivisionsEnum GetDivision(int? rating)
     {
-        return rating switch
-        {
-            >= (int)Divisions.Div1 => nameof(Divisions.Div1),
-            >= (int)Divisions.Div2 => nameof(Divisions.Div2),
-            >= (int)Divisions.Div3 => nameof(Divisions.Div3),
-            _ => nameof(Divisions.Div4)
-        };
+        if (!rating.HasValue) return DivisionsEnum.Div4;
+        int r = rating.Value;
+
+        if (r >= (int)DivisionsEnum.Div1) return DivisionsEnum.Div1;
+        if (r >= (int)DivisionsEnum.Div2) return DivisionsEnum.Div2;
+        if (r >= (int)DivisionsEnum.Div3) return DivisionsEnum.Div3;
+        return DivisionsEnum.Div4;
+    }
+    public static Expression<Func<Problem, bool>> GetPredicate(List<DivisionsEnum> divisions)
+    {
+        return p =>
+            (divisions.Contains(DivisionsEnum.Div1) && p.Rating >= (int)DivisionsEnum.Div1) ||
+            (divisions.Contains(DivisionsEnum.Div2) && p.Rating >= (int)DivisionsEnum.Div2 && p.Rating < (int)DivisionsEnum.Div1) ||
+            (divisions.Contains(DivisionsEnum.Div3) && p.Rating >= (int)DivisionsEnum.Div3 && p.Rating < (int)DivisionsEnum.Div2) ||
+            (divisions.Contains(DivisionsEnum.Div4) && p.Rating < (int)DivisionsEnum.Div3);
     }
 }
 

@@ -47,39 +47,11 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 pt.Name.Contains(parameters.ProblemName)));
         }
 
-        if (!string.IsNullOrWhiteSpace(parameters.Divisions))
+        if (parameters.Divisions != null && parameters.Divisions.Any())
         {
-            var divs = parameters.Divisions
-                .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Select(d => d.Trim())
-                .Where(d => !string.IsNullOrEmpty(d))
-                .ToArray();
-
-            if (divs.Length > 0)
-            {
-                var div1 = divs.Contains(nameof(Divisions.Div1));
-                var div2 = divs.Contains(nameof(Divisions.Div2));
-                var div3 = divs.Contains(nameof(Divisions.Div3));
-                var div4 = divs.Contains(nameof(Divisions.Div4));
-
-                Expression<Func<Problem, bool>> divPredicate = p => false;
-
-                if (div1)
-                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div1);
-                if (div2)
-                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div2 && p.Rating < (int)Divisions.Div1);
-                if (div3)
-                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div3 && p.Rating < (int)Divisions.Div2);
-                if (div4)
-                    divPredicate = divPredicate.Or(p => p.Rating >= (int)Divisions.Div4 && p.Rating < (int)Divisions.Div3);
-
-                if (div1 || div2 || div3 || div4)
-                {
-                    predicate = predicate.And(divPredicate.Expand());
-                }
-            }
+            var divPredicate = DivisionExpressions.GetPredicate(parameters.Divisions);
+            predicate = predicate.And(divPredicate.Expand());
         }
-
 
         predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
         predicate = predicate.And(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
@@ -116,6 +88,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 else OrderByDescending = convertedDifficultyExpr;
                 break;
 
+            case "divisions":
             case "rating":
                 if (isAscending) OrderBy = p => p.Rating;
                 else OrderByDescending = p => p.Rating;

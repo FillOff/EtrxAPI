@@ -1,4 +1,6 @@
-﻿namespace Etrx.Application.Dtos.Problems;
+﻿using Etrx.Domain.Enums;
+
+namespace Etrx.Application.Dtos.Problems;
 
 public class ProblemResponseDto
 {
@@ -11,5 +13,5 @@ public class ProblemResponseDto
     public int SolvedCount { get; set; }
     public long StartTime { get; set; } 
     public int Difficulty { get; set; }
-    public string Division { get; set; } = string.Empty;
+    public DivisionsEnum? Division { get; set; }
 }

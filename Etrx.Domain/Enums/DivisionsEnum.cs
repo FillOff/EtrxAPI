@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Etrx.Domain.Enums;
 
-public enum Divisions
+public enum DivisionsEnum
 {
     Div1 = 2100,
     Div2 = 1600,
