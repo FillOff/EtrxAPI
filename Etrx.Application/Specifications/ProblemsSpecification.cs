@@ -1,4 +1,6 @@
 ﻿using Etrx.Application.Queries;
+using Etrx.Domain.Enums;
+using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using LinqKit;
 using System.Linq.Expressions;
@@ -45,6 +47,12 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 pt.Name.Contains(parameters.ProblemName)));
         }
 
+        if (parameters.Divisions != null && parameters.Divisions.Any())
+        {
+            var divPredicate = DivisionExpressions.GetPredicate(parameters.Divisions);
+            predicate = predicate.And(divPredicate.Expand());
+        }
+
         predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
         predicate = predicate.And(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
 
@@ -80,6 +88,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 else OrderByDescending = convertedDifficultyExpr;
                 break;
 
+            case "divisions":
             case "rating":
                 if (isAscending) OrderBy = p => p.Rating;
                 else OrderByDescending = p => p.Rating;

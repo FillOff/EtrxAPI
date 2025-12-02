@@ -1,4 +1,6 @@
-﻿namespace Etrx.Application.Dtos.Problems;
+﻿using Etrx.Domain.Enums;
+
+namespace Etrx.Application.Dtos.Problems;
 
 public record class GetSortProblemRequestDto(
     int Page = 1,
@@ -6,6 +8,7 @@ public record class GetSortProblemRequestDto(
     string? Tags = null,
     string? Indexes = null,
     string? ProblemName = null,
+    List<DivisionsEnum>? Divisions = null,
     int MinRating = 0,
     int MaxRating = 10000,
     double MinPoints = 0,

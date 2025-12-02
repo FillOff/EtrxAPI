@@ -10,8 +10,6 @@ public class ProblemConfiguration : IEntityTypeConfiguration<Problem>
     {
         builder.HasKey(p => p.Id);
 
-        builder.Ignore(p => p.Difficulty);
-
         builder
             .HasMany(p => p.ProblemTranslations)
             .WithOne()

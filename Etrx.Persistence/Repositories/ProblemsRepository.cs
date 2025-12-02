@@ -55,7 +55,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(p => 
+            .Where(p =>
                 p.Tags != null &&
                 p.Rating >= minRating &&
                 p.Rating <= maxRating)
