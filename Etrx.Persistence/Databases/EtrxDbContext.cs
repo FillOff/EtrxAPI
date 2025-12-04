@@ -18,6 +18,7 @@ public class EtrxDbContext : DbContext
     public DbSet<Submission> Submissions { get; set; }
     public DbSet<RanklistRow> RanklistRows { get; set; }
     public DbSet<ProblemResult> ProblemResults { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

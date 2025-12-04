@@ -13,7 +13,7 @@ public class CodeforcesService : ICodeforcesService
     private readonly IMapper _mapper;
 
     public CodeforcesService(
-        IUnitOfWork unitOfWork, 
+        IUnitOfWork unitOfWork,
         IMapper mapper)
     {
         _unitOfWork = unitOfWork;
@@ -60,12 +60,14 @@ public class CodeforcesService : ICodeforcesService
         List<Problem> problemsToUpsert = [];
         List<ProblemTranslation> translationsToUpsert = [];
 
+        var processedTagsInBatch = new Dictionary<string, Tag>();
+
         foreach (var incomingProblem in problems)
         {
             Guid problemId;
             Problem problemEntity;
 
-            var existingContest = existingContestsDict[incomingProblem.ContestId];
+            var existingContest = existingContestsDict.GetValueOrDefault(incomingProblem.ContestId);
 
             if (existingContest is null)
             {
@@ -89,6 +91,42 @@ public class CodeforcesService : ICodeforcesService
                 problemEntity.Id = problemId;
             }
 
+            var problemTags = new List<Tag>();
+
+            if (incomingProblem.Tags != null && incomingProblem.Tags.Any())
+            {
+                foreach (var tagName in incomingProblem.Tags)
+                {
+                    Tag? tag = null;
+
+                    if (processedTagsInBatch.ContainsKey(tagName))
+                    {
+                        tag = processedTagsInBatch[tagName];
+                    }
+                    else
+                    {
+                        tag = await _unitOfWork.Tags.GetByNameAsync(tagName);
+
+                        if (tag == null)
+                        {
+                            tag = new Tag
+                            {
+                                Id = Guid.NewGuid(),
+                                Name = tagName,
+                                Complexity = 0
+                            };
+                            await _unitOfWork.Tags.AddAsync(tag);
+                        }
+
+                        processedTagsInBatch[tagName] = tag;
+                    }
+
+                    problemTags.Add(tag);
+                }
+            }
+
+            problemEntity.Tags = problemTags;
+
             problemEntity.SolvedCount = solvedCount;
             problemEntity.GuidContestId = existingContest.Id;
             problemsToUpsert.Add(problemEntity);
@@ -110,6 +148,8 @@ public class CodeforcesService : ICodeforcesService
 
         await _unitOfWork.Problems.InsertOrUpdateAsync(problemsToUpsert);
         await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(translationsToUpsert);
+
+        await _unitOfWork.SaveAsync();
     }
 
     public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
@@ -267,7 +307,7 @@ public class CodeforcesService : ICodeforcesService
                 problemResultsToUpsert.Add(problemResultEntity);
             }
         }
-        
+
         await _unitOfWork.RanklistRows.InsertOrUpdateAsync(ranklistRowsToUpsert);
         await _unitOfWork.ProblemResults.InsertOrUpdateAsync(problemResultsToUpsert);
 

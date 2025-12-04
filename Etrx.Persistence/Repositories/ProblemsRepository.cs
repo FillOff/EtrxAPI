@@ -28,6 +28,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags)
             .ToListAsync();
     }
 
@@ -37,6 +38,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags)
             .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
     }
 
@@ -46,6 +48,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags)
             .Where(p => p.ContestId == contestId)
             .OrderBy("index asc")
             .ToListAsync();
@@ -55,13 +58,13 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         return await _dbSet
             .AsNoTracking()
-            .Where(p => 
-                p.Tags != null &&
+            .Where(p =>
                 p.Rating >= minRating &&
                 p.Rating <= maxRating)
-            .SelectMany(problem => problem.Tags!)
+            .SelectMany(problem => problem.Tags)
+            .Select(tag => tag.Name)
             .Distinct()
-            .OrderBy(tag => tag)
+            .OrderBy(name => name)
             .ToListAsync();
     }
 
@@ -91,6 +94,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     {
         var query = _dbSet
             .AsNoTracking()
+            .Include(p => p.Tags)
             .AsExpandable();
 
         query = ApplySpecification(spec, query);
@@ -125,6 +129,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags)
             .Where(p => contestIds.Contains(p.ContestId))
             .ToListAsync();
 

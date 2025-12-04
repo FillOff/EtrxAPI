@@ -10,6 +10,7 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly EtrxDbContext _dbContext;
     private readonly IMapper _mapper;
+    private ITagsRepository? _tagsRepository;
 
     private IContestsRepository? _contestsRepository;
     private IContestTranslationsRepository? _contestTranslationsRespository;
@@ -107,5 +108,14 @@ public class UnitOfWork : IUnitOfWork
     {
         await _dbContext.DisposeAsync();
         GC.SuppressFinalize(this);
+    }
+
+    public ITagsRepository Tags
+    {
+        get
+        {
+            _tagsRepository ??= new TagsRepository(_dbContext);
+            return _tagsRepository;
+        }
     }
 }
