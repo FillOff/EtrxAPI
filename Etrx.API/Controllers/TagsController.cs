@@ -16,20 +16,23 @@ public class TagsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<IList<GetTagResponseDto>>> GetAll()
     {
         return Ok(await _tagService.GetAllTagsAsync());
     }
 
-    [HttpPatch("{name}")]
-    public async Task<IActionResult> UpdateComplexityAsync(
-        [FromRoute] string name,
-        [FromBody] UpdateTagComplexityRequestDto dto)
+    [HttpPut("{name}")]
+    public async Task<IActionResult> Update(string name, [FromBody] UpdateTagComplexityRequestDto dto)
     {
-        var result = await _tagService.UpdateTagComplexityAsync(name, dto);
+        try
+        {
+            await _tagService.UpdateTagComplexityAsync(name, dto);
 
-        if (!result) return NotFound($"Тег '{name}' не найден.");
-
-        return Ok(new { Message = "Сложность обновлена" });
+            return Ok(new { Message = "Complexity updated" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 }

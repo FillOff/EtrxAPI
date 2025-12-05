@@ -5,6 +5,6 @@ namespace Etrx.Application.Interfaces;
 
 public interface ITagService
 {
-    Task<List<Tag>> GetAllTagsAsync();
-    Task<bool> UpdateTagComplexityAsync(string name, UpdateTagComplexityRequestDto dto);
+    Task<IList<GetTagResponseDto>> GetAllTagsAsync();
+    Task UpdateTagComplexityAsync(string name, UpdateTagComplexityRequestDto dto);
 }

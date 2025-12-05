@@ -10,7 +10,6 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly EtrxDbContext _dbContext;
     private readonly IMapper _mapper;
-    private ITagsRepository? _tagsRepository;
 
     private IContestsRepository? _contestsRepository;
     private IContestTranslationsRepository? _contestTranslationsRespository;
@@ -20,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private IProblemResultsRepository? _problemResultsRepository;
     private ISubmissionsRepository? _submissionsRepository;
     private IUsersRepository? _usersRepository;
+    private ITagsRepository? _tagsRepository;
 
     public UnitOfWork(EtrxDbContext dbContext, IMapper mapper)
     {

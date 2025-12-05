@@ -12,6 +12,8 @@ public class ProblemsSpecification : BaseSpecification<Problem>
     {
         var predicate = PredicateBuilder.New<Problem>(true);
 
+        // Filtering
+
 
         if (!string.IsNullOrEmpty(parameters.Tags))
         {
@@ -55,6 +57,8 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             difficultyExpr.Invoke(p) <= parameters.MaxDifficulty);
 
         FilterCondition = predicate;
+
+        // Sorting
 
 
         bool isAscending = parameters.Sorting.SortOrder == true;

@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Application.Dtos.Tags;
 
-public class UpdateTagComplexityRequestDto
+public record UpdateTagComplexityRequestDto
 {
     public int Complexity { get; set; }
 }
