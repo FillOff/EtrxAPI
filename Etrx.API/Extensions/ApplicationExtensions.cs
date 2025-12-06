@@ -19,6 +19,7 @@ public static class ApplicationExtensions
         services.AddScoped<ICodeforcesApiService, CodeforcesApiService>();
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
+        services.AddScoped<ITagService, TagService>();
 
         services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
 

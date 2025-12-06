@@ -20,6 +20,7 @@ public static class PersistenceExtensions
         services.AddScoped<ISubmissionsRepository, SubmissionsRepository>();
         services.AddScoped<IRanklistRowsRepository, RanklistRowsRepository>();
         services.AddScoped<IGenericRepository<ProblemResult>, GenericRepository<ProblemResult>>();
+        services.AddScoped<ITagsRepository, TagsRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

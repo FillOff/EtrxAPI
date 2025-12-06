@@ -30,6 +30,7 @@ public class ProblemsProfile : Profile
             .ForMember(dest => dest.Difficulty, opt => opt.MapFrom(ProblemExpressions.DifficultyExpression));
 
         CreateMap<CodeforcesProblem, Problem>()
+            .ForMember(dest => dest.Tags, opt => opt.Ignore())
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.SolvedCount, opt => opt.Ignore())
             .ForMember(dest => dest.ProblemTranslations, opt => opt.Ignore())
