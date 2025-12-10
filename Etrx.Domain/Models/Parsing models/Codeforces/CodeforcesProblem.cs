@@ -19,6 +19,9 @@ public class CodeforcesProblem
     [JsonProperty("points")]
     public double Points { get; set; } = 0;
 
+    [JsonProperty("solved_count")]
+    public double SolvedCount { get; set; } = 0;
+
     [JsonProperty("rating")]
     public int Rating { get; set; } = 0;
 

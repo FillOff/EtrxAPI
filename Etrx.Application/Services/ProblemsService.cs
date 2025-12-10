@@ -100,6 +100,8 @@ public class ProblemsService : IProblemsService
             dto.MaxRating,
             dto.MinPoints,
             dto.MaxPoints,
+            dto.MinSolved,
+            dto.MaxSolved,
             dto.MinDifficulty,
             dto.MaxDifficulty,
             dto.IsOnly,

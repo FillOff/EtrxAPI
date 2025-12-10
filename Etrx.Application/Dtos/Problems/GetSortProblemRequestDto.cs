@@ -13,6 +13,8 @@ public record class GetSortProblemRequestDto(
     int MaxRating = 10000,
     double MinPoints = 0,
     double MaxPoints = 10000,
+    double MinSolved = 0,
+    double MaxSolved = 10000,
     int MinDifficulty = 0,
     int MaxDifficulty = 10000,
     string SortField = "contestid",

@@ -55,6 +55,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
 
         predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
         predicate = predicate.And(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
+        predicate = predicate.And(p => p.SolvedCount >= parameters.MinSolved && p.SolvedCount <= parameters.MaxSolved);
 
         var difficultyExpr = ProblemExpressions.DifficultyExpression;
         predicate = predicate.And(p =>
