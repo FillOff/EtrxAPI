@@ -8,6 +8,7 @@ namespace Etrx.Application.Repositories;
 public interface IContestsRepository : IGenericRepository<Contest>
 {
     new Task<List<Contest>> GetAllAsync();
+    Task<List<Contest>> GetAllWithTrackingAsync();
     Task<Contest?> GetByContestIdAsync(int key);
     Task<List<Contest>> GetLast10Async();
     Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds);

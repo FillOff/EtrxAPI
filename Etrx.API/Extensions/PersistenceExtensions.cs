@@ -31,7 +31,8 @@ public static class PersistenceExtensions
     {
         services.AddDbContext<EtrxDbContext>(options =>
             options
-                .UseNpgsql(configuration["ETRX_DB_CONNECTION_STRING"])
+                .UseNpgsql(configuration["ETRX_DB_CONNECTION_STRING"],
+                    o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery))
                 .UseSnakeCaseNamingConvention());
 
         return services;

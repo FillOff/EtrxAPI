@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Data.Entity.Infrastructure;
+using AutoMapper;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Domain.Models;
@@ -43,111 +44,81 @@ public class CodeforcesService : ICodeforcesService
 
     public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
     {
-        var identifiers = problems.Select(p => (p.ContestId, p.Index)).ToList();
-        var existingProblems = await _unitOfWork.Problems.GetByContestAndIndexAsync(identifiers);
-        var existingProblemsDict = existingProblems.ToDictionary(p => (p.ContestId, p.Index));
+        var allTagNames = problems.Where(p => p.Tags != null).SelectMany(p => p.Tags).Distinct().ToList();
+        var loadedTags = await _unitOfWork.Tags.GetAllWithTrackingAsync();
+        var tagsDict = loadedTags.ToDictionary(t => t.Name);
+        var newTagNames = allTagNames.Except(tagsDict.Keys).ToList();
 
-        var existingProblemGuids = existingProblems.Select(p => p.Id).ToList();
-        var existingTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(existingProblemGuids, languageCode);
-        var existingTranslationsDict = existingTranslations.ToDictionary(pt => pt.ProblemId);
-
-        var contestIdsFromApi = problems.Select(p => p.ContestId).ToList();
-        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
-        var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
-
-        var statisticsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
-
-        List<Problem> problemsToUpsert = [];
-        List<ProblemTranslation> translationsToUpsert = [];
-
-        var processedTagsInBatch = new Dictionary<string, Tag>();
-
-        foreach (var incomingProblem in problems)
+        if (newTagNames.Any())
         {
-            Guid problemId;
-            Problem problemEntity;
+            foreach (var name in newTagNames)
+            {
+                var tag = new Tag { Id = Guid.NewGuid(), Name = name, Complexity = 0 };
+                await _unitOfWork.Tags.AddAsync(tag);
+                tagsDict[name] = tag;
+            }
+            await _unitOfWork.SaveAsync();
+        }
 
-            var existingContest = existingContestsDict.GetValueOrDefault(incomingProblem.ContestId);
+        var contestsDict = (await _unitOfWork.Contests.GetAllAsync()).ToDictionary(c => c.ContestId, c => c.Id);
+        var statsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
 
-            if (existingContest is null)
+        var existingProblems = await _unitOfWork.Problems.GetAllWithTrackingAsync();
+        var problemsDict = existingProblems.ToDictionary(p => (p.ContestId, p.Index));
+
+
+        foreach (var dto in problems)
+        {
+            if (!contestsDict.TryGetValue(dto.ContestId, out var contestGuid))
             {
                 continue;
             }
 
-            var problemKey = (incomingProblem.ContestId, incomingProblem.Index);
-            statisticsDict.TryGetValue(problemKey, out var stats);
-            var solvedCount = stats?.SolvedCount ?? 0;
+            statsDict.TryGetValue((dto.ContestId, dto.Index), out var stats);
 
-            if (existingProblemsDict.TryGetValue(problemKey, out var existingProblem))
+            problemsDict.TryGetValue((dto.ContestId, dto.Index), out var problem);
+
+            if (problem == null)
             {
-                problemEntity = existingProblem;
-                problemId = existingProblem.Id;
-                _mapper.Map(incomingProblem, problemEntity);
+                problem = _mapper.Map<Problem>(dto);
+                problem.Id = Guid.NewGuid();
+                await _unitOfWork.Problems.AddAsync(problem);
             }
             else
             {
-                problemEntity = _mapper.Map<Problem>(incomingProblem);
-                problemId = Guid.NewGuid();
-                problemEntity.Id = problemId;
+                _mapper.Map(dto, problem);
             }
 
-            var problemTags = new List<Tag>();
+            problem.SolvedCount = stats?.SolvedCount ?? 0;
+            problem.GuidContestId = contestGuid;
 
-            if (incomingProblem.Tags != null && incomingProblem.Tags.Any())
+            problem.Tags ??= new List<Tag>();
+            problem.Tags.Clear();
+            if (dto.Tags != null)
             {
-                foreach (var tagName in incomingProblem.Tags)
+                foreach (var tagName in dto.Tags)
                 {
-                    Tag? tag = null;
-
-                    if (processedTagsInBatch.ContainsKey(tagName))
+                    if (tagsDict.TryGetValue(tagName, out var tagEntity))
                     {
-                        tag = processedTagsInBatch[tagName];
+                        problem.Tags.Add(tagEntity);
                     }
-                    else
-                    {
-                        tag = await _unitOfWork.Tags.GetByNameAsync(tagName);
-
-                        if (tag == null)
-                        {
-                            tag = new Tag
-                            {
-                                Id = Guid.NewGuid(),
-                                Name = tagName,
-                                Complexity = 0
-                            };
-                            await _unitOfWork.Tags.AddAsync(tag);
-                        }
-
-                        processedTagsInBatch[tagName] = tag;
-                    }
-
-                    problemTags.Add(tag);
                 }
             }
 
-            problemEntity.Tags = problemTags;
-
-            problemEntity.SolvedCount = solvedCount;
-            problemEntity.GuidContestId = existingContest.Id;
-            problemsToUpsert.Add(problemEntity);
-
-            ProblemTranslation problemTranslationEntity;
-            if (existingTranslationsDict.TryGetValue(problemId, out var existingTranslation))
+            var translation = problem.ProblemTranslations.FirstOrDefault(pt => pt.LanguageCode == languageCode);
+            if (translation != null)
             {
-                problemTranslationEntity = existingTranslation;
-                _mapper.Map(incomingProblem, problemTranslationEntity);
+                _mapper.Map(dto, translation);
             }
             else
             {
-                problemTranslationEntity = _mapper.Map<ProblemTranslation>(incomingProblem);
-                problemTranslationEntity.ProblemId = problemId;
-                problemTranslationEntity.LanguageCode = languageCode;
+                translation = _mapper.Map<ProblemTranslation>(dto);
+                translation.ProblemId = problem.Id;
+                translation.LanguageCode = languageCode;
+                problem.ProblemTranslations ??= new List<ProblemTranslation>();
+                problem.ProblemTranslations.Add(translation);
             }
-            translationsToUpsert.Add(problemTranslationEntity);
         }
-
-        await _unitOfWork.Problems.InsertOrUpdateAsync(problemsToUpsert);
-        await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(translationsToUpsert);
 
         await _unitOfWork.SaveAsync();
     }

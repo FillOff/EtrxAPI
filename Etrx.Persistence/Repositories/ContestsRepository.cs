@@ -30,6 +30,13 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
             .ToListAsync();
     }
 
+    public async Task<List<Contest>> GetAllWithTrackingAsync()
+    {
+        return await _dbSet
+            .Include(c => c.ContestTranslations)
+            .ToListAsync();
+    }
+
     public async Task<Contest?> GetByContestIdAsync(int key)
     {
         return await _dbSet

@@ -31,11 +31,13 @@ public class UpdateDataService : IUpdateDataService
 
     public async Task UpdateProblems()
     {
-        var (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("ru");
-        await _codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "ru");
+        var (problemsRu, statsRu) = await _codeforcesApiService.GetCodeforcesProblemsAsync("ru");
+        await _codeforcesService.PostProblemsFromCodeforces(problemsRu, statsRu, "ru");
 
-        (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("en");
-        await _codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "en");
+        // If comment block of code that loads english problems data, it will work
+
+        var (problemsEn, statsEn) = await _codeforcesApiService.GetCodeforcesProblemsAsync("en");
+        await _codeforcesService.PostProblemsFromCodeforces(problemsEn, statsEn, "en");
 
         _logger.LogInformation($"Problems updated successfully.");
         _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
@@ -62,7 +64,7 @@ public class UpdateDataService : IUpdateDataService
     public async Task UpdateUsers()
     {
         var dlUsers = await _dlApiService.GetDlUsersAsync();
-        foreach ( var dlUser in dlUsers )
+        foreach (var dlUser in dlUsers)
         {
             var handle = dlUser.Handle;
             var user = await _codeforcesApiService.GetCodeforcesUsersAsync(handle);
@@ -91,7 +93,7 @@ public class UpdateDataService : IUpdateDataService
     public async Task UpdateSubmissionsByContestId(int contestId)
     {
         var handles = await _codeforcesApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
-        foreach(var handle in handles)
+        foreach (var handle in handles)
         {
             var submissions = await _codeforcesApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
             await _codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);

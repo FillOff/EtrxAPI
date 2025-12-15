@@ -29,6 +29,17 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
             .Include(p => p.Tags)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
+    public async Task<List<Problem>> GetAllWithTrackingAsync()
+    {
+        return await _dbSet
+            .Include(p => p.ProblemTranslations)
+            .Include(p => p.Contest)
+            .Include(p => p.Tags)
+            .AsSplitQuery()
             .ToListAsync();
     }
 
@@ -39,6 +50,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
             .Include(p => p.Tags)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.ContestId == contestId && p.Index == index);
     }
 
@@ -51,6 +63,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Include(p => p.Tags)
             .Where(p => p.ContestId == contestId)
             .OrderBy("index asc")
+            .AsSplitQuery()
             .ToListAsync();
     }
 
@@ -131,6 +144,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Include(p => p.Contest)
             .Include(p => p.Tags)
             .Where(p => contestIds.Contains(p.ContestId))
+            .AsSplitQuery()
             .ToListAsync();
 
         var identifiersSet = identifiers.ToHashSet();

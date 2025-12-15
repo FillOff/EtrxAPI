@@ -1,4 +1,6 @@
-﻿namespace Etrx.Application.Dtos.Problems;
+﻿using Etrx.Application.Dtos.Tags;
+
+namespace Etrx.Application.Dtos.Problems;
 
 public class ProblemResponseDto
 {
@@ -7,7 +9,7 @@ public class ProblemResponseDto
     public string Name { get; set; } = string.Empty;
     public double? Points { get; set; }
     public int? Rating { get; set; }
-    public List<string> Tags { get; set; } = [];
+    public List<GetTagResponseDto> Tags { get; set; } = [];
     public int SolvedCount { get; set; }
     public long StartTime { get; set; } 
     public int Difficulty { get; set; }

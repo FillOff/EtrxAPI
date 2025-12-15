@@ -1,5 +1,4 @@
 ﻿using Etrx.Application.Dtos.Common;
-using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Specifications;
 using Etrx.Domain.Models;
@@ -9,6 +8,7 @@ namespace Etrx.Application.Repositories;
 public interface IProblemsRepository : IGenericRepository<Problem>
 {
     new Task<List<Problem>> GetAllAsync();
+    Task<List<Problem>> GetAllWithTrackingAsync();
     Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index);
     Task<List<Problem>> GetByContestIdAsync(int contestId);
     Task<List<string>> GetAllTagsAsync(int minRating, int maxRating);

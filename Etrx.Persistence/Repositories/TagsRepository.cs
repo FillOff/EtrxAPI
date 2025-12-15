@@ -11,6 +11,11 @@ public class TagsRepository : GenericRepository<Tag>, ITagsRepository
     {
     }
 
+    public async Task<List<Tag>> GetAllWithTrackingAsync()
+    {
+        return await _dbSet.ToListAsync();
+    }
+
     public async Task<Tag?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await _dbSet.FirstOrDefaultAsync(t => t.Name == name, cancellationToken);
