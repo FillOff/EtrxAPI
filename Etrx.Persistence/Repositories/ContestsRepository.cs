@@ -38,6 +38,17 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
             .FirstOrDefaultAsync(c => c.ContestId == key);
     }
 
+    public async Task<List<string>> GetAllDivisionsAsync()
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(c => !string.IsNullOrEmpty(c.Division))
+            .Select(c => c.Division)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToListAsync();
+    }
+
     public async Task<List<Contest>> GetLast10Async()
     {
         return await _dbSet
@@ -86,6 +97,7 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
 
         return await _dbSet
             .AsNoTracking()
+            .Include(c => c.ContestTranslations)
             .Where(c => contestIds.Contains(c.ContestId))
             .ToListAsync();
     }

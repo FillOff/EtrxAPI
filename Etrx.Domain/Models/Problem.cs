@@ -1,7 +1,3 @@
-using Etrx.Domain.Enums;
-using Etrx.Domain.Expressions;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Etrx.Domain.Models;
 
 public class Problem : Entity

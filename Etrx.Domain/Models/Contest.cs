@@ -23,4 +23,5 @@ public class Contest : Entity
     public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
     public bool IsContestLoaded { get; set; } = false;
+    public string Division { get; set; } = string.Empty;
 }

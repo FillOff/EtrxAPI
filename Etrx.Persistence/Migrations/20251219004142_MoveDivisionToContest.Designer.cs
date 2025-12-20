@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Etrx.Persistence.Migrations
 {
     [DbContext(typeof(EtrxDbContext))]
-    partial class EtrxDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251219004142_MoveDivisionToContest")]
+    partial class MoveDivisionToContest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
