@@ -53,11 +53,6 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("difficulty");
 
-                    b.Property<string>("Division")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("division");
-
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("integer")
                         .HasColumnName("duration_seconds");

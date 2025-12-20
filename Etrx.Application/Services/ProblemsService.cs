@@ -95,7 +95,6 @@ public class ProblemsService : IProblemsService
             dto.Tags,
             dto.Indexes,
             dto.ProblemName,
-            dto.Ranks,
             dto.Divisions,
             dto.MinRating,
             dto.MaxRating,
@@ -137,9 +136,5 @@ public class ProblemsService : IProblemsService
     public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
     {
         return await _unitOfWork.Problems.GetIndexesByContestIdAsync(contestId);
-    }
-    public async Task<List<string>> GetAllDivisionsAsync()
-    {
-        return await _unitOfWork.Contests.GetAllDivisionsAsync();
     }
 }

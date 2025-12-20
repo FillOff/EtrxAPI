@@ -41,11 +41,4 @@ public class ProblemsController : ControllerBase
     {
         return Ok(await _problemsService.GetAllIndexesAsync());
     }
-
-    [HttpGet("divisions")]
-    public async Task<ActionResult<List<string>>> GetDivisionsList()
-    {
-        return Ok(await _problemsService.GetAllDivisionsAsync());
-    }
-
 }

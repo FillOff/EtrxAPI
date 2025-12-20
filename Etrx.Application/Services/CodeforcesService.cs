@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Repositories.UnitOfWork;
-using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Domain.Models.ParsingModels.Dl;
@@ -146,9 +145,6 @@ public class CodeforcesService : ICodeforcesService
             }
 
             contestEntity.Gym = gym;
-
-            contestEntity.Division = ContestExpressions.GetDivisionFromContestName(incomingContest.Name);
-
             contestsToUpsert.Add(contestEntity);
 
             ContestTranslation contestTranslationEntity;
