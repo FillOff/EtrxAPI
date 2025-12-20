@@ -1,4 +1,5 @@
 ﻿using Etrx.Application.Queries;
+using Etrx.Domain.Enums;
 using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using LinqKit;
@@ -46,19 +47,10 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 pt.Name.Contains(parameters.ProblemName)));
         }
 
-        if (parameters.Ranks != null && parameters.Ranks.Any())
-        {
-            var rankPredicate = RankExpressions.GetPredicate(parameters.Ranks);
-            predicate = predicate.And(rankPredicate.Expand());
-        }
-
         if (parameters.Divisions != null && parameters.Divisions.Any())
         {
-            predicate = predicate.And(p =>
-                p.Contest != null &&
-                !string.IsNullOrEmpty(p.Contest.Division) &&
-                parameters.Divisions.Contains(p.Contest.Division)
-            );
+            var divPredicate = DivisionExpressions.GetPredicate(parameters.Divisions);
+            predicate = predicate.And(divPredicate.Expand());
         }
 
         predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
@@ -97,7 +89,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 else OrderByDescending = convertedDifficultyExpr;
                 break;
 
-            case "ranks":
+            case "divisions":
             case "rating":
                 if (isAscending) OrderBy = p => p.Rating;
                 else OrderByDescending = p => p.Rating;
@@ -116,11 +108,6 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             case "index":
                 if (isAscending) OrderBy = p => p.Index;
                 else OrderByDescending = p => p.Index;
-                break;
-
-            case "division":
-                if (isAscending) OrderBy = p => p.Contest.Division;
-                else OrderByDescending = p => p.Contest.Division;
                 break;
 
             case "contestid":
