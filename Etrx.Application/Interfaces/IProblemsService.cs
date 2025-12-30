@@ -11,4 +11,5 @@ public interface IProblemsService
     Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId);
-} 
+    Task<List<string>> GetAllDivisionsAsync();
+}

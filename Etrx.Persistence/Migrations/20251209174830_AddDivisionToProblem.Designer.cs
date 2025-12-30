@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Etrx.Persistence.Migrations
 {
     [DbContext(typeof(EtrxDbContext))]
-    partial class EtrxDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251209174830_AddDivisionToProblem")]
+    partial class AddDivisionToProblem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,11 +55,6 @@ namespace Etrx.Persistence.Migrations
                     b.Property<int>("Difficulty")
                         .HasColumnType("integer")
                         .HasColumnName("difficulty");
-
-                    b.Property<string>("Division")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("division");
 
                     b.Property<int>("DurationSeconds")
                         .HasColumnType("integer")
@@ -168,6 +166,11 @@ namespace Etrx.Persistence.Migrations
                     b.Property<int>("ContestId")
                         .HasColumnType("integer")
                         .HasColumnName("contest_id");
+
+                    b.Property<string>("Division")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("division");
 
                     b.Property<Guid>("GuidContestId")
                         .HasColumnType("uuid")

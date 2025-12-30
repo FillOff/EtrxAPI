@@ -16,4 +16,5 @@ public interface IProblemsRepository : IGenericRepository<Problem>
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
     Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Problem> spec, PaginationQueryParameters pagination, string lang);
     Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers);
+    Task<List<string>> GetAllDivisionsAsync();
 }
