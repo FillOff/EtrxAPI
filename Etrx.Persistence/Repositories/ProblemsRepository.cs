@@ -51,19 +51,29 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToListAsync();
     }
 
-    public async Task<List<string>> GetAllTagsAsync(int minRating, int maxRating)
+    public async Task<List<string>> GetAllTagsAsync(int minRating, int maxRating, List<string>? divisions)
     {
-        return await _dbSet
-            .AsNoTracking()
+        var query = _dbSet.AsNoTracking()
             .Where(p =>
                 p.Tags != null &&
                 p.Rating >= minRating &&
-                p.Rating <= maxRating)
+                p.Rating <= maxRating);
+
+        if (divisions != null && divisions.Any())
+        {
+            query = query.Where(p =>
+                p.Contest != null &&
+                !string.IsNullOrEmpty(p.Contest.Division) &&
+                divisions.Contains(p.Contest.Division));
+        }
+
+        return await query
             .SelectMany(problem => problem.Tags!)
             .Distinct()
             .OrderBy(tag => tag)
             .ToListAsync();
     }
+
 
     public async Task<List<string>> GetAllIndexesAsync()
     {

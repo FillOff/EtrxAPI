@@ -2,4 +2,5 @@
 
 public record GetAllTagsRequestDto(
     int MinRating,
-    int MaxRating);
+    int MaxRating,
+    List<string>? Divisions);

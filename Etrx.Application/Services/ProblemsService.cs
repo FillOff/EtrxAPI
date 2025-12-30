@@ -125,7 +125,7 @@ public class ProblemsService : IProblemsService
 
     public async Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto)
     {
-        return await _unitOfWork.Problems.GetAllTagsAsync(dto.MinRating, dto.MaxRating);
+        return await _unitOfWork.Problems.GetAllTagsAsync(dto.MinRating, dto.MaxRating, dto.Divisions);
     }
 
     public async Task<List<string>> GetAllIndexesAsync()

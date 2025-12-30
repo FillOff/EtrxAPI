@@ -11,7 +11,7 @@ public interface IProblemsRepository : IGenericRepository<Problem>
     new Task<List<Problem>> GetAllAsync();
     Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index);
     Task<List<Problem>> GetByContestIdAsync(int contestId);
-    Task<List<string>> GetAllTagsAsync(int minRating, int maxRating);
+    Task<List<string>> GetAllTagsAsync(int minRating, int maxRating, List<string>? divisions);
     Task<List<string>> GetAllIndexesAsync();
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
     Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Problem> spec, PaginationQueryParameters pagination, string lang);
