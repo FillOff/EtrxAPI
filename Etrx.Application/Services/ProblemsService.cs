@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
-using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Application.Specifications;
-using Etrx.Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Application.Services;
 
@@ -37,7 +36,7 @@ public class ProblemsService : IProblemsService
 
         return response;
     }
-
+    
     public async Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(
         int contestId,
         string index,
@@ -81,39 +80,19 @@ public class ProblemsService : IProblemsService
         }
 
         var allowedSortFields = new List<string> { "name", "difficulty", "rating", "points", "starttime", "solvedcount", "index", "contestid" };
-        if (!string.IsNullOrEmpty(dto.SortField) && !allowedSortFields.Contains(dto.SortField.ToLowerInvariant()))
+        if (!string.IsNullOrEmpty(dto.Sorting.SortField) && !allowedSortFields.Contains(dto.Sorting.SortField.ToLowerInvariant()))
         {
             throw new Exception($"Invalid sort field. Allowed values are: {string.Join(", ", allowedSortFields)}");
         }
 
-        if (dto.Page <= 0) throw new Exception("Invalid field: Page");
-        if (dto.PageSize <= 0) throw new Exception("Invalid field: PageSize");
+        if (dto.Pagination.Page <= 0) throw new Exception("Invalid field: Page");
+        if (dto.Pagination.PageSize <= 0) throw new Exception("Invalid field: PageSize");
 
-        var queryParams = new ProblemQueryParameters(
-            new PaginationQueryParameters(dto.Page, dto.PageSize),
-            new SortingQueryParameters(dto.SortField, dto.SortOrder),
-            dto.Tags,
-            dto.Indexes,
-            dto.ProblemName,
-            dto.Ranks,
-            dto.Divisions,
-            dto.MinRating,
-            dto.MaxRating,
-            dto.MinPoints,
-            dto.MaxPoints,
-            dto.MinSolved,
-            dto.MaxSolved,
-            dto.MinDifficulty,
-            dto.MaxDifficulty,
-            dto.IsOnly,
-            dto.Lang
-        );
-
-        var spec = new ProblemsSpecification(queryParams);
+        var spec = new ProblemsSpecification(dto);
 
         var pagedResult = await _unitOfWork.Problems.GetPagedAsync<ProblemResponseDto>(
             spec,
-            queryParams.Pagination,
+            new PaginationQueryParameters(dto.Pagination.Page, dto.Pagination.PageSize),
             dto.Lang);
 
         return new ProblemWithPropsResponseDto
@@ -124,22 +103,37 @@ public class ProblemsService : IProblemsService
         );
     }
 
-    public async Task<List<string>> GetAllTagsAsync(GetAllTagsRequestDto dto)
-    {
-        return await _unitOfWork.Problems.GetAllTagsAsync(dto.MinRating, dto.MaxRating, dto.Divisions);
-    }
-
-    public async Task<List<string>> GetAllIndexesAsync()
-    {
-        return await _unitOfWork.Problems.GetAllIndexesAsync();
-    }
-
     public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
     {
         return await _unitOfWork.Problems.GetIndexesByContestIdAsync(contestId);
     }
-    public async Task<List<string>> GetAllDivisionsAsync()
+
+    public async Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto)
     {
-        return await _unitOfWork.Contests.GetAllDivisionsAsync();
+        var filteredQuery = _unitOfWork.Problems.GetFilteredQuery(dto);
+
+        var emptyDto = new GetSortProblemRequestDto { Filters = new ProblemFiltersDto() };
+        var totalQuery = _unitOfWork.Problems.GetFilteredQuery(emptyDto);
+
+        var currentFilters = await _unitOfWork.Problems.GetFiltersAsync(filteredQuery);
+        var totalBounds = await _unitOfWork.Problems.GetFiltersAsync(totalQuery);
+
+        var userCurrent = currentFilters with
+        {
+            MinRating = dto.Filters.MinRating,
+            MaxRating = dto.Filters.MaxRating,
+            MinPoints = dto.Filters.MinPoints,
+            MaxPoints = dto.Filters.MaxPoints,
+            MinSolved = dto.Filters.MinSolved,
+            MaxSolved = dto.Filters.MaxSolved,
+            MinDifficulty = dto.Filters.MinDifficulty,
+            MaxDifficulty = dto.Filters.MaxDifficulty
+        };
+
+        return new GetProblemFiltersResponseDto
+        {
+            TotalBounds = totalBounds,
+            CurrentFilters = userCurrent,
+        };
     }
 }

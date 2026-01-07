@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Domain.Enums;
 
-public enum RanksEnum
+public enum RankEnum
 {
     Rank1 = 2100,
     Rank2 = 1600,

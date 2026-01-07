@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Etrx.Application.Dtos.Common;
+using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
 using Etrx.Application.Specifications;
+using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
 using LinqKit;
@@ -51,40 +53,6 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToListAsync();
     }
 
-    public async Task<List<string>> GetAllTagsAsync(int minRating, int maxRating, List<string>? divisions)
-    {
-        var query = _dbSet.AsNoTracking()
-            .Where(p =>
-                p.Tags != null &&
-                p.Rating >= minRating &&
-                p.Rating <= maxRating);
-
-        if (divisions != null && divisions.Any())
-        {
-            query = query.Where(p =>
-                p.Contest != null &&
-                !string.IsNullOrEmpty(p.Contest.Division) &&
-                divisions.Contains(p.Contest.Division));
-        }
-
-        return await query
-            .SelectMany(problem => problem.Tags!)
-            .Distinct()
-            .OrderBy(tag => tag)
-            .ToListAsync();
-    }
-
-
-    public async Task<List<string>> GetAllIndexesAsync()
-    {
-        return await _dbSet
-            .AsNoTracking()
-            .Select(problem => problem.Index)
-            .Distinct()
-            .OrderBy(index => index)
-            .ToListAsync();
-    }
-
     public async Task<List<string>> GetIndexesByContestIdAsync(int contestId)
     {
         return await _dbSet
@@ -94,26 +62,12 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToListAsync();
     }
 
-    public async Task<List<string>> GetAllDivisionsAsync()
-    {
-        return await _dbSet
-            .AsNoTracking()
-            .Include(p => p.Contest)
-            .Where(p => p.Contest != null && !string.IsNullOrEmpty(p.Contest.Division))
-            .Select(p => p.Contest.Division)
-            .Distinct()
-            .OrderBy(d => d)
-            .ToListAsync();
-    }
-
     public async Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(
         BaseSpecification<Problem> spec,
         PaginationQueryParameters pagination,
         string lang)
     {
-        var query = _dbSet
-            .AsNoTracking()
-            .AsExpandable();
+        var query = _dbSet.AsNoTracking().AsExpandable();
 
         query = ApplySpecification(spec, query);
 
@@ -157,5 +111,60 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .ToList();
 
         return result;
+    }
+
+    public async Task<ProblemFiltersDto> GetAbsoluteBoundsAsync()
+    {
+        var query = _context.Problems.AsNoTracking();
+
+        return await GetFiltersAsync(query);
+    }
+
+    public IQueryable<Problem> GetFilteredQuery(GetSortProblemRequestDto dto)
+    {
+        var spec = new ProblemsSpecification(dto);
+
+        return _context.Problems
+            .AsNoTracking()
+            .AsExpandable()
+            .Where(spec.FilterCondition!);
+    }
+
+    public async Task<ProblemFiltersDto> GetFiltersAsync(IQueryable<Problem> query)
+    {
+        var diffExpr = ProblemExpressions.DifficultyExpression;
+
+        var stats = await query.GroupBy(p => 1)
+            .Select(g => new {
+                MinR = g.Min(p => p.Rating),
+                MaxR = g.Max(p => p.Rating),
+                MinP = g.Min(p => p.Points),
+                MaxP = g.Max(p => p.Points),
+                MinS = g.Min(p => p.SolvedCount),
+                MaxS = g.Max(p => p.SolvedCount),
+                MinD = g.Min(p => diffExpr.Invoke(p)),
+                MaxD = g.Max(p => diffExpr.Invoke(p))
+            }).FirstOrDefaultAsync();
+
+        var tags = await query.SelectMany(p => p.Tags).Distinct().ToListAsync();
+        var indexes = await query.Select(p => p.Index).Distinct().OrderBy(x => x).ToListAsync();
+        var divisions = await query.Where(p => p.Contest != null).Select(p => p.Contest.Division).Distinct().ToListAsync();
+
+        var filters = new ProblemFiltersDto
+        {
+            AvailableTags = tags,
+            AvailableIndexes = indexes,
+            AvailableDivisions = divisions,
+            MinRating = stats?.MinR ?? 0,
+            MaxRating = stats?.MaxR ?? 0,
+            MinPoints = stats?.MinP ?? 0,
+            MaxPoints = stats?.MaxP ?? 0,
+            MinSolved = stats?.MinS ?? 0,
+            MaxSolved = stats?.MaxS ?? 0,
+            MinDifficulty = stats?.MinD ?? 0,
+            MaxDifficulty = stats?.MaxD ?? 0
+        };
+
+        return filters;
     }
 }

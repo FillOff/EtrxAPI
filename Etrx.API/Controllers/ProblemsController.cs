@@ -16,7 +16,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    public async Task<ActionResult<List<ProblemResponseDto>>> GetProblemsByContestId(
+    public async Task<IActionResult> GetProblemsByContestId(
         [FromRoute] int contestId,
         [FromQuery] string lang = "ru")
     {
@@ -24,28 +24,15 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ProblemWithPropsResponseDto>> GetProblemsByPageWithSortAndFilter(
+    public async Task<IActionResult> GetProblemsByPageWithSortAndFilter(
         [FromQuery] GetSortProblemRequestDto dto)
     {
         return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto));
     }
 
-    [HttpGet("tags")]
-    public async Task<ActionResult<List<string>>> GetTagsList([FromQuery] GetAllTagsRequestDto dto)
+    [HttpGet("filters")]
+    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto)
     {
-        return Ok(await _problemsService.GetAllTagsAsync(dto));
+        return Ok(await _problemsService.GetProblemFiltersAsync(dto));
     }
-
-    [HttpGet("indexes")]
-    public async Task<ActionResult<List<string>>> GetIndexesList()
-    {
-        return Ok(await _problemsService.GetAllIndexesAsync());
-    }
-
-    [HttpGet("divisions")]
-    public async Task<ActionResult<List<string>>> GetDivisionsList()
-    {
-        return Ok(await _problemsService.GetAllDivisionsAsync());
-    }
-
 }

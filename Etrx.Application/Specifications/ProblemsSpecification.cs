@@ -1,6 +1,6 @@
-﻿using Etrx.Application.Queries;
-using Etrx.Domain.Expressions;
+﻿using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
+using Etrx.Application.Dtos.Problems;
 using LinqKit;
 using System.Linq.Expressions;
 
@@ -8,83 +8,87 @@ namespace Etrx.Application.Specifications;
 
 public class ProblemsSpecification : BaseSpecification<Problem>
 {
-    public ProblemsSpecification(ProblemQueryParameters parameters)
+    public ProblemsSpecification(GetSortProblemRequestDto dto)
     {
         var predicate = PredicateBuilder.New<Problem>(true);
+        var f = dto.Filters;
 
-        // Filtering
-
-        if (!string.IsNullOrEmpty(parameters.Tags))
-        {
-            var tagsFilter = parameters.Tags.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            if (tagsFilter.Length > 0)
-            {
-                if (parameters.IsOnly)
-                {
-                    predicate = predicate.And(p => p.Tags.Count == tagsFilter.Length && p.Tags.All(t => tagsFilter.Contains(t)));
-                }
-                else
-                {
-                    predicate = predicate.And(p => tagsFilter.All(tag => p.Tags.Contains(tag)));
-                }
-            }
-        }
-
-        if (!string.IsNullOrEmpty(parameters.Indexes))
-        {
-            var indexesFilter = parameters.Indexes.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            if (indexesFilter.Length > 0)
-            {
-                predicate = predicate.And(p => indexesFilter.Contains(p.Index));
-            }
-        }
-
-        if (!string.IsNullOrEmpty(parameters.ProblemName))
+        if (!string.IsNullOrWhiteSpace(dto.ProblemName))
         {
             predicate = predicate.And(p => p.ProblemTranslations.Any(
-                pt => pt.LanguageCode == parameters.Lang &&
-                pt.Name.Contains(parameters.ProblemName)));
+                pt => pt.LanguageCode == dto.Lang &&
+                pt.Name.Contains(dto.ProblemName)));
         }
 
-        if (parameters.Ranks != null && parameters.Ranks.Any())
+        if (f.AvailableTags != null && f.AvailableTags.Any())
         {
-            var rankPredicate = RankExpressions.GetPredicate(parameters.Ranks);
-            predicate = predicate.And(rankPredicate.Expand());
+            if (dto.IsOnly)
+            {
+                predicate = predicate.And(p =>
+                    p.Tags.Count == f.AvailableTags.Count() &&
+                    p.Tags.All(t => f.AvailableTags.Contains(t)));
+            }
+            else
+            {
+                predicate = predicate.And(p => f.AvailableTags.All(tag => p.Tags.Contains(tag)));
+            }
         }
 
-        if (parameters.Divisions != null && parameters.Divisions.Any())
+        if (f.AvailableIndexes != null && f.AvailableIndexes.Any())
+        {
+            predicate = predicate.And(p => f.AvailableIndexes.Contains(p.Index));
+        }
+
+        if (f.AvailableDivisions != null && f.AvailableDivisions.Any())
         {
             predicate = predicate.And(p =>
                 p.Contest != null &&
                 !string.IsNullOrEmpty(p.Contest.Division) &&
-                parameters.Divisions.Contains(p.Contest.Division)
+                f.AvailableDivisions.Contains(p.Contest.Division)
             );
         }
 
-        predicate = predicate.And(p => p.Rating >= parameters.MinRating && p.Rating <= parameters.MaxRating);
-        predicate = predicate.And(p => p.Points >= parameters.MinPoints && p.Points <= parameters.MaxPoints);
-        predicate = predicate.And(p => p.SolvedCount >= parameters.MinSolved && p.SolvedCount <= parameters.MaxSolved);
+        if (f.AvailableRanks != null && f.AvailableRanks.Any())
+        {
+            var rankPredicate = RankExpressions.GetPredicate(f.AvailableRanks.ToList());
+            predicate = predicate.And(rankPredicate.Expand());
+        }
+
+        if (f.MinRating.HasValue)
+            predicate = predicate.And(p => p.Rating >= f.MinRating.Value);
+        if (f.MaxRating.HasValue)
+            predicate = predicate.And(p => p.Rating <= f.MaxRating.Value);
+
+        if (f.MinPoints.HasValue)
+            predicate = predicate.And(p => p.Points >= f.MinPoints.Value);
+        if (f.MaxPoints.HasValue)
+            predicate = predicate.And(p => p.Points <= f.MaxPoints.Value);
+
+        if (f.MinSolved.HasValue)
+            predicate = predicate.And(p => p.SolvedCount >= f.MinSolved.Value);
+        if (f.MaxSolved.HasValue)
+            predicate = predicate.And(p => p.SolvedCount <= f.MaxSolved.Value);
 
         var difficultyExpr = ProblemExpressions.DifficultyExpression;
-        predicate = predicate.And(p =>
-            difficultyExpr.Invoke(p) >= parameters.MinDifficulty &&
-            difficultyExpr.Invoke(p) <= parameters.MaxDifficulty);
+
+        if (f.MinDifficulty.HasValue)
+            predicate = predicate.And(p => difficultyExpr.Invoke(p) >= f.MinDifficulty.Value);
+        if (f.MaxDifficulty.HasValue)
+            predicate = predicate.And(p => difficultyExpr.Invoke(p) <= f.MaxDifficulty.Value);
 
         FilterCondition = predicate;
 
-        // Sorting
+        bool isAsc = dto.Sorting.SortOrder.ToLower() == "asc";
 
-        bool isAscending = parameters.Sorting.SortOrder == true;
-
-        switch (parameters.Sorting.SortField.ToLowerInvariant())
+        switch (dto.Sorting.SortField.ToLowerInvariant())
         {
             case "name":
-                if (isAscending) OrderBy = p => p.ProblemTranslations.FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name;
-                else OrderByDescending = p => p.ProblemTranslations.FirstOrDefault(t => t.LanguageCode == parameters.Lang)!.Name;
+                if (isAsc) OrderBy = p => p.ProblemTranslations.FirstOrDefault(t => t.LanguageCode == dto.Lang)!.Name;
+                else OrderByDescending = p => p.ProblemTranslations.FirstOrDefault(t => t.LanguageCode == dto.Lang)!.Name;
                 break;
 
             case "starttime":
-                if (isAscending) OrderBy = p => p.Contest.StartTime;
+                if (isAsc) OrderBy = p => p.Contest.StartTime;
                 else OrderByDescending = p => p.Contest.StartTime;
                 break;
 
@@ -93,39 +97,34 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                     Expression.Convert(difficultyExpr.Body, typeof(object)),
                     difficultyExpr.Parameters);
 
-                if (isAscending) OrderBy = convertedDifficultyExpr;
+                if (isAsc) OrderBy = convertedDifficultyExpr;
                 else OrderByDescending = convertedDifficultyExpr;
                 break;
 
             case "ranks":
             case "rating":
-                if (isAscending) OrderBy = p => p.Rating;
+                if (isAsc) OrderBy = p => p.Rating;
                 else OrderByDescending = p => p.Rating;
                 break;
 
             case "points":
-                if (isAscending) OrderBy = p => p.Points;
+                if (isAsc) OrderBy = p => p.Points;
                 else OrderByDescending = p => p.Points;
                 break;
 
             case "solvedcount":
-                if (isAscending) OrderBy = p => p.SolvedCount;
+                if (isAsc) OrderBy = p => p.SolvedCount;
                 else OrderByDescending = p => p.SolvedCount;
                 break;
 
             case "index":
-                if (isAscending) OrderBy = p => p.Index;
+                if (isAsc) OrderBy = p => p.Index;
                 else OrderByDescending = p => p.Index;
-                break;
-
-            case "division":
-                if (isAscending) OrderBy = p => p.Contest.Division;
-                else OrderByDescending = p => p.Contest.Division;
                 break;
 
             case "contestid":
             default:
-                if (isAscending) OrderBy = p => p.ContestId;
+                if (isAsc) OrderBy = p => p.ContestId;
                 else OrderByDescending = p => p.ContestId;
                 break;
         }
