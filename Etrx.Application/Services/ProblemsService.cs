@@ -4,6 +4,7 @@ using Etrx.Application.Interfaces;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Application.Specifications;
+using Etrx.Domain.Expressions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Application.Services;
@@ -20,42 +21,7 @@ public class ProblemsService : IProblemsService
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
-
-    public async Task<List<ProblemResponseDto>> GetAllProblemsAsync(string lang)
-    {
-        if (lang != "ru" && lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var problems = await _unitOfWork.Problems.GetAllAsync();
-        var response = _mapper.Map<List<ProblemResponseDto>>(problems, opts =>
-        {
-            opts.Items["lang"] = lang;
-        });
-
-        return response;
-    }
     
-    public async Task<ProblemResponseDto?> GetProblemByContestIdAndIndexAsync(
-        int contestId,
-        string index,
-        string lang)
-    {
-        if (lang != "ru" && lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var problem = await _unitOfWork.Problems.GetByContestIdAndIndexAsync(contestId, index);
-        var response = _mapper.Map<ProblemResponseDto>(problem, opts =>
-        {
-            opts.Items["lang"] = lang;
-        });
-
-        return response;
-    }
-
     public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
     {
         if (lang != "ru" && lang != "en")
@@ -103,37 +69,81 @@ public class ProblemsService : IProblemsService
         );
     }
 
-    public async Task<List<string>> GetProblemsIndexesByContestIdAsync(int contestId)
-    {
-        return await _unitOfWork.Problems.GetIndexesByContestIdAsync(contestId);
-    }
-
     public async Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto)
     {
-        var filteredQuery = _unitOfWork.Problems.GetFilteredQuery(dto);
-
         var emptyDto = new GetSortProblemRequestDto { Filters = new ProblemFiltersDto() };
-        var totalQuery = _unitOfWork.Problems.GetFilteredQuery(emptyDto);
+        var totalBounds = await _unitOfWork.Problems.GetFiltersAsync(_unitOfWork.Problems.GetFilteredQuery(emptyDto));
 
-        var currentFilters = await _unitOfWork.Problems.GetFiltersAsync(filteredQuery);
-        var totalBounds = await _unitOfWork.Problems.GetFiltersAsync(totalQuery);
-
-        var userCurrent = currentFilters with
+        var contextFilters = dto.Filters with
         {
-            MinRating = dto.Filters.MinRating,
-            MaxRating = dto.Filters.MaxRating,
-            MinPoints = dto.Filters.MinPoints,
-            MaxPoints = dto.Filters.MaxPoints,
-            MinSolved = dto.Filters.MinSolved,
-            MaxSolved = dto.Filters.MaxSolved,
-            MinDifficulty = dto.Filters.MinDifficulty,
-            MaxDifficulty = dto.Filters.MaxDifficulty
+            AvailableTags = [],
+            AvailableIndexes = [],
+            AvailableDivisions = [],
+            AvailableRanks = []
+        };
+
+        var availableTags = await _unitOfWork.Problems.GetFilteredQuery(dto)
+            .SelectMany(p => p.Tags)
+            .Distinct()
+            .ToListAsync();
+
+        var idxQueryDto = dto with { Filters = dto.Filters with { AvailableIndexes = [] } };
+        var availableIndexes = await _unitOfWork.Problems.GetFilteredQuery(idxQueryDto)
+            .Select(p => p.Index)
+            .Distinct()
+            .ToListAsync();
+
+        var divQueryDto = dto with { Filters = dto.Filters with { AvailableDivisions = [] } };
+        var availableDivisions = await _unitOfWork.Problems.GetFilteredQuery(divQueryDto)
+            .Where(p => p.Contest != null && !string.IsNullOrEmpty(p.Contest.Division))
+            .Select(p => p.Contest.Division)
+            .Distinct()
+            .ToListAsync();
+
+        var ranksQueryDto = dto with { Filters = dto.Filters with { AvailableRanks = [] } };
+        var rawRatingsForRanks = await _unitOfWork.Problems.GetFilteredQuery(ranksQueryDto)
+            .Select(p => p.Rating)
+            .Distinct()
+            .ToListAsync();
+        var availableRanks = rawRatingsForRanks.Select(r => ProblemExpressions.GetRank(r)).Distinct().ToList();
+
+        var numericBoundsDto = dto with
+        {
+            Filters = dto.Filters with
+            {
+                MinRating = null,
+                MaxRating = null,
+                MinPoints = null,
+                MaxPoints = null,
+                MinSolved = null,
+                MaxSolved = null,
+                MinDifficulty = null,
+                MaxDifficulty = null
+            }
+        };
+
+        var shrunkenBounds = await _unitOfWork.Problems.GetFiltersAsync(_unitOfWork.Problems.GetFilteredQuery(numericBoundsDto));
+
+        var userCurrent = shrunkenBounds with
+        {
+            AvailableTags = availableTags,
+            AvailableIndexes = availableIndexes,
+            AvailableDivisions = availableDivisions,
+            AvailableRanks = availableRanks,
+            MinRating = shrunkenBounds.MinRating,
+            MaxRating = shrunkenBounds.MaxRating,
+            MinPoints = shrunkenBounds.MinPoints,
+            MaxPoints = shrunkenBounds.MaxPoints,
+            MinSolved = shrunkenBounds.MinSolved,
+            MaxSolved = shrunkenBounds.MaxSolved,
+            MinDifficulty = shrunkenBounds.MinDifficulty,
+            MaxDifficulty = shrunkenBounds.MaxDifficulty
         };
 
         return new GetProblemFiltersResponseDto
         {
             TotalBounds = totalBounds,
-            CurrentFilters = userCurrent,
+            CurrentFilters = userCurrent
         };
     }
 }

@@ -5,6 +5,7 @@ using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
 using Etrx.Application.Specifications;
+using Etrx.Domain.Enums;
 using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
@@ -146,6 +147,16 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
                 MaxD = g.Max(p => diffExpr.Invoke(p))
             }).FirstOrDefaultAsync();
 
+        var availableRanks = await query
+            .Select(p => p.Rating == null ? (int)RankEnum.Rank4 :
+                p.Rating >= (int)RankEnum.Rank1 ? (int)RankEnum.Rank1 :
+                p.Rating >= (int)RankEnum.Rank2 ? (int)RankEnum.Rank2 :
+                p.Rating >= (int)RankEnum.Rank3 ? (int)RankEnum.Rank3 :
+                (int)RankEnum.Rank4)
+            .Distinct()
+            .Select(r => (RankEnum)r)
+            .ToListAsync();
+
         var tags = await query.SelectMany(p => p.Tags).Distinct().ToListAsync();
         var indexes = await query.Select(p => p.Index).Distinct().OrderBy(x => x).ToListAsync();
         var divisions = await query.Where(p => p.Contest != null).Select(p => p.Contest.Division).Distinct().ToListAsync();
@@ -155,6 +166,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             AvailableTags = tags,
             AvailableIndexes = indexes,
             AvailableDivisions = divisions,
+            AvailableRanks = availableRanks,
             MinRating = stats?.MinR ?? 0,
             MaxRating = stats?.MaxR ?? 0,
             MinPoints = stats?.MinP ?? 0,

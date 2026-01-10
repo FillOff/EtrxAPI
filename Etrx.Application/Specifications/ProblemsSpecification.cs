@@ -50,7 +50,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
 
         if (f.AvailableRanks != null && f.AvailableRanks.Any())
         {
-            var rankPredicate = RankExpressions.GetPredicate(f.AvailableRanks.ToList());
+            var rankPredicate = ProblemExpressions.GetPredicate(f.AvailableRanks.ToList());
             predicate = predicate.And(rankPredicate.Expand());
         }
 
