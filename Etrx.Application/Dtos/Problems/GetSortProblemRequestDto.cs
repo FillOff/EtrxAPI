@@ -1,24 +1,13 @@
-﻿using Etrx.Domain.Enums;
+﻿using Etrx.Application.Dtos.Common;
 
 namespace Etrx.Application.Dtos.Problems;
 
-public record class GetSortProblemRequestDto(
-    int Page = 1,
-    int PageSize = 100,
-    string? Tags = null,
-    string? Indexes = null,
-    string? ProblemName = null,
-    List<RanksEnum>? Ranks = null,
-    List<string>? Divisions = null,
-    int MinRating = 0,
-    int MaxRating = 10000,
-    double MinPoints = 0,
-    double MaxPoints = 10000,
-    double MinSolved = 0,
-    double MaxSolved = 10000,
-    int MinDifficulty = 0,
-    int MaxDifficulty = 10000,
-    string SortField = "contestid",
-    bool SortOrder = true,
-    bool IsOnly = false,
-    string Lang = "ru");
+public record GetSortProblemRequestDto
+{
+    public PaginationDto Pagination { get; set; } = new();
+    public ProblemFiltersDto Filters { get; set; } = new();
+    public SortingDto Sorting { get; set; } = new();
+    public string? ProblemName { get; set; }
+    public bool IsOnly { get; set; } = false;
+    public string Lang { get; set; } = "ru";
+}
