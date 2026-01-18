@@ -1,8 +1,8 @@
-name: etrx
+version: '3.3'
 
 services:
   api:
-    container_name: api
+    container_name: etrx.api
     build:
       context: .
       dockerfile: Etrx.API/Dockerfile
@@ -15,7 +15,7 @@ services:
         condition: service_healthy
 
   db:
-    container_name: db
+    container_name: etrx.db
     image: postgres:17-alpine
     env_file: 
       - .env
