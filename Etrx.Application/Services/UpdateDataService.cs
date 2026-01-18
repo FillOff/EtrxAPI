@@ -7,7 +7,6 @@ namespace Etrx.Application.Services;
 public class UpdateDataService : IUpdateDataService
 {
     private readonly ILogger<UpdateDataService> _logger;
-    private readonly ILastUpdateTimeService _lastTimeUpdateService;
     private readonly ICodeforcesApiService _codeforcesApiService;
     private readonly ICodeforcesService _codeforcesService;
     private readonly IDlApiService _dlApiService;
@@ -15,51 +14,47 @@ public class UpdateDataService : IUpdateDataService
 
     public UpdateDataService(
         ILogger<UpdateDataService> logger,
-        ILastUpdateTimeService lastTimeUpdateService,
         ICodeforcesApiService codeforcesApiService,
         ICodeforcesService codeforcesService,
         IDlApiService dlApiService,
         IUsersService usersService)
     {
         _logger = logger;
-        _lastTimeUpdateService = lastTimeUpdateService;
         _codeforcesApiService = codeforcesApiService;
         _codeforcesService = codeforcesService;
         _dlApiService = dlApiService;
         _usersService = usersService;
     }
 
-    public async Task UpdateProblems()
+    public async Task UpdateProblemsAsync()
     {
         var (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("ru");
-        await _codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "ru");
+        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, "ru");
 
         (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("en");
-        await _codeforcesService.PostProblemsFromCodeforces(Problems!, ProblemStatistics!, "en");
+        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, "en");
 
         _logger.LogInformation($"Problems updated successfully.");
-        _lastTimeUpdateService.UpdateLastUpdateTime("problems", DateTime.Now.AddHours(3));
     }
 
-    public async Task UpdateContests()
+    public async Task UpdateContestsAsync()
     {
         var contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, "ru");
-        await _codeforcesService.PostContestsFromCodeforces(contests!, false, "ru");
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, "ru");
 
         contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, "ru");
-        await _codeforcesService.PostContestsFromCodeforces(contests!, true, "ru");
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, "ru");
 
         contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, "en");
-        await _codeforcesService.PostContestsFromCodeforces(contests!, false, "en");
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, "en");
 
         contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, "en");
-        await _codeforcesService.PostContestsFromCodeforces(contests!, true, "en");
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, "en");
 
         _logger.LogInformation($"Contests updated successfully.");
-        _lastTimeUpdateService.UpdateLastUpdateTime("contests", DateTime.Now.AddHours(3));
     }
 
-    public async Task UpdateUsers()
+    public async Task UpdateUsersAsync()
     {
         var dlUsers = await _dlApiService.GetDlUsersAsync();
         foreach ( var dlUser in dlUsers )
@@ -67,44 +62,43 @@ public class UpdateDataService : IUpdateDataService
             var handle = dlUser.Handle;
             var user = await _codeforcesApiService.GetCodeforcesUsersAsync(handle);
 
-            await _codeforcesService.PostUserFromDlCodeforces(dlUser, user[0]);
+            await _codeforcesService.PostUserFromDlCodeforcesAsync(dlUser, user[0]);
             await Task.Delay(2000);
         }
 
         _logger.LogInformation($"Users updated successfully.");
-        _lastTimeUpdateService.UpdateLastUpdateTime("users", DateTime.Now.AddHours(3));
     }
 
-    public async Task UpdateSubmissions()
+    public async Task UpdateSubmissionsAsync()
     {
         var handles = await _usersService.GetHandlesAsync();
         foreach (var handle in handles)
         {
             var submissions = await _codeforcesApiService.GetCodeforcesSubmissionsAsync(handle);
-            await _codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
+            await _codeforcesService.PostSubmissionsFromCodeforcesAsync(submissions, handle);
             await Task.Delay(2000);
         }
 
         _logger.LogInformation($"Submissions updated successfully.");
     }
 
-    public async Task UpdateSubmissionsByContestId(int contestId)
+    public async Task UpdateSubmissionsByContestIdAsync(int contestId)
     {
         var handles = await _codeforcesApiService.GetCodeforcesContestUsersAsync(await _usersService.GetHandlesAsync(), contestId);
         foreach(var handle in handles)
         {
             var submissions = await _codeforcesApiService.GetCodeforcesContestSubmissionsAsync(handle, contestId);
-            await _codeforcesService.PostSubmissionsFromCodeforces(submissions, handle);
+            await _codeforcesService.PostSubmissionsFromCodeforcesAsync(submissions, handle);
             await Task.Delay(2000);
         }
 
         _logger.LogInformation("Submissions updated successfully (contestId: {ContestId}).", contestId);
     }
 
-    public async Task UpdateRanklistRowsByContestId(int contestId)
+    public async Task UpdateRanklistRowsByContestIdAsync(int contestId)
     {
         var response = await _codeforcesApiService.GetCodeforcesRanklistRowsAsync(await _usersService.GetHandlesAsync(), contestId);
-        await _codeforcesService.PostRanklistRowsFromCodeforces(response);
+        await _codeforcesService.PostRanklistRowsFromCodeforcesAsync(response);
 
         _logger.LogInformation("RanklistRows updated successfully (contestId: {ContestId}).", contestId);
     }

@@ -16,7 +16,7 @@ public class ContestsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ContestResponseDto>> GetContestById(
+    public async Task<IActionResult> GetContestByIdAsync(
         [FromRoute] int id,
         [FromQuery] string lang = "ru")
     {
@@ -24,7 +24,7 @@ public class ContestsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<ContestWithPropsResponseDto>> GetContestsByPageWithSort(
+    public async Task<IActionResult> GetContestsByPageWithSortAsync(
         [FromQuery] GetSortContestRequestDto dto)
     {
         return Ok(await _contestsService.GetContestsByPageWithSortAsync(dto));

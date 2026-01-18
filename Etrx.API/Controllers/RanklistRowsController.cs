@@ -16,7 +16,7 @@ public class RanklistRowsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    public async Task<ActionResult<GetRanklistRowsResponseWithPropsDto>> GetRanklistRowsByContestIdWithSort(
+    public async Task<IActionResult> GetRanklistRowsByContestIdWithSortAsync(
         [FromRoute] int contestId,
         [FromQuery] GetRanklistRowsRequestDto dto)
     {

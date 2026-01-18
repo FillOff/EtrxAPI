@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
-using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Submissions;
-using Etrx.Application.Repositories.UnitOfWork;
+using Etrx.Application.Exceptions;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
+using Etrx.Application.Repositories.UnitOfWork;
 
 namespace Etrx.Application.Services;
 
@@ -18,27 +19,6 @@ public class SubmissionsService : ISubmissionsService
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-    }
-
-    public async Task<List<SubmissionsResponseDto>> GetAllSubmissionsAsync()
-    {
-        var submissions =  await _unitOfWork.Submissions.GetAllAsync();
-        var response = _mapper.Map<List<SubmissionsResponseDto>>(submissions);
-
-        return response;
-    }
-
-    public async Task<List<SubmissionsResponseDto>> GetSubmissionsByContestIdAsync(int contestId)
-    {
-        var submissions = await _unitOfWork.Submissions.GetByContestIdAsync(contestId);
-        var response = _mapper.Map<List<SubmissionsResponseDto>>(submissions);
-
-        return response;
-    }
-
-    public async Task<List<string>> GetUserParticipantTypesAsync(string handle)
-    {
-        return await _unitOfWork.Submissions.GetUserParticipantTypesAsync(handle);
     }
 
     public async Task<GetGroupSubmissionsProtocolWithPropsResponseDto> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto)
@@ -57,10 +37,10 @@ public class SubmissionsService : ISubmissionsService
     public async Task<List<GetUserContestProtocolResponseDto>> GetUserContestProtocolAsync(string handle, int contestId, GetUserContestProtocolRequestDto dto)
     {
         _ = await _unitOfWork.Users.GetByHandleAsync(handle)
-            ?? throw new Exception($"User {handle} not found");
+            ?? throw new NotFoundException($"User {handle} not found");
 
         _ = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
-            ?? throw new Exception($"Contest {contestId} not found");
+            ?? throw new NotFoundException($"Contest {contestId} not found");
 
         var queryParams = new HandleContestProtocolQueryParameters(
             handle, contestId,

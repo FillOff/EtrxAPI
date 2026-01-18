@@ -16,7 +16,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    public async Task<IActionResult> GetProblemsByContestId(
+    public async Task<IActionResult> GetProblemsByContestIdAsync(
         [FromRoute] int contestId,
         [FromQuery] string lang = "ru")
     {
@@ -24,7 +24,7 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetProblemsByPageWithSortAndFilter(
+    public async Task<IActionResult> GetProblemsByPageWithSortAndFilterAsync(
         [FromQuery] GetSortProblemRequestDto dto)
     {
         return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto));

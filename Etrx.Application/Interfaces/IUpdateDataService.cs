@@ -2,10 +2,10 @@
 
 public interface IUpdateDataService
 {
-    Task UpdateContests();
-    Task UpdateProblems();
-    Task UpdateUsers();
-    Task UpdateSubmissions();
-    Task UpdateSubmissionsByContestId(int contestId);
-    Task UpdateRanklistRowsByContestId(int contestId);
+    Task UpdateContestsAsync();
+    Task UpdateProblemsAsync();
+    Task UpdateUsersAsync();
+    Task UpdateSubmissionsAsync();
+    Task UpdateSubmissionsByContestIdAsync(int contestId);
+    Task UpdateRanklistRowsByContestIdAsync(int contestId);
 }

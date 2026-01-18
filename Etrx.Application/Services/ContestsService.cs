@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Etrx.Application.Dtos.Contests;
+using Etrx.Application.Exceptions;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
@@ -21,22 +22,6 @@ public class ContestsService : IContestsService
         _mapper = mapper;
     }
 
-    public async Task<List<ContestResponseDto>> GetAllContestsAsync(string lang)
-    {
-        if (lang != "ru" && lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var contests = await _unitOfWork.Contests.GetAllAsync();
-        var response = _mapper.Map<List<ContestResponseDto>>(contests, opt =>
-        {
-            opt.Items["lang"] = lang;
-        });
-
-        return response;
-    }
-
     public async Task<ContestResponseDto?> GetContestByIdAsync(int contestId, string lang)
     {
         if (lang != "ru" && lang != "en")
@@ -45,7 +30,7 @@ public class ContestsService : IContestsService
         }
 
         var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
-            ?? throw new Exception($"Contest {contestId} not found");
+            ?? throw new NotFoundException($"Contest {contestId} not found");
 
         var response = _mapper.Map<ContestResponseDto>(contest, opt =>
         {

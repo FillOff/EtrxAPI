@@ -4,6 +4,7 @@ using Etrx.Application.Dtos.Users;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Domain.Models;
 using Etrx.Application.Queries.Common;
+using Etrx.Application.Exceptions;
 
 namespace Etrx.Application.Services;
 
@@ -23,7 +24,7 @@ public class UsersService : IUsersService
     public async Task<UsersResponseDto?> GetUserByHandleAsync(string handle)
     {
         var user = await _unitOfWork.Users.GetByHandleAsync(handle)
-            ?? throw new Exception($"User {handle} not found");
+            ?? throw new NotFoundException($"User {handle} not found");
 
         var response = _mapper.Map<UsersResponseDto?>(user);
 

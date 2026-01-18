@@ -20,8 +20,6 @@ public static class ApplicationExtensions
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
 
-        services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
-
         services.AddHostedService<UpdateDataEvery30MinutesBackgroundService>();
         services.AddHostedService<UpdateDataPerDayBackgroundService>();
 

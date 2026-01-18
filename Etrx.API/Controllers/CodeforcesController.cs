@@ -16,49 +16,49 @@ public class CodeforcesController : ControllerBase
     }
 
     [HttpPost("problems")]
-    public async Task<IActionResult> PostAndUpdateProblemsFromCodeforces()
+    public async Task<IActionResult> PostAndUpdateProblemsFromCodeforcesAsync()
     {
-        await _updateDataService.UpdateProblems();
+        await _updateDataService.UpdateProblemsAsync();
 
         return Ok();
     }
 
     [HttpPost("contests")]
-    public async Task<IActionResult> PostAndUpdateContestsFromCodeforces()
+    public async Task<IActionResult> PostAndUpdateContestsFromCodeforcesAsync()
     {
-        await _updateDataService.UpdateContests();
+        await _updateDataService.UpdateContestsAsync();
 
         return Ok();
     }
 
     [HttpPost("users")]
-    public async Task<IActionResult> PostAndUpdateUsersFromDlCodeforces()
+    public async Task<IActionResult> PostAndUpdateUsersFromDlCodeforcesAsync()
     {
-        await _updateDataService.UpdateUsers();
+        await _updateDataService.UpdateUsersAsync();
 
         return Ok();
     }
 
     [HttpPost("submissions/{contestId:int}")]
-    public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestId([FromRoute] int contestId)
+    public async Task<IActionResult> PostAndUpdateSubmissionsFromCodeforcesByContestIdAsync([FromRoute] int contestId)
     {
-        await _updateDataService.UpdateSubmissionsByContestId(contestId);
+        await _updateDataService.UpdateSubmissionsByContestIdAsync(contestId);
 
         return Ok();
     }
 
     [HttpPost("submissions")]
-    public async Task<IActionResult> PostAndUpdateSubmissions()
+    public async Task<IActionResult> PostAndUpdateSubmissionsAsync()
     {
-        await _updateDataService.UpdateSubmissions();
+        await _updateDataService.UpdateSubmissionsAsync();
 
         return Ok();
     }
 
     [HttpPost("ranklistRows/{contestId:int}")]
-    public async Task<IActionResult> PostAndUpdateRanklistRows([FromRoute] int contestId)
+    public async Task<IActionResult> PostAndUpdateRanklistRowsAsync([FromRoute] int contestId)
     {
-        await _updateDataService.UpdateRanklistRowsByContestId(contestId);
+        await _updateDataService.UpdateRanklistRowsByContestIdAsync(contestId);
 
         return Ok();
     }
