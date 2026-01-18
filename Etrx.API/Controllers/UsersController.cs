@@ -27,4 +27,12 @@ public class UsersController : ControllerBase
     {
         return Ok(await _usersService.GetUserByHandleAsync(handle));
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAllUsersAsync()
+    {
+        await _usersService.DeleteAllUsersAsync();
+
+        return Ok();
+    }
 }
