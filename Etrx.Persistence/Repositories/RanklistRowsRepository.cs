@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Dtos.ProblemResults;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Dtos.ProblemResults;
 using Etrx.Application.Dtos.RanklistRows;
 using Etrx.Application.Queries;
 using Etrx.Application.Repositories;
@@ -40,7 +41,7 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
            .Where(rr => rr.ContestId == parameters.ContestId);
 
         // Filter by participant type
-        if (parameters.ParticipantType != "ALL")
+        if (parameters.ParticipantType != ParticipantTypes.All)
         {
             query = query.Where(rr => rr.ParticipantType == parameters.ParticipantType);
         }
@@ -74,7 +75,7 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
         );
 
         // Sorting
-        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
+        string order = parameters.Sorting.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
         combinedQuery = combinedQuery.OrderBy($"{parameters.Sorting.SortField} {order}");
 
         return await combinedQuery.ToListAsync();

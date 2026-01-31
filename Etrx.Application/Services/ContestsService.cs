@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Contests;
+using Etrx.Application.Exceptions.BadRequest;
+using Etrx.Application.Exceptions.NotFound;
 using Etrx.Application.Interfaces;
+using Etrx.Application.Providers;
 using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
@@ -21,31 +25,15 @@ public class ContestsService : IContestsService
         _mapper = mapper;
     }
 
-    public async Task<List<ContestResponseDto>> GetAllContestsAsync(string lang)
-    {
-        if (lang != "ru" && lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var contests = await _unitOfWork.Contests.GetAllAsync();
-        var response = _mapper.Map<List<ContestResponseDto>>(contests, opt =>
-        {
-            opt.Items["lang"] = lang;
-        });
-
-        return response;
-    }
-
     public async Task<ContestResponseDto?> GetContestByIdAsync(int contestId, string lang)
     {
-        if (lang != "ru" && lang != "en")
+        if (!Languages.GetAll().Contains(lang))
         {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            throw new InvalidLanguageException();
         }
 
         var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
-            ?? throw new Exception($"Contest {contestId} not found");
+            ?? throw new NotFoundException($"Contest {contestId} not found");
 
         var response = _mapper.Map<ContestResponseDto>(contest, opt =>
         {
@@ -57,20 +45,6 @@ public class ContestsService : IContestsService
 
     public async Task<ContestWithPropsResponseDto> GetContestsByPageWithSortAsync(GetSortContestRequestDto dto)
     {
-        if (dto.Lang != "ru" && dto.Lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var allowedSortFields = new List<string> { "name", "starttime", "durationseconds", "relativetimeseconds", "contestid", "gym", "iscontestloaded" };
-        if (!string.IsNullOrEmpty(dto.SortField) && !allowedSortFields.Contains(dto.SortField.ToLowerInvariant()))
-        {
-            throw new Exception($"Invalid sort field. Allowed values: {string.Join(", ", allowedSortFields)}");
-        }
-
-        if (dto.Page <= 0) throw new Exception($"Invalid field: Page");
-        if (dto.PageSize <= 0) throw new Exception($"Invalid field: PageSize");
-
         var queryParams = new ContestQueryParameters(
             new PaginationQueryParameters(dto.Page, dto.PageSize),
             new SortingQueryParameters(dto.SortField, dto.SortOrder),
@@ -88,7 +62,7 @@ public class ContestsService : IContestsService
         return new ContestWithPropsResponseDto
         (
             Contests: pagedResult.Items,
-            Properties: allowedSortFields,
+            Properties: SortingFieldsProvider.GetSortFields<ContestResponseDto>(),
             PageCount: pagedResult.TotalPagesCount
         );
     }

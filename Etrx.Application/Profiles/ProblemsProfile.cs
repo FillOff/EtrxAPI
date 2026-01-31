@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
@@ -10,7 +11,7 @@ public class ProblemsProfile : Profile
 {
     public ProblemsProfile()
     {
-        string lang = "en";
+        string lang = Languages.Ru;
 
         CreateMap<Problem, ProblemResponseDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>

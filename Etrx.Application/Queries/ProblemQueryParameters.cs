@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Queries.Common;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Queries.Common;
 using Etrx.Domain.Enums;
 
 namespace Etrx.Application.Queries;
@@ -20,4 +21,4 @@ public record ProblemQueryParameters(
     int MinDifficulty = 0,
     int MaxDifficulty = 10000,
     bool IsOnly = false,
-    string Lang = "ru");
+    string Lang = Languages.Ru);

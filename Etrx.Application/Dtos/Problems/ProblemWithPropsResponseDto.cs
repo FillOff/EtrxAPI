@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Application.Dtos.Problems;
 
 public record ProblemWithPropsResponseDto(
-    List<ProblemResponseDto> Problems,
-    List<string> Properties,
+    IEnumerable<ProblemResponseDto> Problems,
+    IEnumerable<string> Properties,
     int PageCount);

@@ -16,15 +16,23 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<UsersWithPropsResponseDto>> GetUsersWithSort(
+    public async Task<IActionResult> GetUsersWithSortAsync(
         [FromQuery] GetSortUserRequestDto dto)
     {
         return Ok(await _usersService.GetUsersWithSortAsync(dto));
     }
 
     [HttpGet("{handle}")]
-    public async Task<ActionResult<UsersResponseDto>> GetUserByHandle(string handle)
+    public async Task<IActionResult> GetUserByHandleAsync(string handle)
     {
         return Ok(await _usersService.GetUserByHandleAsync(handle));
+    }
+
+    [HttpDelete]
+    public async Task<IActionResult> DeleteAllUsersAsync()
+    {
+        await _usersService.DeleteAllUsersAsync();
+
+        return Ok();
     }
 }

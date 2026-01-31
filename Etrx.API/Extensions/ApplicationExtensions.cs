@@ -3,6 +3,9 @@ using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Services;
 using Etrx.Application.Services.Api;
 using Etrx.Application.Services.BackgroundServices;
+using Etrx.Application.Validators;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 
 namespace Etrx.API.Extensions;
 
@@ -20,12 +23,13 @@ public static class ApplicationExtensions
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
 
-        services.AddSingleton<ILastUpdateTimeService, LastUpdateTimeService>();
-
         services.AddHostedService<UpdateDataEvery30MinutesBackgroundService>();
         services.AddHostedService<UpdateDataPerDayBackgroundService>();
 
         services.AddHttpClient<IApiService, ApiService>();
+
+        services.AddValidatorsFromAssemblyContaining<GetSortUserRequestDtoValidator>();
+        services.AddFluentValidationAutoValidation();
 
         return services;
     }

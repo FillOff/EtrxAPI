@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Queries.Common;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
@@ -30,11 +31,16 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
 
     public async Task<List<User>> GetWithSortAsync(SortingQueryParameters parameters)
     {
-        string order = parameters.SortOrder == true ? "asc" : "desc";
+        string order = parameters.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
 
         return await _dbSet
             .AsNoTracking()
             .OrderBy($"{parameters.SortField} {order}")
             .ToListAsync();
+    }
+
+    public async Task DeleteAllAsync()
+    {
+        await _dbSet.ExecuteDeleteAsync();
     }
 }

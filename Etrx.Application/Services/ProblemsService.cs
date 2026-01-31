@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Exceptions.BadRequest;
 using Etrx.Application.Interfaces;
+using Etrx.Application.Providers;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Application.Specifications;
@@ -24,9 +27,9 @@ public class ProblemsService : IProblemsService
     
     public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
     {
-        if (lang != "ru" && lang != "en")
+        if (!Languages.GetAll().Contains(lang))
         {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
+            throw new InvalidLanguageException();
         }
 
         var problems = await _unitOfWork.Problems.GetByContestIdAsync(contestId);
@@ -40,20 +43,6 @@ public class ProblemsService : IProblemsService
 
     public async Task<ProblemWithPropsResponseDto> GetProblemsByPageWithSortAndFilterAsync(GetSortProblemRequestDto dto)
     {
-        if (dto.Lang != "ru" && dto.Lang != "en")
-        {
-            throw new Exception("Incorrect lang. It must be 'ru' or 'en'");
-        }
-
-        var allowedSortFields = new List<string> { "name", "difficulty", "rating", "points", "starttime", "solvedcount", "index", "contestid" };
-        if (!string.IsNullOrEmpty(dto.Sorting.SortField) && !allowedSortFields.Contains(dto.Sorting.SortField.ToLowerInvariant()))
-        {
-            throw new Exception($"Invalid sort field. Allowed values are: {string.Join(", ", allowedSortFields)}");
-        }
-
-        if (dto.Pagination.Page <= 0) throw new Exception("Invalid field: Page");
-        if (dto.Pagination.PageSize <= 0) throw new Exception("Invalid field: PageSize");
-
         var spec = new ProblemsSpecification(dto);
 
         var pagedResult = await _unitOfWork.Problems.GetPagedAsync<ProblemResponseDto>(
@@ -64,7 +53,7 @@ public class ProblemsService : IProblemsService
         return new ProblemWithPropsResponseDto
         (
             Problems: _mapper.Map<List<ProblemResponseDto>>(pagedResult.Items), 
-            Properties: allowedSortFields,
+            Properties: SortingFieldsProvider.GetSortFields<ProblemResponseDto>(),
             PageCount: pagedResult.TotalPagesCount
         );
     }

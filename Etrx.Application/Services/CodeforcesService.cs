@@ -21,7 +21,7 @@ public class CodeforcesService : ICodeforcesService
         _mapper = mapper;
     }
 
-    public async Task PostUserFromDlCodeforces(DlUser dlUser, CodeforcesUser cfUser)
+    public async Task PostUserFromDlCodeforcesAsync(DlUser dlUser, CodeforcesUser cfUser)
     {
         var existedUser = await _unitOfWork.Users.GetByHandleAsync(cfUser.Handle);
 
@@ -42,7 +42,7 @@ public class CodeforcesService : ICodeforcesService
         await _unitOfWork.Users.InsertOrUpdateAsync([userEntity]);
     }
 
-    public async Task PostProblemsFromCodeforces(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
+    public async Task PostProblemsFromCodeforcesAsync(List<CodeforcesProblem> problems, List<CodeforcesProblemStatistics> problemStatistics, string languageCode)
     {
         var identifiers = problems.Select(p => (p.ContestId, p.Index)).ToList();
         var existingProblems = await _unitOfWork.Problems.GetByContestAndIndexAsync(identifiers);
@@ -113,7 +113,7 @@ public class CodeforcesService : ICodeforcesService
         await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(translationsToUpsert);
     }
 
-    public async Task PostContestsFromCodeforces(List<CodeforcesContest> contests, bool gym, string languageCode)
+    public async Task PostContestsFromCodeforcesAsync(List<CodeforcesContest> contests, bool gym, string languageCode)
     {
         var contestIdsFromApi = contests.Select(c => c.ContestId).ToList();
         var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
@@ -170,7 +170,7 @@ public class CodeforcesService : ICodeforcesService
         await _unitOfWork.ContestTranslations.InsertOrUpdateAsync(translationsToUpsert);
     }
 
-    public async Task PostSubmissionsFromCodeforces(List<CodeforcesSubmission> submissions, string handle)
+    public async Task PostSubmissionsFromCodeforcesAsync(List<CodeforcesSubmission> submissions, string handle)
     {
         if (submissions == null || submissions.Count == 0)
         {
@@ -208,7 +208,7 @@ public class CodeforcesService : ICodeforcesService
         await _unitOfWork.Submissions.InsertOrUpdateAsync(submissionsToUpsert);
     }
 
-    public async Task PostRanklistRowsFromCodeforces(CodeforcesContestStanding contestStanding)
+    public async Task PostRanklistRowsFromCodeforcesAsync(CodeforcesContestStanding contestStanding)
     {
         var contestId = contestStanding.Contest.ContestId;
         var problemIndexes = contestStanding.Problems.Select(p => p.Index).ToList();

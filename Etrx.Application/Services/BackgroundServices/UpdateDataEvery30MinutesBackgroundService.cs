@@ -16,10 +16,10 @@ public class UpdateDataEvery30MinutesBackgroundService : UpdateDataBackgroundSer
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
 
-        await updateDataService.UpdateContests();
-        await updateDataService.UpdateProblems();
-        await updateDataService.UpdateUsers();
-        await updateDataService.UpdateSubmissions();
+        await updateDataService.UpdateContestsAsync();
+        await updateDataService.UpdateProblemsAsync();
+        await updateDataService.UpdateUsersAsync();
+        await updateDataService.UpdateSubmissionsAsync();
     }
 
     protected override TimeSpan CalculateNextDelay(bool executionSucceeded)

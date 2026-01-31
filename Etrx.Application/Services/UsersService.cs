@@ -2,8 +2,9 @@
 using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Users;
 using Etrx.Application.Repositories.UnitOfWork;
-using Etrx.Domain.Models;
 using Etrx.Application.Queries.Common;
+using Etrx.Application.Providers;
+using Etrx.Application.Exceptions.NotFound;
 
 namespace Etrx.Application.Services;
 
@@ -23,7 +24,7 @@ public class UsersService : IUsersService
     public async Task<UsersResponseDto?> GetUserByHandleAsync(string handle)
     {
         var user = await _unitOfWork.Users.GetByHandleAsync(handle)
-            ?? throw new Exception($"User {handle} not found");
+            ?? throw new NotFoundException($"User {handle} not found");
 
         var response = _mapper.Map<UsersResponseDto?>(user);
 
@@ -32,20 +33,20 @@ public class UsersService : IUsersService
 
     public async Task<UsersWithPropsResponseDto> GetUsersWithSortAsync(GetSortUserRequestDto dto)
     {
-        if (!typeof(User).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
-        {
-            throw new Exception($"Invalid field: SortField");
-        }
-
         var users = await _unitOfWork.Users.GetWithSortAsync(new SortingQueryParameters(dto.SortField, dto.SortOrder));
 
         return new UsersWithPropsResponseDto(
-            Users: _mapper.Map<List<UsersResponseDto>>(users),
-            Properties: typeof(UsersResponseDto).GetProperties().Select(p => p.Name).ToArray());
+            Users: _mapper.Map<IList<UsersResponseDto>>(users),
+            Properties: SortingFieldsProvider.GetSortFields<UsersResponseDto>());
     }
     
     public async Task<List<string>> GetHandlesAsync()
     {
         return await _unitOfWork.Users.GetHandlesAsync();
+    }
+
+    public async Task DeleteAllUsersAsync()
+    {
+        await _unitOfWork.Users.DeleteAllAsync();
     }
 }

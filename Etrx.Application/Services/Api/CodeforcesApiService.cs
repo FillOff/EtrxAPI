@@ -1,5 +1,6 @@
 ﻿using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Etrx.Application.Interfaces.Api;
+using Etrx.Application.Exceptions;
 
 namespace Etrx.Application.Services.Api;
 
@@ -14,85 +15,55 @@ public class CodeforcesApiService : ICodeforcesApiService
 
     public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesUser>>>(
+        var result = await HandleRequestAsync<List<CodeforcesUser>>(
             $"https://codeforces.com/api/user.info?handles={handlesString}&lang=ru&checkHistoricHandles=true");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-        
-        return response.Result;
+        return result;
     }
 
     public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync(string lang)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesProblemSetResult>>(
+        var result = await HandleRequestAsync<CodeforcesProblemSetResult>(
             $"https://codeforces.com/api/problemset.problems?lang={lang}");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-
         return (
-            response.Result.Problems,
-            response.Result.ProblemStatistics
+            result.Problems,
+            result.ProblemStatistics
         );
     }
 
    public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym, string lang)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesContest>>>(
+        var result = await HandleRequestAsync<List<CodeforcesContest>>(
             $"https://codeforces.com/api/contest.list?gym={gym}&lang={lang}");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-
-        return response.Result;
+        return result;
     }
 
     public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesSubmission>>>(
+        var result = await HandleRequestAsync<List<CodeforcesSubmission>>(
             $"https://codeforces.com/api/user.status?handle={handle}");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-
-        return response.Result;
+        return result;
     }
 
     public async Task<List<CodeforcesSubmission>> GetCodeforcesContestSubmissionsAsync(string handle, int contestId)
     {
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<List<CodeforcesSubmission>>>(
+        var result = await HandleRequestAsync<List<CodeforcesSubmission>>(
             $"https://codeforces.com/api/contest.status?contestId={contestId}&handle={handle}");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-
-        return response.Result;
+        return result;
     }
 
     public async Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId)
     {
         var handlesString = string.Join(";", handles);
 
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesContestStanding>>(
+        var result = await HandleRequestAsync<CodeforcesContestStanding>(
             $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
 
-        if (response.Result == null)
-        {
-            throw new Exception(response.Comment);
-        }
-
-        return response.Result.Rows
+        return result.Rows
             .SelectMany(row => row.Party.Members)
             .Select(member => member.Handle)
             .Distinct()
@@ -103,12 +74,19 @@ public class CodeforcesApiService : ICodeforcesApiService
     {
         var handlesString = string.Join(";", handles);
 
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<CodeforcesContestStanding>>(
+        var result = await HandleRequestAsync<CodeforcesContestStanding>(
             $"https://codeforces.com/api/contest.standings?&showUnofficial=true&handles={handlesString}&contestId={contestId}");
 
-        if (response.Result == null)
+        return result;
+    }
+
+    private async Task<TResult> HandleRequestAsync<TResult>(string url)
+    {
+        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<TResult>>(url);
+
+        if (response.Result is null)
         {
-            throw new Exception(response.Comment);
+            throw new CodeforcesApiException(response);
         }
 
         return response.Result;
