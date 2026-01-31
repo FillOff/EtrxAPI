@@ -6,7 +6,7 @@ namespace Etrx.Application.Dtos.Problems;
 public record GetSortProblemRequestDto
 {
     public PaginationDto Pagination { get; set; } = new();
-    public SortingDto Sorting { get; set; } = new();
+    public SortingDto Sorting { get; set; } = new() { SortField = "contestid", SortOrder = SortOrders.Asc };
     public ProblemFiltersDto Filters { get; set; } = new();
     public string? ProblemName { get; set; }
     public bool IsOnly { get; set; } = false;
