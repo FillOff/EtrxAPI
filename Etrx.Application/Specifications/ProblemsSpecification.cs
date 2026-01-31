@@ -1,6 +1,7 @@
-﻿using Etrx.Domain.Expressions;
-using Etrx.Domain.Models;
+﻿using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
+using Etrx.Domain.Expressions;
+using Etrx.Domain.Models;
 using LinqKit;
 using System.Linq.Expressions;
 
@@ -78,7 +79,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
 
         FilterCondition = predicate;
 
-        bool isAsc = dto.Sorting.SortOrder.ToLower() == "asc";
+        bool isAsc = dto.Sorting.SortOrder.ToLower() == SortOrders.Asc;
 
         switch (dto.Sorting.SortField.ToLowerInvariant())
         {

@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using Etrx.Application.Dtos.Submissions;
-using Etrx.Application.Exceptions;
+using Etrx.Application.Exceptions.NotFound;
 using Etrx.Application.Interfaces;
+using Etrx.Application.Providers;
 using Etrx.Application.Queries;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
@@ -31,7 +32,7 @@ public class SubmissionsService : ISubmissionsService
 
         return new GetGroupSubmissionsProtocolWithPropsResponseDto(
             Submissions: await _unitOfWork.Submissions.GetGroupProtocolWithSortAsync(queryParams),
-            Properties: typeof(GetGroupSubmissionsProtocolResponseDto).GetProperties().Select(p => p.Name).ToList());
+            Properties: SortingFieldsProvider.GetSortFields<GetGroupSubmissionsProtocolResponseDto>());
     }
 
     public async Task<List<GetUserContestProtocolResponseDto>> GetUserContestProtocolAsync(string handle, int contestId, GetUserContestProtocolRequestDto dto)

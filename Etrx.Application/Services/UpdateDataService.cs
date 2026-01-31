@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Interfaces;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Interfaces.Api;
 using Microsoft.Extensions.Logging;
 
@@ -28,28 +29,28 @@ public class UpdateDataService : IUpdateDataService
 
     public async Task UpdateProblemsAsync()
     {
-        var (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("ru");
-        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, "ru");
+        var (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync(Languages.Ru);
+        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, Languages.Ru);
 
-        (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync("en");
-        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, "en");
+        (Problems, ProblemStatistics) = await _codeforcesApiService.GetCodeforcesProblemsAsync(Languages.En);
+        await _codeforcesService.PostProblemsFromCodeforcesAsync(Problems!, ProblemStatistics!, Languages.En);
 
         _logger.LogInformation($"Problems updated successfully.");
     }
 
     public async Task UpdateContestsAsync()
     {
-        var contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, "ru");
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, "ru");
+        var contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.Ru);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, Languages.Ru);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, "ru");
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, "ru");
+        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.Ru);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, Languages.Ru);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, "en");
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, "en");
+        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.En);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, false, Languages.En);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, "en");
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, "en");
+        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.En);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(contests!, true, Languages.En);
 
         _logger.LogInformation($"Contests updated successfully.");
     }

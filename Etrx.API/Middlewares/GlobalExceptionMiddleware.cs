@@ -1,7 +1,9 @@
-﻿using System.Net;
-using System.Text.Json;
+﻿using Etrx.Application.Dtos.Common;
 using Etrx.Application.Exceptions;
-using Etrx.Application.Dtos.Common;
+using Etrx.Application.Exceptions.BadRequest;
+using Etrx.Application.Exceptions.NotFound;
+using System.Net;
+using System.Text.Json;
 
 namespace Etrx.API.Middlewares;
 
@@ -42,6 +44,16 @@ public class GlobalExceptionMiddleware
 
         switch (exception)
         {
+            case InvalidLanguageException inLangEx:
+                statusCode = (int)HttpStatusCode.BadRequest;
+
+                var inLangResponse = new ErrorResponseDto<string>(
+                    inLangEx.Message,
+                    statusCode);
+
+                jsonResponse = JsonSerializer.Serialize(inLangResponse);
+                break;
+
             case NotFoundException notFoundEx:
                 statusCode = (int)HttpStatusCode.NotFound;
 

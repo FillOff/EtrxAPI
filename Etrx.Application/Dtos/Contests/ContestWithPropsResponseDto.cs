@@ -1,6 +1,6 @@
 ﻿namespace Etrx.Application.Dtos.Contests;
 
 public record class ContestWithPropsResponseDto(
-    List<ContestResponseDto> Contests,
-    List<string> Properties,
+    IEnumerable<ContestResponseDto> Contests,
+    IEnumerable<string> Properties,
     int PageCount);

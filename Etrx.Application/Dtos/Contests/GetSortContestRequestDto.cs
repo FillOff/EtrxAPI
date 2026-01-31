@@ -1,4 +1,6 @@
-﻿namespace Etrx.Application.Dtos.Contests;
+﻿using Etrx.Application.Constants;
+
+namespace Etrx.Application.Dtos.Contests;
 
 public record class GetSortContestRequestDto(
     int Page = 1,
@@ -6,4 +8,4 @@ public record class GetSortContestRequestDto(
     bool? Gym = null,
     string SortField = "contestid",
     bool SortOrder = true,
-    string Lang = "ru");
+    string Lang = Languages.Ru);

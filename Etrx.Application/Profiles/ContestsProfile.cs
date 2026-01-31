@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Contests;
 using Etrx.Domain.Models;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
@@ -9,7 +10,7 @@ public class ContestsProfile : Profile
 {
     public ContestsProfile()
     {
-        string lang = "en";
+        string lang = Languages.Ru;
 
         CreateMap<Contest, ContestResponseDto>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src =>

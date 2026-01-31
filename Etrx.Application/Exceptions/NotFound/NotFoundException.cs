@@ -1,4 +1,4 @@
-﻿namespace Etrx.Application.Exceptions;
+﻿namespace Etrx.Application.Exceptions.NotFound;
 
 public class NotFoundException : Exception
 {

@@ -9,8 +9,7 @@ public class CodeforcesController : ControllerBase
 {
     private readonly IUpdateDataService _updateDataService;
 
-    public CodeforcesController(
-        IUpdateDataService updateDataService)
+    public CodeforcesController(IUpdateDataService updateDataService)
     {
         _updateDataService = updateDataService;
     }

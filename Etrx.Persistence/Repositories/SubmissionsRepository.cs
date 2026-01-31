@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Dtos.Submissions;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Dtos.Submissions;
 using Etrx.Application.Queries;
 using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
@@ -58,7 +59,7 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
 
         // Format data to GetGroupSubmissionsProtocolResponseDto
         var groupedData = query
-            .Where(s => s.Verdict == "OK")
+            .Where(s => s.Verdict == Verdicts.Ok)
             .GroupBy(s => new { s.User.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
             .Select(g => new GetGroupSubmissionsProtocolResponseDto
             {
@@ -69,7 +70,7 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
             });
 
         //Sorting
-        string order = parameters.Sorting.SortOrder == true ? "asc" : "desc";
+        string order = parameters.Sorting.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
         groupedData = groupedData.OrderBy($"{parameters.Sorting.SortField} {order}");
 
         return await groupedData.ToListAsync();

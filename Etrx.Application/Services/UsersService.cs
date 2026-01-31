@@ -2,9 +2,9 @@
 using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Users;
 using Etrx.Application.Repositories.UnitOfWork;
-using Etrx.Domain.Models;
 using Etrx.Application.Queries.Common;
-using Etrx.Application.Exceptions;
+using Etrx.Application.Providers;
+using Etrx.Application.Exceptions.NotFound;
 
 namespace Etrx.Application.Services;
 
@@ -33,16 +33,11 @@ public class UsersService : IUsersService
 
     public async Task<UsersWithPropsResponseDto> GetUsersWithSortAsync(GetSortUserRequestDto dto)
     {
-        if (!typeof(User).GetProperties().Any(p => p.Name.Equals(dto.SortField, StringComparison.InvariantCultureIgnoreCase)))
-        {
-            throw new Exception($"Invalid field: SortField");
-        }
-
         var users = await _unitOfWork.Users.GetWithSortAsync(new SortingQueryParameters(dto.SortField, dto.SortOrder));
 
         return new UsersWithPropsResponseDto(
-            Users: _mapper.Map<List<UsersResponseDto>>(users),
-            Properties: typeof(UsersResponseDto).GetProperties().Select(p => p.Name).ToArray());
+            Users: _mapper.Map<IList<UsersResponseDto>>(users),
+            Properties: SortingFieldsProvider.GetSortFields<UsersResponseDto>());
     }
     
     public async Task<List<string>> GetHandlesAsync()
