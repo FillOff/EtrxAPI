@@ -10,7 +10,7 @@ public class GetSortUserRequestDtoValidator : AbstractValidator<GetSortUserReque
     {
         var allowedSortFields = SortingFieldsProvider.GetSortFields<UsersResponseDto>();
 
-        RuleFor(x => x.SortField)
+        RuleFor(x => x.SortField.ToLower())
             .NotEmpty().WithMessage("SortField can not be empty")
             .Must(allowedSortFields.Contains).WithMessage($"SortField must be one of: {string.Join(", ", allowedSortFields)}");
 

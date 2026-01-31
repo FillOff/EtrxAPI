@@ -11,7 +11,7 @@ public class GetRanklistRowsRequestDtoValidator : AbstractValidator<GetRanklistR
     {
         var allowedSortFields = SortingFieldsProvider.GetSortFields<GetRanklistRowsResponseDto>();
 
-        RuleFor(x => x.SortField)
+        RuleFor(x => x.SortField.ToLower())
             .NotEmpty().WithMessage("SortField can not be empty")
             .Must(allowedSortFields.Contains).WithMessage($"SortField must be one of: {string.Join(", ", allowedSortFields)}");
 

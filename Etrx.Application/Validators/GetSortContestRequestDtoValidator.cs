@@ -21,7 +21,7 @@ public class GetSortContestRequestDtoValidator : AbstractValidator<GetSortContes
             .GreaterThan(0).WithMessage("Page size must be greater than zero")
             .LessThanOrEqualTo(MAX_PAGE_SIZE).WithMessage($"Page size must not exceed {MAX_PAGE_SIZE}");
 
-        RuleFor(x => x.SortField)
+        RuleFor(x => x.SortField.ToLower())
             .NotEmpty().WithMessage("SortField can not be empty")
             .Must(allowedSortFields.Contains).WithMessage($"SortField must be one of: {string.Join(", ", allowedSortFields)}");
 

@@ -32,7 +32,7 @@ public class GetGroupSubmissionsProtocolRequestDtoValidator : AbstractValidator<
         RuleFor(x => x.ContestId)
             .GreaterThan(0).When(x => x.ContestId.HasValue).WithMessage("ContestId must be greater than 0");
 
-        RuleFor(x => x.SortField)
+        RuleFor(x => x.SortField.ToLower())
             .NotEmpty().WithMessage("SortField can not be empty")
             .Must(allowedSortFields.Contains).WithMessage($"SortField must be one of: {string.Join(", ", allowedSortFields)}");
 
