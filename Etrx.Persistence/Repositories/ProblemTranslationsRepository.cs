@@ -19,7 +19,6 @@ public class ProblemTranslationsRepository : GenericRepository<ProblemTranslatio
         }
 
         return await _dbSet
-            .AsNoTracking()
             .Where(pt => 
                 pt.LanguageCode == languageCode && 
                 problemIds.Contains(pt.ProblemId))

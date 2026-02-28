@@ -36,6 +36,11 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
         await _dbSet.AddAsync(entity);
     }
 
+    public virtual async Task AddRangeAsync(IList<TEntity> entities)
+    {
+        await _dbSet.AddRangeAsync(entities);
+    }
+
     public virtual void Update(TEntity entity)
     {
         _dbSet.Update(entity);

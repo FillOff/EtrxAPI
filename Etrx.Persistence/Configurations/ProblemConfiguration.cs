@@ -21,6 +21,10 @@ public class ProblemConfiguration : IEntityTypeConfiguration<Problem>
             .HasForeignKey(p => p.GuidContestId);
 
         builder
+            .HasMany(x => x.Tags)
+            .WithMany(x => x.Problems);
+
+        builder
             .HasIndex(p => new { p.ContestId, p.Index })
             .IsUnique();
     }
