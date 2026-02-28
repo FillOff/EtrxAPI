@@ -4,6 +4,7 @@ namespace Etrx.Application.Interfaces;
 
 public interface ISubmissionsService
 {
-    Task<GetGroupSubmissionsProtocolWithPropsResponseDto> GetGroupProtocolAsync(GetGroupSubmissionsProtocolRequestDto dto);
+    Task<List<GetUsersProtocolsResponseDto>> GetUsersProtocolAsync(GetUsersProtocolRequestDto dto);
+    Task<List<GetUserProtocolResponseDto>> GetUserProtocolAsync(string handle, GetUserContestProtocolRequestDto dto);
     Task<List<GetUserContestProtocolResponseDto>> GetUserContestProtocolAsync(string handle, int contestId, GetUserContestProtocolRequestDto dto);
 }

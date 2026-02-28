@@ -4,11 +4,11 @@ using FluentValidation;
 
 namespace Etrx.Application.Validators;
 
-public class GetGroupSubmissionsProtocolRequestDtoValidator : AbstractValidator<GetGroupSubmissionsProtocolRequestDto>
+public class GetGroupSubmissionsProtocolRequestDtoValidator : AbstractValidator<GetUsersProtocolRequestDto>
 {
     public GetGroupSubmissionsProtocolRequestDtoValidator()
     {
-        var allowedSortFields = SortingFieldsProvider.GetSortFields<GetGroupSubmissionsProtocolResponseDto>();
+        var allowedSortFields = SortingFieldsProvider.GetSortFields<GetUsersProtocolsResponseDto>();
 
         RuleFor(x => x.FYear).InclusiveBetween(1900, 2100);
         RuleFor(x => x.FMonth).InclusiveBetween(1, 12);
@@ -31,13 +31,6 @@ public class GetGroupSubmissionsProtocolRequestDtoValidator : AbstractValidator<
 
         RuleFor(x => x.ContestId)
             .GreaterThan(0).When(x => x.ContestId.HasValue).WithMessage("ContestId must be greater than 0");
-
-        RuleFor(x => x.SortField.ToLower())
-            .NotEmpty().WithMessage("SortField can not be empty")
-            .Must(allowedSortFields.Contains).WithMessage($"SortField must be one of: {string.Join(", ", allowedSortFields)}");
-
-        RuleFor(x => x.SortOrder)
-            .NotNull().WithMessage("SortOrder can not be empty");
     }
 
     private bool BeAValidDate(int year, int month, int day)
@@ -45,7 +38,7 @@ public class GetGroupSubmissionsProtocolRequestDtoValidator : AbstractValidator<
         return DateTime.TryParse($"{year}-{month}-{day}", out _);
     }
 
-    private bool BeBeforeOrEqualTo(GetGroupSubmissionsProtocolRequestDto dto)
+    private bool BeBeforeOrEqualTo(GetUsersProtocolRequestDto dto)
     {
         if (!BeAValidDate(dto.FYear, dto.FMonth, dto.FDay) ||
             !BeAValidDate(dto.TYear, dto.TMonth, dto.TDay))

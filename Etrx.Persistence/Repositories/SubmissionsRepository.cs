@@ -42,50 +42,82 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
             .ToListAsync();
     }
 
-    public async Task<List<GetGroupSubmissionsProtocolResponseDto>> GetGroupProtocolWithSortAsync(GroupProtocolQueryParameters parameters)
+    public async Task<List<GetUsersProtocolsResponseDto>> GetUsersProtocolAsync(long unixFrom, long unixTo, int? contestId)
     {
         // Filter by unix time
         var query = _dbSet
             .AsNoTracking()
             .Where(s => 
-                s.CreationTimeSeconds >= parameters.UnixFrom && 
-                s.CreationTimeSeconds <= parameters.UnixTo);
+                s.CreationTimeSeconds >= unixFrom && 
+                s.CreationTimeSeconds <= unixTo);
 
         // Filter by ContestId
-        if (parameters.ContestId != null)
+        if (contestId != null)
         {
-            query = query.Where(s => s.ContestId == parameters.ContestId);
+            query = query.Where(s => s.ContestId == contestId);
         }
 
-        // Format data to GetGroupSubmissionsProtocolResponseDto
+        // Format data to GetUsersProtocolsResponseDto
         var groupedData = query
-            .Where(s => s.Verdict == Verdicts.Ok)
-            .GroupBy(s => new { s.User.Handle, s.User.LastName, s.User.FirstName, s.ContestId })
-            .Select(g => new GetGroupSubmissionsProtocolResponseDto
+            .GroupBy(s => new { s.User.Handle, s.User.LastName, s.User.FirstName })
+            .Select(g => new GetUsersProtocolsResponseDto
             {
                 Handle = g.Key.Handle,
                 UserName = g.Key.LastName + " " + g.Key.FirstName,
-                ContestId = g.Key.ContestId,
-                SolvedCount = g.Select(s => s.Index).Distinct().Count()
-            });
-
-        //Sorting
-        string order = parameters.Sorting.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
-        groupedData = groupedData.OrderBy($"{parameters.Sorting.SortField} {order}");
+                ContestsCount = g
+                    .Select(s => s.ContestId)
+                    .Distinct()
+                    .Count(),
+                SolvedCount = g
+                    .Where(s => s.Verdict == Verdicts.Ok)
+                    .Select(s => s.ContestId.ToString() + "_" + s.Index)
+                    .Distinct()
+                    .Count(),
+                LastTime = g
+                    .Max(g => g.CreationTimeSeconds)
+            })
+            .OrderByDescending(res => res.LastTime);
 
         return await groupedData.ToListAsync();
     }
 
-    public async Task<List<Submission>> GetByHandleAndContestIdAsync(HandleContestProtocolQueryParameters parameters)
+    public async Task<List<GetUserProtocolResponseDto>> GetUserProtocolAsync(string handle, long unixFrom, long unixTo)
     {
         return await _dbSet
             .AsNoTracking()
             .Include(s => s.User)
             .Where(s =>
-                s.User.Handle == parameters.Handle &&
-                s.ContestId == parameters.ContestId &&
-                s.CreationTimeSeconds >= parameters.UnixFrom &&
-                s.CreationTimeSeconds <= parameters.UnixTo)
+                s.User.Handle == handle &&
+                s.CreationTimeSeconds >= unixFrom &&
+                s.CreationTimeSeconds <= unixTo)
+            .GroupBy(s => s.ContestId)
+            .Select(g => new GetUserProtocolResponseDto
+            {
+                ContestId = g.Key,
+                SolvedCount = g
+                    .Where(s => s.Verdict == Verdicts.Ok)
+                    .Select(s => s.Index)
+                    .Distinct()
+                    .Count(),
+                LastTime = g.Max(g => g.CreationTimeSeconds)
+            })
+            .OrderByDescending(dto => dto.LastTime)
+            .ThenByDescending(dto => dto.ContestId)
+            .ToListAsync();
+    }
+
+    public async Task<List<Submission>> GetUserContestProtocolAsync(string handle, int contestId, long unixFrom, long unixTo)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Include(s => s.User)
+            .Where(s =>
+                s.User.Handle == handle &&
+                s.ContestId == contestId &&
+                s.CreationTimeSeconds >= unixFrom &&
+                s.CreationTimeSeconds <= unixTo)
+            .OrderBy(s => s.Index)
+            .ThenByDescending(s => s.CreationTimeSeconds)
             .ToListAsync();
     }
 
