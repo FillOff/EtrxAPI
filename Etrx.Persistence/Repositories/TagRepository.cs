@@ -11,9 +11,17 @@ public class TagRepository : GenericRepository<Tag>, ITagRepository
         : base(context)
     { }
 
+    public override Task<List<Tag>> GetAllAsync()
+    {
+        return _dbSet
+            .AsNoTracking()
+            .OrderByDescending(t => t.Priority)
+            .ToListAsync();
+    }
+
     public async Task<List<Tag>> GetByNamesAsync(List<string> names)
     {
-        return await _context.Tags
+        return await _dbSet
             .Where(t => names.Contains(t.Name))
             .ToListAsync();
     }
