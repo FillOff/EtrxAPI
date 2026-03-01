@@ -52,65 +52,77 @@ public class CodeforcesService : ICodeforcesService
         var existingTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(existingProblemGuids, languageCode);
         var existingTranslationsDict = existingTranslations.ToDictionary(pt => pt.ProblemId);
 
-        var contestIdsFromApi = problems.Select(p => p.ContestId).ToList();
-        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(contestIdsFromApi);
+        var existingContests = await _unitOfWork.Contests.GetByContestIdsAsync(problems.Select(p => p.ContestId).ToList());
         var existingContestsDict = existingContests.ToDictionary(c => c.ContestId);
 
         var statisticsDict = problemStatistics.ToDictionary(s => (s.ContestId, s.Index));
 
-        List<Problem> problemsToUpsert = [];
-        List<ProblemTranslation> translationsToUpsert = [];
+        var allIncomingTagNames = problems.SelectMany(p => p.Tags).Distinct().ToList();
+        var existingTags = await _unitOfWork.Tags.GetByNamesAsync(allIncomingTagNames);
+        var tagsDict = existingTags.ToDictionary(t => t.Name);
+
+        var newTags = allIncomingTagNames
+            .Where(name => !tagsDict.ContainsKey(name))
+            .Select(name => new Tag { Id = Guid.NewGuid(), Name = name })
+            .ToList();
+
+        if (newTags.Any())
+        {
+            foreach (var tag in newTags)
+            {
+                await _unitOfWork.Tags.AddAsync(tag);
+                tagsDict[tag.Name] = tag;
+            }
+        }
 
         foreach (var incomingProblem in problems)
         {
-            Guid problemId;
-            Problem problemEntity;
-
-            var existingContest = existingContestsDict[incomingProblem.ContestId];
-
-            if (existingContest is null)
-            {
+            if (!existingContestsDict.TryGetValue(incomingProblem.ContestId, out var existingContest))
                 continue;
-            }
 
             var problemKey = (incomingProblem.ContestId, incomingProblem.Index);
             statisticsDict.TryGetValue(problemKey, out var stats);
-            var solvedCount = stats?.SolvedCount ?? 0;
+
+            Problem problemEntity;
+            bool isNewProblem = false;
 
             if (existingProblemsDict.TryGetValue(problemKey, out var existingProblem))
             {
                 problemEntity = existingProblem;
-                problemId = existingProblem.Id;
                 _mapper.Map(incomingProblem, problemEntity);
             }
             else
             {
+                isNewProblem = true;
                 problemEntity = _mapper.Map<Problem>(incomingProblem);
-                problemId = Guid.NewGuid();
-                problemEntity.Id = problemId;
+                problemEntity.Id = Guid.NewGuid();
+                await _unitOfWork.Problems.AddAsync(problemEntity);
             }
 
-            problemEntity.SolvedCount = solvedCount;
+            problemEntity.SolvedCount = stats?.SolvedCount ?? 0;
             problemEntity.GuidContestId = existingContest.Id;
-            problemsToUpsert.Add(problemEntity);
 
-            ProblemTranslation problemTranslationEntity;
-            if (existingTranslationsDict.TryGetValue(problemId, out var existingTranslation))
+            problemEntity.Tags.Clear();
+            foreach (var tagName in incomingProblem.Tags)
             {
-                problemTranslationEntity = existingTranslation;
-                _mapper.Map(incomingProblem, problemTranslationEntity);
+                if (tagsDict.TryGetValue(tagName, out var tag))
+                    problemEntity.Tags.Add(tag);
+            }
+
+            if (existingTranslationsDict.TryGetValue(problemEntity.Id, out var existingTranslation))
+            {
+                _mapper.Map(incomingProblem, existingTranslation);
             }
             else
             {
-                problemTranslationEntity = _mapper.Map<ProblemTranslation>(incomingProblem);
-                problemTranslationEntity.ProblemId = problemId;
-                problemTranslationEntity.LanguageCode = languageCode;
+                var translation = _mapper.Map<ProblemTranslation>(incomingProblem);
+                translation.ProblemId = problemEntity.Id;
+                translation.LanguageCode = languageCode;
+                await _unitOfWork.ProblemTranslations.AddAsync(translation);
             }
-            translationsToUpsert.Add(problemTranslationEntity);
         }
 
-        await _unitOfWork.Problems.InsertOrUpdateAsync(problemsToUpsert);
-        await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(translationsToUpsert);
+        await _unitOfWork.SaveAsync();
     }
 
     public async Task PostContestsFromCodeforcesAsync(List<CodeforcesContest> contests, bool gym, string languageCode)

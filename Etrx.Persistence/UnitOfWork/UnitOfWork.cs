@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private IProblemResultsRepository? _problemResultsRepository;
     private ISubmissionsRepository? _submissionsRepository;
     private IUsersRepository? _usersRepository;
+    private ITagRepository? _tagRepository;
 
     public UnitOfWork(EtrxDbContext dbContext, IMapper mapper)
     {
@@ -95,6 +96,15 @@ public class UnitOfWork : IUnitOfWork
         {
             _usersRepository ??= new UsersRepository(_dbContext);
             return _usersRepository;
+        }
+    }
+
+    public ITagRepository Tags
+    {
+        get
+        {
+            _tagRepository ??= new TagRepository(_dbContext);
+            return _tagRepository;
         }
     }
 

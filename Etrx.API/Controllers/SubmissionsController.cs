@@ -16,14 +16,22 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetGroupProtocolAsync(
-        [FromQuery] GetGroupSubmissionsProtocolRequestDto dto)
+    public async Task<IActionResult> GetUsersProtocolAsync(
+        [FromQuery] GetUsersProtocolRequestDto dto)
     {
-        return Ok(await _submissionsService.GetGroupProtocolAsync(dto));
+        return Ok(await _submissionsService.GetUsersProtocolAsync(dto));
+    }
+
+    [HttpGet("{handle}")]
+    public async Task<IActionResult> GetUserContestProtocolAsync(
+        [FromRoute] string handle,
+        [FromQuery] GetUserContestProtocolRequestDto dto)
+    {
+        return Ok(await _submissionsService.GetUserProtocolAsync(handle, dto));
     }
 
     [HttpGet("{handle}/{contestId:int}")]
-    public async Task<IActionResult> GetUserContestIdProtocolAsync(
+    public async Task<IActionResult> GetUserContestProtocolAsync(
         [FromRoute] string handle,
         [FromRoute] int contestId,
         [FromQuery] GetUserContestProtocolRequestDto dto)

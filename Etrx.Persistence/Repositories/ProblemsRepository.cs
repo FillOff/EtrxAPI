@@ -49,6 +49,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags.OrderByDescending(t => t.Priority))
             .Where(p => p.ContestId == contestId)
             .OrderBy("index asc")
             .ToListAsync();
@@ -99,9 +100,9 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         var contestIds = identifiers.Select(id => id.ContestId).Distinct().ToList();
 
         var problemsFromDb = await _dbSet
-            .AsNoTracking()
             .Include(p => p.ProblemTranslations)
             .Include(p => p.Contest)
+            .Include(p => p.Tags.OrderByDescending(t => t.Priority))
             .Where(p => contestIds.Contains(p.ContestId))
             .ToListAsync();
 
@@ -157,7 +158,18 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .Select(r => (RankEnum)r)
             .ToListAsync();
 
-        var tags = await query.SelectMany(p => p.Tags).Distinct().ToListAsync();
+        var tags = await query
+            .SelectMany(p => p.Tags)
+            .GroupBy(t => t.Name)
+            .Select(g => new
+            {
+                Name = g.Key,
+                Priority = g.Max(t => t.Priority)
+            })
+            .OrderByDescending(x => x.Priority)
+            .ThenBy(x => x.Name)
+            .Select(x => x.Name)
+            .ToListAsync();
         var indexes = await query.Select(p => p.Index).Distinct().OrderBy(x => x).ToListAsync();
         var divisions = await query.Where(p => p.Contest != null).Select(p => p.Contest.Division).Distinct().ToListAsync();
 

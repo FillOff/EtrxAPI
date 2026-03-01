@@ -10,6 +10,7 @@ public interface IUnitOfWork : IAsyncDisposable
     IProblemResultsRepository ProblemResults { get; }
     ISubmissionsRepository Submissions { get; }
     IUsersRepository Users { get; }
+    ITagRepository Tags { get; }
 
     Task SaveAsync();
 }

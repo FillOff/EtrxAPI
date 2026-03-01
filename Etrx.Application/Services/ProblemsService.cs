@@ -73,7 +73,15 @@ public class ProblemsService : IProblemsService
 
         var availableTags = await _unitOfWork.Problems.GetFilteredQuery(dto)
             .SelectMany(p => p.Tags)
-            .Distinct()
+            .GroupBy(t => t.Name)
+            .Select(g => new
+            {
+                Name = g.Key,
+                Priority = g.Max(t => t.Priority) 
+            })
+            .OrderByDescending(x => x.Priority) 
+            .ThenBy(x => x.Name)
+            .Select(x => x.Name)
             .ToListAsync();
 
         var idxQueryDto = dto with { Filters = dto.Filters with { AvailableIndexes = [] } };

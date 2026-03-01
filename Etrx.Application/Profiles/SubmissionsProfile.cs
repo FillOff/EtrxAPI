@@ -9,7 +9,8 @@ public class SubmissionsProfile : Profile
 {
     public SubmissionsProfile()
     {
-        CreateMap<Submission, GetUserContestProtocolResponseDto>();
+        CreateMap<Submission, GetUserContestProtocolResponseDto>()
+            .ForMember(dest => dest.Time, opt => opt.MapFrom(src => src.CreationTimeSeconds));
 
         CreateMap<CodeforcesSubmission, Submission>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

@@ -13,5 +13,5 @@ public class Problem : Entity
     public double Points { get; set; } = 0;
     public int Rating { get; set; } = 0;
     public int SolvedCount { get; set; } = 0;
-    public List<string> Tags { get; set; } = [];
+    public List<Tag> Tags { get; set; } = [];
 }

@@ -27,11 +27,16 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             {
                 predicate = predicate.And(p =>
                     p.Tags.Count == f.AvailableTags.Count() &&
-                    p.Tags.All(t => f.AvailableTags.Contains(t)));
+                    p.Tags.All(t => f.AvailableTags.Contains(t.Name)));
             }
             else
             {
-                predicate = predicate.And(p => f.AvailableTags.All(tag => p.Tags.Contains(tag)));
+                foreach (var tagName in f.AvailableTags)
+                {
+                    var name = tagName;
+                    predicate = predicate.And(p => p.Tags.Any(t => t.Name == name));
+                }
+
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using Etrx.Domain.Enums;
+using Etrx.Domain.Models;
 
 namespace Etrx.Application.Dtos.Problems;
 

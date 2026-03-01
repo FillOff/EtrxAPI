@@ -32,13 +32,15 @@ public class ProblemsProfile : Profile
             .ForMember(dest => dest.Difficulty, opt => opt.MapFrom(ProblemExpressions.DifficultyExpression))
             .ForMember(dest => dest.SolvedCount, opt => opt.MapFrom(src => src.SolvedCount))
             .ForMember(dest => dest.Rank, opt => opt.MapFrom(src => ProblemExpressions.GetRank(src.Rating)))
-            .ForMember(dest => dest.Division, opt => opt.MapFrom(src => src.Contest.Division));
+            .ForMember(dest => dest.Division, opt => opt.MapFrom(src => src.Contest.Division))
+            .ForMember(dest => dest.Tags, opt => opt.MapFrom(src => src.Tags.OrderByDescending(t => t.Priority).Select(t => t.Name)));
 
         CreateMap<CodeforcesProblem, Problem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.SolvedCount, opt => opt.Ignore())
             .ForMember(dest => dest.ProblemTranslations, opt => opt.Ignore())
-            .ForMember(dest => dest.GuidContestId, opt => opt.Ignore());
+            .ForMember(dest => dest.GuidContestId, opt => opt.Ignore())
+            .ForMember(dest => dest.Tags, opt => opt.Ignore());
 
         CreateMap<CodeforcesProblem, ProblemTranslation>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
