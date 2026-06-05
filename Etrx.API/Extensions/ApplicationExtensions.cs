@@ -1,5 +1,6 @@
 ﻿using Etrx.Application.Interfaces;
 using Etrx.Application.Interfaces.Api;
+using Etrx.Application.Options;
 using Etrx.Application.Services;
 using Etrx.Application.Services.Api;
 using Etrx.Application.Services.BackgroundServices;
@@ -24,13 +25,26 @@ public static class ApplicationExtensions
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
 
-        services.AddHostedService<UpdateDataEvery30MinutesBackgroundService>();
-        services.AddHostedService<UpdateDataPerDayBackgroundService>();
-
         services.AddHttpClient<IApiService, ApiService>();
 
         services.AddValidatorsFromAssemblyContaining<GetSortUserRequestDtoValidator>();
         services.AddFluentValidationAutoValidation();
+
+        return services;
+    }
+
+    public static IServiceCollection AddBackgroundServices(this IServiceCollection services)
+    {
+        services.AddHostedService<UpdateDataEvery30MinutesBackgroundService>();
+        services.AddHostedService<UpdateDataPerDayBackgroundService>();
+
+        return services;
+    }
+
+    public static IServiceCollection ConfigureOptions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<CodeforcesOptions>(
+            configuration.GetSection(CodeforcesOptions.SectionName));
 
         return services;
     }

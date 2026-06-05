@@ -1,16 +1,24 @@
-﻿using Etrx.Domain.Models.ParsingModels.Codeforces;
+﻿using Etrx.Application.Exceptions;
 using Etrx.Application.Interfaces.Api;
-using Etrx.Application.Exceptions;
+using Etrx.Application.Options;
+using Etrx.Domain.Models.ParsingModels.Codeforces;
+using Microsoft.Extensions.Options;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Etrx.Application.Services.Api;
 
 public class CodeforcesApiService : ICodeforcesApiService
 {
     private readonly IApiService _apiService;
+    private readonly CodeforcesOptions _codeforcesOptions;
 
-    public CodeforcesApiService(IApiService apiService)
+    public CodeforcesApiService(
+        IApiService apiService,
+        IOptions<CodeforcesOptions> options)
     {
         _apiService = apiService;
+        _codeforcesOptions = options.Value;
     }
 
     public async Task<List<CodeforcesUser>> GetCodeforcesUsersAsync(string handlesString)
@@ -21,29 +29,27 @@ public class CodeforcesApiService : ICodeforcesApiService
         return result;
     }
 
-    public async Task<(List<CodeforcesProblem> Problems, List<CodeforcesProblemStatistics> ProblemStatistics)> GetCodeforcesProblemsAsync(string lang)
+    public async Task<CodeforcesProblemSetResult> GetCodeforcesProblemsAsync(string lang)
     {
         var result = await HandleRequestAsync<CodeforcesProblemSetResult>(
             $"https://codeforces.com/api/problemset.problems?lang={lang}");
 
-        return (
-            result.Problems,
-            result.ProblemStatistics
-        );
+        return result;
     }
 
    public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym, string lang)
     {
         var result = await HandleRequestAsync<List<CodeforcesContest>>(
             $"https://codeforces.com/api/contest.list?gym={gym}&lang={lang}");
-
+        
         return result;
     }
 
     public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
     {
-        var result = await HandleRequestAsync<List<CodeforcesSubmission>>(
-            $"https://codeforces.com/api/user.status?handle={handle}");
+        var parameters = new Dictionary<string, string> { { "handle", handle } };
+        var url = BuildUrl("user.status", parameters);
+        var result = await HandleRequestAsync<List<CodeforcesSubmission>>(url);
 
         return result;
     }
@@ -56,37 +62,97 @@ public class CodeforcesApiService : ICodeforcesApiService
         return result;
     }
 
-    public async Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId)
+    public async Task<List<string>> GetCodeforcesContestUsersAsync(List<string> handles, int contestId, bool isGym)
     {
-        var handlesString = string.Join(";", handles);
-
-        var result = await HandleRequestAsync<CodeforcesContestStanding>(
-            $"https://codeforces.com/api/contest.standings?&showUnofficial=true&contestId={contestId}&handles={handlesString}");
+        var result = await GetCodeforcesRanklistRowsAsync(handles, contestId, isGym);
+        var searchSet = new HashSet<string>(handles, StringComparer.OrdinalIgnoreCase);
 
         return result.Rows
             .SelectMany(row => row.Party.Members)
             .Select(member => member.Handle)
+            .Where(searchSet.Contains)
             .Distinct()
             .ToList();
     }
 
-    public async Task<CodeforcesContestStanding> GetCodeforcesRanklistRowsAsync(List<string> handles, int contestId)
+    public async Task<CodeforcesContestStanding> GetCodeforcesRanklistRowsAsync(List<string> handles, int contestId, bool isGym)
     {
-        var handlesString = string.Join(";", handles);
+        CodeforcesContestStanding result;
+        var searchSet = new HashSet<string>(handles, StringComparer.OrdinalIgnoreCase);
 
-        var result = await HandleRequestAsync<CodeforcesContestStanding>(
-            $"https://codeforces.com/api/contest.standings?&showUnofficial=true&handles={handlesString}&contestId={contestId}");
+        if (isGym)
+        {
+            var parameters = new Dictionary<string, string>
+        {
+            { "contestId", contestId.ToString() },
+            { "handles", string.Join(";", handles) },
+            { "showUnofficial", "true" }
+        };
+
+            var url = BuildUrl("contest.standings", parameters);
+            result = await HandleRequestAsync<CodeforcesContestStanding>(url);
+        }
+        else
+        {
+            var url = $"https://codeforces.com/api/contest.standings?contestId={contestId}";
+            result = await HandleRequestAsync<CodeforcesContestStanding>(url);
+        }
+
+        result.Rows = result.Rows
+            .Where(row => row.Party.Members.Any(m => searchSet.Contains(m.Handle)))
+            .ToList();
 
         return result;
     }
 
+
+    private string BuildUrl(string methodName, Dictionary<string, string> parameters)
+    {
+        parameters["apiKey"] = _codeforcesOptions.Key;
+        parameters["time"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+        var sortedParams = parameters
+            .OrderBy(p => p.Key)
+            .ThenBy(p => p.Value)
+            .Select(p => $"{p.Key}={p.Value}")
+            .ToList();
+
+        var queryString = string.Join("&", sortedParams);
+        var rand = GenerateRandomString(6);
+        var toHash = $"{rand}/{methodName}?{queryString}#{_codeforcesOptions.Secret}";
+        var hash = ComputeSha512Hash(toHash);
+        var apiSig = $"{rand}{hash}";
+
+        var url = $"https://codeforces.com/api/{methodName}?{queryString}&apiSig={apiSig}";
+        
+        return url;
+    }
+
+    private string GenerateRandomString(int length)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+        var random = new Random();
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
+    }
+
+    private string ComputeSha512Hash(string input)
+    {
+        using var sha512 = SHA512.Create();
+        var bytes = Encoding.UTF8.GetBytes(input);
+        var hashBytes = sha512.ComputeHash(bytes);
+        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+    }
+
+
     private async Task<TResult> HandleRequestAsync<TResult>(string url)
     {
+        Console.WriteLine(url);
         var response = await _apiService.GetApiDataAsync<CodeforcesResponse<TResult>>(url);
-
+        
         if (response.Result is null)
         {
-            throw new CodeforcesApiException(response);
+            throw new CodeforcesApiException(response.Comment);
         }
 
         return response.Result;
