@@ -25,7 +25,7 @@ public static class ApplicationExtensions
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
 
-        services.AddHttpClient<IApiService, ApiService>();
+        services.AddHttpClient<ApiService>();
 
         services.AddValidatorsFromAssemblyContaining<GetSortUserRequestDtoValidator>();
         services.AddFluentValidationAutoValidation();

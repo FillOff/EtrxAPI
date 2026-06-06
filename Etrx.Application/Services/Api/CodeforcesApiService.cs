@@ -1,23 +1,23 @@
-﻿using Etrx.Application.Exceptions;
+﻿using Etrx.Application.Exceptions.Api;
 using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Options;
 using Etrx.Domain.Models.ParsingModels.Codeforces;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace Etrx.Application.Services.Api;
 
-public class CodeforcesApiService : ICodeforcesApiService
+public class CodeforcesApiService : ApiService, ICodeforcesApiService
 {
-    private readonly IApiService _apiService;
     private readonly CodeforcesOptions _codeforcesOptions;
 
     public CodeforcesApiService(
-        IApiService apiService,
+        HttpClient httpClient, 
         IOptions<CodeforcesOptions> options)
+        : base(httpClient)
     {
-        _apiService = apiService;
         _codeforcesOptions = options.Value;
     }
 
@@ -37,7 +37,7 @@ public class CodeforcesApiService : ICodeforcesApiService
         return result;
     }
 
-   public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym, string lang)
+    public async Task<List<CodeforcesContest>> GetCodeforcesContestsAsync(bool gym, string lang)
     {
         var result = await HandleRequestAsync<List<CodeforcesContest>>(
             $"https://codeforces.com/api/contest.list?gym={gym}&lang={lang}");
@@ -144,17 +144,28 @@ public class CodeforcesApiService : ICodeforcesApiService
         return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }
 
-
-    private async Task<TResult> HandleRequestAsync<TResult>(string url)
+    protected override async Task<TResult> HandleRequestAsync<TResult>(string url)
     {
-        Console.WriteLine(url);
-        var response = await _apiService.GetApiDataAsync<CodeforcesResponse<TResult>>(url);
-        
-        if (response.Result is null)
-        {
-            throw new CodeforcesApiException(response.Comment);
-        }
+        using var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
 
-        return response.Result;
+        try
+        {
+            var apiResponse = await DeserializeAsync<CodeforcesResponse<TResult>>(response);
+
+            if (apiResponse.Status != "OK" || apiResponse.Result is null)
+            {
+                throw new CodeforcesApiException(
+                    apiResponse.Comment,
+                    response.StatusCode,
+                    url);
+            }
+
+            return apiResponse.Result;
+        }
+        catch (JsonException)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new ApiException("Failed to parse Codeforces response", response.StatusCode, url, body);
+        }
     }
 }
