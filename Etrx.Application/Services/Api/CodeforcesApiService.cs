@@ -83,11 +83,11 @@ public class CodeforcesApiService : ApiService, ICodeforcesApiService
         if (isGym)
         {
             var parameters = new Dictionary<string, string>
-        {
-            { "contestId", contestId.ToString() },
-            { "handles", string.Join(";", handles) },
-            { "showUnofficial", "true" }
-        };
+            {
+                { "contestId", contestId.ToString() },
+                { "handles", string.Join(";", handles) },
+                { "showUnofficial", "true" }
+            };
 
             var url = BuildUrl("contest.standings", parameters);
             result = await HandleRequestAsync<CodeforcesContestStanding>(url);
