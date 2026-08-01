@@ -22,7 +22,7 @@ public abstract class UpdateDataBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("{ServiceName} is starting.", GetType().Name);
+        _logger.LogInformation("{ServiceName} is starting", GetType().Name);
         await Task.Delay(5000, stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -36,11 +36,11 @@ public abstract class UpdateDataBackgroundService : BackgroundService
                 await ProcessAsync(scope.ServiceProvider, stoppingToken);
 
                 executionSucceeded = true;
-                _logger.LogInformation("{ServiceName} finished task successfully.", GetType().Name);
+                _logger.LogInformation("{ServiceName} finished task successfully", GetType().Name);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred in {ServiceName}.", GetType().Name);
+                _logger.LogError(ex, "An error occurred in {ServiceName}", GetType().Name);
                 executionSucceeded = false;
             }
 
@@ -53,6 +53,6 @@ public abstract class UpdateDataBackgroundService : BackgroundService
             await Task.Delay(delay, stoppingToken);
         }
 
-        _logger.LogInformation("{ServiceName} is stopping.", GetType().Name);
+        _logger.LogInformation("{ServiceName} is stopping", GetType().Name);
     }
 }

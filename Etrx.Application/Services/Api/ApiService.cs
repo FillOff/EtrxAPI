@@ -19,7 +19,7 @@ public abstract class ApiService
 
         var serializer = new JsonSerializer();
         return serializer.Deserialize<T>(jsonReader)
-            ?? throw new InvalidOperationException("Response body is empty.");
+            ?? throw new InvalidOperationException("Response body is empty");
     }
 
     protected abstract Task<TResult> HandleRequestAsync<TResult>(string url);
