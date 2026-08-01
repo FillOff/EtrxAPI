@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/contests")]
 public class ContestsController : ControllerBase
 {
     private readonly IContestsService _contestsService;

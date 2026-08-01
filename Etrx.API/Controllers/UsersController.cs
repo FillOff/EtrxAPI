@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
     private readonly IUsersService _usersService;

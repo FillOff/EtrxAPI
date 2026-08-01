@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/problems")]
 public class ProblemsController : ControllerBase
 {
     private readonly IProblemsService _problemsService;

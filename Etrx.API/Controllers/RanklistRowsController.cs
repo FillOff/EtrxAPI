@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/ranklistRows")]
 public class RanklistRowsController : ControllerBase
 {
     private readonly IRanklistRowsService _ranklistRowsService;

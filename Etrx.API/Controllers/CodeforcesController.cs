@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/codeforces")]
 public class CodeforcesController : ControllerBase
 {
     private readonly IUpdateDataService _updateDataService;

@@ -5,7 +5,7 @@ using Etrx.Application.Dtos.Submissions;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/submissions")]
 public class SubmissionsController : ControllerBase
 {
     private readonly ISubmissionsService _submissionsService;

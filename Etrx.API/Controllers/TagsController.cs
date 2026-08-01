@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Route("/api/[controller]")]
+[Route("/api/tags")]
 public class TagsController : ControllerBase
 {
     private readonly ITagService _tagService;
