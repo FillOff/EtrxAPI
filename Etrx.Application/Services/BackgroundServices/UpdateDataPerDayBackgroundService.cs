@@ -22,7 +22,15 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
 
         foreach (var contest in last10Contests)
         {
-            await updateDataService.UpdateRanklistRowsByContestIdAsync(contest.ContestId);
+            if (contest.Source == "IOI")
+            {
+                await updateDataService.UpdateIoiRanklistRowsByContestIdAsync(contest.ContestId);
+            }
+            else
+            {
+                await updateDataService.UpdateRanklistRowsByContestIdAsync(contest.ContestId);
+            }
+
             await Task.Delay(2000, cancellationToken);
         }
     }

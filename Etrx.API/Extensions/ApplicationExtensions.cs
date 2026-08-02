@@ -7,6 +7,7 @@ using Etrx.Application.Services.BackgroundServices;
 using Etrx.Application.Validators;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using System.Net;
 
 namespace Etrx.API.Extensions;
 
@@ -20,10 +21,18 @@ public static class ApplicationExtensions
         services.AddScoped<ISubmissionsService, SubmissionsService>();
         services.AddScoped<IRanklistRowsService, RanklistRowsService>();
         services.AddScoped<ICodeforcesService, CodeforcesService>();
+        services.AddScoped<IIoiCodeforcesService, IoiCodeforcesService>();
         services.AddScoped<ICodeforcesApiService, CodeforcesApiService>();
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddHttpClient<IIoiCodeforcesApiService, IoiCodeforcesApiService>()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = new CookieContainer(),
+                AllowAutoRedirect = true
+            });
 
         services.AddHttpClient<ApiService>();
 

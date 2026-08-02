@@ -9,4 +9,5 @@ public class ContestResponseDto
     public long? RelativeTimeSeconds { get; set; }
     public bool IsContestLoaded { get; set; }
     public bool Gym { get; set; }
+    public string Source { get; set; } = string.Empty;
 }

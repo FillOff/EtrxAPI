@@ -8,4 +8,6 @@ public interface IUpdateDataService
     Task UpdateSubmissionsAsync();
     Task UpdateSubmissionsByContestIdAsync(int contestId);
     Task UpdateRanklistRowsByContestIdAsync(int contestId);
+    Task UpdateIoiContestsAsync();
+    Task UpdateIoiRanklistRowsByContestIdAsync(int contestId);
 }

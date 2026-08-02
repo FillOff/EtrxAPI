@@ -158,6 +158,7 @@ public class CodeforcesService : ICodeforcesService
             }
 
             contestEntity.Gym = gym;
+            contestEntity.Source = "Codeforces";
 
             contestEntity.Division = ContestExpressions.GetDivisionFromContestName(incomingContest.Name);
 

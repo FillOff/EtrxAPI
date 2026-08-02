@@ -17,6 +17,7 @@ public class UpdateDataEvery30MinutesBackgroundService : UpdateDataBackgroundSer
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
 
         await updateDataService.UpdateContestsAsync();
+        await updateDataService.UpdateIoiContestsAsync();
         await updateDataService.UpdateProblemsAsync();
         await updateDataService.UpdateUsersAsync();
         await updateDataService.UpdateSubmissionsAsync();

@@ -102,6 +102,11 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("season");
 
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
+
                     b.Property<long>("StartTime")
                         .HasColumnType("bigint")
                         .HasColumnName("start_time");

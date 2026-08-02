@@ -9,6 +9,8 @@ public class UpdateDataService : IUpdateDataService
 {
     private readonly ICodeforcesApiService _codeforcesApiService;
     private readonly ICodeforcesService _codeforcesService;
+    private readonly IIoiCodeforcesApiService _ioiCodeforcesApiService;
+    private readonly IIoiCodeforcesService _ioiCodeforcesService;
     private readonly IDlApiService _dlApiService;
     private readonly IUsersService _usersService;
     private readonly IUnitOfWork _unitOfWork;
@@ -16,12 +18,16 @@ public class UpdateDataService : IUpdateDataService
     public UpdateDataService(
         ICodeforcesApiService codeforcesApiService,
         ICodeforcesService codeforcesService,
+        IIoiCodeforcesApiService ioiCodeforcesApiService,
+        IIoiCodeforcesService ioiCodeforcesService,
         IDlApiService dlApiService,
         IUsersService usersService,
         IUnitOfWork unitOfWork)
     {
         _codeforcesApiService = codeforcesApiService;
         _codeforcesService = codeforcesService;
+        _ioiCodeforcesApiService = ioiCodeforcesApiService;
+        _ioiCodeforcesService = ioiCodeforcesService;
         _dlApiService = dlApiService;
         _usersService = usersService;
         _unitOfWork = unitOfWork;
@@ -38,17 +44,17 @@ public class UpdateDataService : IUpdateDataService
 
     public async Task UpdateContestsAsync()
     {
-        var contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.Ru);
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests, false, Languages.Ru);
+        var codeforcesContests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.Ru);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(codeforcesContests, false, Languages.Ru);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.Ru);
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests, true, Languages.Ru);
+        codeforcesContests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.Ru);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(codeforcesContests, true, Languages.Ru);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.En);
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests, false, Languages.En);
+        codeforcesContests = await _codeforcesApiService.GetCodeforcesContestsAsync(false, Languages.En);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(codeforcesContests, false, Languages.En);
 
-        contests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.En);
-        await _codeforcesService.PostContestsFromCodeforcesAsync(contests, true, Languages.En);
+        codeforcesContests = await _codeforcesApiService.GetCodeforcesContestsAsync(true, Languages.En);
+        await _codeforcesService.PostContestsFromCodeforcesAsync(codeforcesContests, true, Languages.En);
     }
 
     public async Task UpdateUsersAsync()
@@ -96,5 +102,21 @@ public class UpdateDataService : IUpdateDataService
 
         var response = await _codeforcesApiService.GetCodeforcesRanklistRowsAsync(await _usersService.GetHandlesAsync(), contestId, contest.Gym);
         await _codeforcesService.PostRanklistRowsFromCodeforcesAsync(response);
+    }
+
+    public async Task UpdateIoiContestsAsync()
+    {
+        var contests = await _ioiCodeforcesApiService.GetContestsAsync();
+        await _ioiCodeforcesService.PostContestsAsync(contests, Languages.Ru);
+        await _ioiCodeforcesService.PostContestsAsync(contests, Languages.En);
+    }
+
+    public async Task UpdateIoiRanklistRowsByContestIdAsync(int contestId)
+    {
+        _ = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
+            ?? throw new Exception("Contest not found");
+
+        var ranklistRows = await _ioiCodeforcesApiService.GetRanklistRowsByContestIdAsync(contestId);
+        await _ioiCodeforcesService.PostRanklistRowsAsync(contestId, ranklistRows);
     }
 }

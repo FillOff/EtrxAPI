@@ -22,6 +22,7 @@ public class Contest : Entity
     public string City { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
     public bool Gym { get; set; }
+    public string Source { get; set; } = string.Empty;
     public bool IsContestLoaded { get; set; } = false;
     public string Division { get; set; } = string.Empty;
 }
