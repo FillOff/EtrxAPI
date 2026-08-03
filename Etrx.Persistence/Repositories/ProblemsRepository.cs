@@ -149,8 +149,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             }).FirstOrDefaultAsync();
 
         var availableRanks = await query
-            .Select(p => p.Rating == null ? (int)RankEnum.Rank4 :
-                p.Rating >= (int)RankEnum.Rank1 ? (int)RankEnum.Rank1 :
+            .Select(p => p.Rating >= (int)RankEnum.Rank1 ? (int)RankEnum.Rank1 :
                 p.Rating >= (int)RankEnum.Rank2 ? (int)RankEnum.Rank2 :
                 p.Rating >= (int)RankEnum.Rank3 ? (int)RankEnum.Rank3 :
                 (int)RankEnum.Rank4)

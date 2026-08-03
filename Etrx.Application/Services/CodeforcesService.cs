@@ -84,7 +84,6 @@ public class CodeforcesService : ICodeforcesService
             statisticsDict.TryGetValue(problemKey, out var stats);
 
             Problem problemEntity;
-            bool isNewProblem = false;
 
             if (existingProblemsDict.TryGetValue(problemKey, out var existingProblem))
             {
@@ -93,7 +92,6 @@ public class CodeforcesService : ICodeforcesService
             }
             else
             {
-                isNewProblem = true;
                 problemEntity = _mapper.Map<Problem>(incomingProblem);
                 problemEntity.Id = Guid.NewGuid();
                 await _unitOfWork.Problems.AddAsync(problemEntity);
