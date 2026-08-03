@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 
 namespace Etrx.Application.Services.Api;
 
@@ -13,18 +14,19 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
 {
     private const string GroupUrl = "https://ioi.contest.codeforces.com/group/32KGsXgiKA";
     private readonly CodeforcesOptions _options;
+    private readonly ILogger<IoiCodeforcesApiService> _logger;
     private static readonly SemaphoreSlim AuthenticationLock = new(1, 1);
-    private static readonly string Ftaa = Guid.NewGuid().ToString("N")[..18];
-    private static readonly string Bfaa = Guid.NewGuid().ToString("N");
     private static bool _isAuthenticated;
     private static string? _cachedCsrfToken;
 
     public IoiCodeforcesApiService(
         HttpClient httpClient,
-        IOptions<CodeforcesOptions> options)
+        IOptions<CodeforcesOptions> options,
+        ILogger<IoiCodeforcesApiService> logger)
         : base(httpClient)
     {
         _options = options.Value;
+        _logger = logger;
         if (!_httpClient.DefaultRequestHeaders.Contains("User-Agent"))
         {
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
@@ -34,7 +36,54 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
         _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
     }
 
-    protected override async Task<TResult> HandleRequestAsync<TResult>(string url)
+    protected override Task<TResult> HandleRequestAsync<TResult>(string url)
+    {
+        return HandleRequestAsync<TResult>(url, requireAuthentication: true);
+    }
+
+    private async Task<TResult> HandleRequestAsync<TResult>(string url, bool requireAuthentication)
+    {
+        if (requireAuthentication)
+        {
+            await EnsureAuthenticatedAsync();
+        }
+
+        var (response, htmlContent) = await SendRequestAsync(url);
+
+        if (requireAuthentication && IsLoginPage(response, htmlContent))
+        {
+            response.Dispose();
+            _logger.LogWarning("Codeforces authentication expired for {Url}; re-authenticating", url);
+            await ReauthenticateAsync(force: true);
+            (response, htmlContent) = await SendRequestAsync(url);
+        }
+
+        using (response)
+        {
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _logger.LogWarning(
+                    "Codeforces rejected request {Url} with HTTP 403; authentication required: {RequireAuthentication}",
+                    url,
+                    requireAuthentication);
+                throw new HttpRequestException(
+                    $"IOI Codeforces rejected the request with HTTP 403: {url}",
+                    null,
+                    HttpStatusCode.Forbidden);
+            }
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        return typeof(TResult) switch
+        {
+            var t when t == typeof(IoiCodeforcesStandings) => (TResult)(object)ParseStandings(htmlContent),
+            var t when t == typeof(List<IoiCodeforcesContest>) => (TResult)(object)ParseContests(htmlContent),
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    private async Task<(HttpResponseMessage Response, string Html)> SendRequestAsync(string url)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Referrer = new Uri(GroupUrl);
@@ -44,23 +93,42 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
         }
 
         var response = await _httpClient.SendAsync(request);
-        if (response.StatusCode == HttpStatusCode.Forbidden)
+        var html = await response.Content.ReadAsStringAsync();
+        _logger.LogInformation(
+            "Codeforces request {Url} returned HTTP {StatusCode}; final URI: {FinalUri}",
+            url,
+            (int)response.StatusCode,
+            response.RequestMessage?.RequestUri);
+        return (response, html);
+    }
+
+    private static bool IsLoginPage(HttpResponseMessage response, string html)
+    {
+        var path = response.RequestMessage?.RequestUri?.AbsolutePath;
+        return response.StatusCode == HttpStatusCode.Forbidden
+            || string.Equals(path, "/enter", StringComparison.OrdinalIgnoreCase)
+            || html.Contains("id=\"enterForm\"", StringComparison.OrdinalIgnoreCase)
+            || html.Contains("name=\"handleOrEmail\"", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task ReauthenticateAsync(bool force = false)
+    {
+        await AuthenticationLock.WaitAsync();
+        try
         {
-            throw new HttpRequestException(
-                $"IOI Codeforces rejected the authenticated request with HTTP 403: {url}",
-                null,
-                HttpStatusCode.Forbidden);
+            if (!force && _isAuthenticated)
+            {
+                return;
+            }
+
+            _cachedCsrfToken = null;
+            await LoginAsync();
+            _isAuthenticated = true;
         }
-
-        response.EnsureSuccessStatusCode();
-        var htmlContent = await response.Content.ReadAsStringAsync();
-
-        return typeof(TResult) switch
+        finally
         {
-            var t when t == typeof(IoiCodeforcesStandings) => (TResult)(object)ParseStandings(htmlContent),
-            var t when t == typeof(List<IoiCodeforcesContest>) => (TResult)(object)ParseContests(htmlContent),
-            _ => throw new NotSupportedException()
-        };
+            AuthenticationLock.Release();
+        }
     }
 
 
@@ -157,9 +225,9 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
 
     public async Task<List<IoiCodeforcesContest>> GetContestsAsync()
     {
-        await EnsureAuthenticatedAsync();
         return await HandleRequestAsync<List<IoiCodeforcesContest>>(
-            $"{GroupUrl}/contests");
+            $"{GroupUrl}/contests",
+            requireAuthentication: false);
     }
 
     public async Task<IoiCodeforcesStandings> GetRanklistRowsByContestIdAsync(int contestId)
@@ -177,6 +245,7 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
             try
             {
                 _isAuthenticated = false;
+                _cachedCsrfToken = null;
             }
             finally
             {
@@ -271,12 +340,14 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
             throw new InvalidOperationException("Codeforces login page did not contain a CSRF token.");
         }
 
+        var ftaa = Guid.NewGuid().ToString("N")[..18];
+        var bfaa = Guid.NewGuid().ToString("N");
         using var content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["csrf_token"] = csrfToken,
             ["action"] = "enter",
-            ["ftaa"] = Ftaa,
-            ["bfaa"] = Bfaa,
+            ["ftaa"] = ftaa,
+            ["bfaa"] = bfaa,
             ["handleOrEmail"] = _options.Login,
             ["password"] = _options.Password,
             ["remember"] = "on"
@@ -295,15 +366,30 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
         var response = await _httpClient.SendAsync(loginRequest);
         if (response.StatusCode == HttpStatusCode.Forbidden)
         {
+            _logger.LogWarning(
+                "Codeforces rejected login for {LoginUrl} with HTTP {StatusCode}; final URI: {FinalUri}",
+                loginRequest.RequestUri,
+                (int)response.StatusCode,
+                response.RequestMessage?.RequestUri);
             throw new UnauthorizedAccessException(
                 "IOI Codeforces rejected the login request with HTTP 403. Check the configured credentials and container network access.");
         }
 
-        response.EnsureSuccessStatusCode();
         var responseHtml = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogWarning(
+                "Codeforces login failed with HTTP {StatusCode}; final URI: {FinalUri}",
+                (int)response.StatusCode,
+                response.RequestMessage?.RequestUri);
+            throw new HttpRequestException(
+                $"Codeforces login failed with HTTP {(int)response.StatusCode}",
+                null,
+                response.StatusCode);
+        }
 
-        if (Regex.IsMatch(responseHtml, "Invalid handle or password|Invalid password", RegexOptions.IgnoreCase)
-            || responseHtml.Contains("id=\"handleOrEmail\"", StringComparison.OrdinalIgnoreCase))
+        if (IsLoginPage(response, responseHtml)
+            || Regex.IsMatch(responseHtml, "Invalid handle or password|Invalid password", RegexOptions.IgnoreCase))
         {
             throw new UnauthorizedAccessException("Codeforces rejected the configured credentials.");
         }

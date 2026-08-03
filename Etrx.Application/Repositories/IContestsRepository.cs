@@ -11,6 +11,7 @@ public interface IContestsRepository : IGenericRepository<Contest>
     Task<Contest?> GetByContestIdAsync(int key);
     Task<List<Contest>> GetLast10Async();
     Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds);
+    Task MarkAsLoadedAsync(int contestId);
     Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Contest> spec, PaginationQueryParameters pagination, string lang);
     Task<List<string>> GetAllDivisionsAsync();
     }

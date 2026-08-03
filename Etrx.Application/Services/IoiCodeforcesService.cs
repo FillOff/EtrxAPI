@@ -76,7 +76,9 @@ public class IoiCodeforcesService : IIoiCodeforcesService
         var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestId)
             ?? throw new Exception($"Contest {contestId} not found");
         var existingRows = await _unitOfWork.RanklistRows.GetByContestIdAsync(contestId);
-        var rowsByHandle = existingRows.ToDictionary(row => row.Handle);
+        var rowsByHandle = existingRows
+            .GroupBy(row => row.Handle, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
         var existingResults = await _unitOfWork.ProblemResults
             .GetByRanklistRowIdsAsync(existingRows.Select(row => row.Id).ToList());
         var resultsByRow = existingResults
@@ -102,27 +104,31 @@ public class IoiCodeforcesService : IIoiCodeforcesService
             .Concat(existingEnglishTranslations)
             .ToDictionary(translation => (translation.ProblemId, translation.LanguageCode));
 
-        foreach (var incomingRow in standings.Rows)
+        foreach (var incomingRow in standings.Rows
+            .Where(row => !string.IsNullOrWhiteSpace(row.Handle))
+            .GroupBy(row => row.Handle, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First()))
         {
-            if (string.IsNullOrWhiteSpace(incomingRow.Handle))
-                continue;
-
             if (!rowsByHandle.TryGetValue(incomingRow.Handle, out var rowEntity))
             {
                 rowEntity = new RanklistRow { Id = Guid.NewGuid(), ContestId = contestId, Handle = incomingRow.Handle };
+                rowsByHandle[incomingRow.Handle] = rowEntity;
             }
 
             rowEntity.Rank = ParseInt(incomingRow.Rank);
             rowEntity.Points = incomingRow.TotalScore;
             rowEntity.ParticipantType = ParticipantTypes.Practice;
-            rowsToUpsert.Add(rowEntity);
+            if (!rowsToUpsert.Any(row => row.Id == rowEntity.Id))
+            {
+                rowsToUpsert.Add(rowEntity);
+            }
 
             resultsByRow.TryGetValue(rowEntity.Id, out var rowResults);
-            foreach (var incomingResult in incomingRow.ProblemScores)
+            foreach (var incomingResult in incomingRow.ProblemScores
+                .Where(result => !string.IsNullOrWhiteSpace(result.Index))
+                .GroupBy(result => result.Index, StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First()))
             {
-                if (string.IsNullOrWhiteSpace(incomingResult.Index))
-                    continue;
-
                 if (rowResults is null || !rowResults.TryGetValue(incomingResult.Index, out var resultEntity))
                 {
                     resultEntity = new ProblemResult
@@ -181,9 +187,7 @@ public class IoiCodeforcesService : IIoiCodeforcesService
         await _unitOfWork.Problems.InsertOrUpdateAsync(problemsToUpsert);
         await _unitOfWork.ProblemTranslations.InsertOrUpdateAsync(problemTranslationsToUpsert);
 
-        contest.IsContestLoaded = true;
-        _unitOfWork.Contests.Update(contest);
-        await _unitOfWork.SaveAsync();
+        await _unitOfWork.Contests.MarkAsLoadedAsync(contestId);
     }
 
 

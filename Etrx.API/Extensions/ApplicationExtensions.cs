@@ -15,6 +15,7 @@ public static class ApplicationExtensions
 {
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddSingleton<CookieContainer>();
         services.AddScoped<IProblemsService, ProblemsService>();
         services.AddScoped<IContestsService, ContestsService>();
         services.AddScoped<IUsersService, UsersService>();
@@ -27,11 +28,12 @@ public static class ApplicationExtensions
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
         services.AddHttpClient<IIoiCodeforcesApiService, IoiCodeforcesApiService>()
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            .ConfigurePrimaryHttpMessageHandler(serviceProvider => new HttpClientHandler
             {
                 UseCookies = true,
-                CookieContainer = new CookieContainer(),
-                AllowAutoRedirect = true
+                CookieContainer = serviceProvider.GetRequiredService<CookieContainer>(),
+                AllowAutoRedirect = true,
+                AutomaticDecompression = DecompressionMethods.All
             });
 
         services.AddHttpClient<ApiService>();
