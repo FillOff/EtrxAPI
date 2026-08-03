@@ -1,4 +1,5 @@
-﻿using Etrx.Application.Queries;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Queries;
 using Etrx.Domain.Models;
 using LinqKit;
 
@@ -9,12 +10,18 @@ public class ContestsSpecification : BaseSpecification<Contest>
     public ContestsSpecification(ContestQueryParameters parameters)
     {
         var predicate = PredicateBuilder.New<Contest>(true);
-        predicate = predicate.And(c => c.Phase != "BEFORE");
+        predicate = predicate.And(c => c.Phase != ContestPhases.Before);
 
         if (parameters.Gym != null)
         {
             predicate = predicate.And(c => c.Gym == parameters.Gym);
         }
+
+        if (!string.IsNullOrWhiteSpace(parameters.Source))
+        {
+            predicate = predicate.And(c => c.Source == parameters.Source);
+        }
+
         FilterCondition = predicate;
 
         bool isAscending = parameters.Sorting.SortOrder == true;

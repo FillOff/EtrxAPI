@@ -45,10 +45,10 @@ public class IoiCodeforcesService : IIoiCodeforcesService
             }
 
             contestEntity.ContestId = contestId;
-            contestEntity.Type = "IOI";
-            contestEntity.Phase = "FINISHED";
+            contestEntity.Type = Sources.Ioi;
+            contestEntity.Phase = ContestPhases.Finished;
             contestEntity.Gym = true;
-            contestEntity.Source = "IOI";
+            contestEntity.Source = Sources.Ioi;
             contestEntity.DurationSeconds = ParseDuration(incomingContest.Duration);
             contestEntity.StartTime = ParseStartTime(incomingContest.StartTime);
             contestsToUpsert.Add(contestEntity);
@@ -95,8 +95,12 @@ public class IoiCodeforcesService : IIoiCodeforcesService
             problemIndexes.Select(result => (contestId, result.Index)).ToList());
         var existingProblemsByIndex = existingProblems.ToDictionary(problem => problem.Index);
         var existingTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(
-            existingProblems.Select(problem => problem.Id).ToList(), "en");
-        var translationsByProblemId = existingTranslations.ToDictionary(translation => translation.ProblemId);
+            existingProblems.Select(problem => problem.Id).ToList(), Languages.Ru);
+        var existingEnglishTranslations = await _unitOfWork.ProblemTranslations.GetByProblemIdsAndLanguageAsync(
+            existingProblems.Select(problem => problem.Id).ToList(), Languages.En);
+        var translationsByProblemAndLanguage = existingTranslations
+            .Concat(existingEnglishTranslations)
+            .ToDictionary(translation => (translation.ProblemId, translation.LanguageCode));
 
         foreach (var incomingRow in standings.Rows)
         {
@@ -146,7 +150,7 @@ public class IoiCodeforcesService : IIoiCodeforcesService
                     ContestId = contestId,
                     GuidContestId = contest.Id,
                     Index = incomingProblem.Index,
-                    Type = "PROGRAMMING"
+                    Type = ProblemTypes.Programming
                 };
             }
 
@@ -155,18 +159,21 @@ public class IoiCodeforcesService : IIoiCodeforcesService
             problemEntity.Points = incomingProblem.Points;
             problemsToUpsert.Add(problemEntity);
 
-            if (!translationsByProblemId.TryGetValue(problemEntity.Id, out var translation))
+            foreach (var languageCode in new[] { Languages.Ru, Languages.En })
             {
-                translation = new ProblemTranslation
+                if (!translationsByProblemAndLanguage.TryGetValue((problemEntity.Id, languageCode), out var translation))
                 {
-                    Id = Guid.NewGuid(),
-                    ProblemId = problemEntity.Id,
-                    LanguageCode = "en"
-                };
-            }
+                    translation = new ProblemTranslation
+                    {
+                        Id = Guid.NewGuid(),
+                        ProblemId = problemEntity.Id,
+                        LanguageCode = languageCode
+                    };
+                }
 
-            translation.Name = $"IOI {incomingProblem.Index}";
-            problemTranslationsToUpsert.Add(translation);
+                translation.Name = $"IOI {incomingProblem.Index}";
+                problemTranslationsToUpsert.Add(translation);
+            }
         }
 
         await _unitOfWork.RanklistRows.InsertOrUpdateAsync(rowsToUpsert);

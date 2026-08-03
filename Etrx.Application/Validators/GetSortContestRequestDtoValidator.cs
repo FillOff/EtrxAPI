@@ -31,5 +31,9 @@ public class GetSortContestRequestDtoValidator : AbstractValidator<GetSortContes
         RuleFor(x => x.Lang)
             .NotEmpty().WithMessage("Lang can not be empty")
             .Must(Languages.GetAll().Contains).WithMessage($"Lang must be one of: {string.Join(", ", Languages.GetAll())}");
+
+        RuleFor(x => x.Source)
+            .Must(source => source == null || Sources.GetAll().Contains(source.ToUpperInvariant()))
+            .WithMessage($"Source must be one of: {string.Join(", ", Sources.GetAll())}");
     }
 }

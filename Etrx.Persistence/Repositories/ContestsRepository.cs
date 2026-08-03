@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Common;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
@@ -54,7 +55,7 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
         return await _dbSet
             .AsNoTracking()
             .Include(c => c.ContestTranslations)
-            .Where(c => c.Phase == "FINISHED" && !c.IsContestLoaded)
+            .Where(c => c.Phase == ContestPhases.Finished && !c.IsContestLoaded)
             .OrderByDescending(c => c.StartTime)
             .Take(10)
             .ToListAsync();

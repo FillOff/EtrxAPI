@@ -1,4 +1,5 @@
 ﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Constants;
 using Etrx.Application.Repositories.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,7 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
 
         foreach (var contest in last10Contests)
         {
-            if (contest.Source == "IOI")
+            if (contest.Source == Sources.Ioi)
             {
                 await updateDataService.UpdateIoiRanklistRowsByContestIdAsync(contest.ContestId);
             }

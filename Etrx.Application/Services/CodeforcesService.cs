@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Etrx.Application.Constants;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Domain.Expressions;
@@ -156,7 +157,7 @@ public class CodeforcesService : ICodeforcesService
             }
 
             contestEntity.Gym = gym;
-            contestEntity.Source = "Codeforces";
+            contestEntity.Source = Sources.Codeforces;
 
             contestEntity.Division = ContestExpressions.GetDivisionFromContestName(incomingContest.Name);
 
@@ -287,7 +288,7 @@ public class CodeforcesService : ICodeforcesService
         await _unitOfWork.ProblemResults.InsertOrUpdateAsync(problemResultsToUpsert);
 
         var contest = await _unitOfWork.Contests.GetByContestIdAsync(contestStanding.Contest.ContestId);
-        if (contest!.Phase == "FINISHED")
+        if (contest!.Phase == ContestPhases.Finished)
         {
             contest.IsContestLoaded = true;
             _unitOfWork.Contests.Update(contest);
