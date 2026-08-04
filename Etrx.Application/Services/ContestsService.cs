@@ -48,6 +48,7 @@ public class ContestsService : IContestsService
         var queryParams = new ContestQueryParameters(
             new PaginationQueryParameters(dto.Page, dto.PageSize),
             new SortingQueryParameters(dto.SortField, dto.SortOrder),
+            dto.ContestId,
             dto.Gym,
             dto.Source?.ToUpperInvariant(),
             dto.Lang

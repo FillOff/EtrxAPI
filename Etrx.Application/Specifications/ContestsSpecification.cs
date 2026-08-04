@@ -12,6 +12,11 @@ public class ContestsSpecification : BaseSpecification<Contest>
         var predicate = PredicateBuilder.New<Contest>(true);
         predicate = predicate.And(c => c.Phase != ContestPhases.Before);
 
+        if (parameters.ContestId != null)
+        {
+            predicate = predicate.And(c => c.ContestId.ToString().StartsWith(parameters.ContestId));
+        }
+
         if (parameters.Gym != null)
         {
             predicate = predicate.And(c => c.Gym == parameters.Gym);
