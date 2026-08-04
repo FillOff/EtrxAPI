@@ -4,6 +4,8 @@ namespace Etrx.Application.Interfaces;
 
 public interface IUsersService
 {
+    Task<UsersResponseDto> CreateUserAsync(CreateUserRequestDto dto);
+    Task DeleteUserByHandleAsync(string handle);
     Task<UsersResponseDto?> GetUserByHandleAsync(string handle);
     Task<UsersWithPropsResponseDto> GetUsersWithSortAsync(GetSortUserRequestDto dto);
     Task<List<string>> GetHandlesAsync();

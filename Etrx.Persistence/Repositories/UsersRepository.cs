@@ -21,6 +21,13 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
             .FirstOrDefaultAsync(u => u.Handle == handle);
     }
 
+    public async Task<bool> DeleteByHandleAsync(string handle)
+    {
+        return await _dbSet
+            .Where(u => u.Handle == handle)
+            .ExecuteDeleteAsync() > 0;
+    }
+
     public async Task<List<string>> GetHandlesAsync()
     {
         return await _dbSet

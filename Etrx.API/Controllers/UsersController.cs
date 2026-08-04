@@ -15,6 +15,14 @@ public class UsersController : ControllerBase
         _usersService = usersService;
     }
 
+    [HttpPost]
+    public async Task<IActionResult> CreateUserAsync([FromBody] CreateUserRequestDto dto)
+    {
+        var user = await _usersService.CreateUserAsync(dto);
+
+        return Ok();
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetUsersWithSortAsync(
         [FromQuery] GetSortUserRequestDto dto)
@@ -26,6 +34,14 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetUserByHandleAsync(string handle)
     {
         return Ok(await _usersService.GetUserByHandleAsync(handle));
+    }
+
+    [HttpDelete("{handle}")]
+    public async Task<IActionResult> DeleteUserByHandleAsync(string handle)
+    {
+        await _usersService.DeleteUserByHandleAsync(handle);
+
+        return NoContent();
     }
 
     [HttpDelete]
