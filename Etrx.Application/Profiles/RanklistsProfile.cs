@@ -12,6 +12,9 @@ public class RanklistsProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.ContestId, opt => opt.Ignore())
             .ForMember(dest => dest.Handle, opt => opt.MapFrom(src => src.Party.Members[0].Handle))
+            .ForMember(dest => dest.PartyId, opt => opt.MapFrom(src => src.Party.ParticipantId))
+            .ForMember(dest => dest.TeamName, opt => opt.MapFrom(src => src.Party.TeamName))
+            .ForMember(dest => dest.MemberHandles, opt => opt.MapFrom(src => src.Party.Members.Select(member => member.Handle)))
             .ForMember(dest => dest.ParticipantType, opt => opt.MapFrom(src => src.Party.ParticipantType))
             .ForMember(dest => dest.ProblemResults, opt => opt.Ignore());
 

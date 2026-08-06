@@ -86,7 +86,8 @@ public class CodeforcesApiService : ApiService, ICodeforcesApiService
             {
                 { "contestId", contestId.ToString() },
                 { "handles", string.Join(";", handles) },
-                { "showUnofficial", "true" }
+                { "showUnofficial", "true" },
+                { "lang", "ru" }
             };
 
             var url = BuildUrl("contest.standings", parameters);

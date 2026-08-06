@@ -2,6 +2,9 @@
 public class RanklistRow : Entity
 {
     public string Handle { get; set; } = string.Empty;
+    public int? PartyId { get; set; }
+    public string TeamName { get; set; } = string.Empty;
+    public List<string> MemberHandles { get; set; } = [];
     public int ContestId { get; set; }
     public string ParticipantType { get; set; } = string.Empty;
 

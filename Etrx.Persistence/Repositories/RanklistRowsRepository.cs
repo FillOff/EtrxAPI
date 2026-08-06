@@ -4,6 +4,7 @@ using Etrx.Application.Dtos.RanklistRows;
 using Etrx.Application.Queries;
 using Etrx.Application.Repositories;
 using Etrx.Domain.Models;
+using Etrx.Application.Services;
 using Etrx.Persistence.Databases;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
@@ -46,12 +47,28 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
             query = query.Where(rr => rr.ParticipantType == parameters.ParticipantType);
         }
 
-        // Joining ranklist rows and users tables
-        var combinedQuery = query.Join(
-            _context.Users.AsNoTracking(),
-            ranklistRow => ranklistRow.Handle,
-            user => user.Handle,
-            (ranklistRow, user) => new GetRanklistRowsResponseDto
+        var rows = await query.ToListAsync();
+        var memberHandles = rows
+            .SelectMany(ranklistRow => ranklistRow.MemberHandles.Count > 0
+                ? ranklistRow.MemberHandles
+                : [ranklistRow.Handle])
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var users = await _context.Users
+            .AsNoTracking()
+            .Where(user => memberHandles.Contains(user.Handle))
+            .ToListAsync();
+        var usersByHandle = users.ToDictionary(user => user.Handle, StringComparer.OrdinalIgnoreCase);
+
+        var combinedQuery = rows.Select(ranklistRow =>
+        {
+            var handles = ranklistRow.MemberHandles.Count > 0
+                ? ranklistRow.MemberHandles
+                : [ranklistRow.Handle];
+            usersByHandle.TryGetValue(handles[0], out var primaryUser);
+            var (organization, city) = RanklistPartyFormatter.GetOrganizationAndCity(ranklistRow, primaryUser ?? new User());
+
+            return new GetRanklistRowsResponseDto
             {
                 ContestId = ranklistRow.ContestId,
                 Handle = ranklistRow.Handle,
@@ -66,18 +83,18 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
                 Rank = ranklistRow.Rank,
                 SuccessfulHackCount = ranklistRow.SuccessfulHackCount,
                 UnsuccessfulHackCount = ranklistRow.UnsuccessfulHackCount,
-                Username = user.LastName + " " + user.FirstName,
-                City = user.City,
-                Organization = user.Organization,
-                Grade = user.Grade,
+                Username = RanklistPartyFormatter.FormatName(ranklistRow.TeamName, handles, users),
+                City = city,
+                Organization = organization,
+                Grade = primaryUser?.Grade ?? 0,
                 SolvedCount = ranklistRow.ProblemResults.Count(pr => pr.Points != 0)
-            }
-        );
+            };
+        }).AsQueryable();
 
         // Sorting
         string order = parameters.Sorting.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
         combinedQuery = combinedQuery.OrderBy($"{parameters.Sorting.SortField} {order}");
 
-        return await combinedQuery.ToListAsync();
+        return combinedQuery.ToList();
     }
 }

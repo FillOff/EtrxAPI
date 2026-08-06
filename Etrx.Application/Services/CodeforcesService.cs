@@ -193,8 +193,9 @@ public class CodeforcesService : ICodeforcesService
         var existingSubmissions = await _unitOfWork.Submissions.GetBySubmissionIdsAsync(submissionIdsFromApi);
         var existingSubmissionsDict = existingSubmissions.ToDictionary(s => s.SubmissionId);
 
-        var user = await _unitOfWork.Users.GetByHandleAsync(handle)
-            ?? throw new Exception($"User {handle} not found");
+        var user = await _unitOfWork.Users.GetByHandleAsync(handle);
+        if (user is null)
+            return;
 
         List<Submission> submissionsToUpsert = [];
 
@@ -226,7 +227,9 @@ public class CodeforcesService : ICodeforcesService
         var problemIndexes = contestStanding.Problems.Select(p => p.Index).ToList();
 
         var existingRows = await _unitOfWork.RanklistRows.GetByContestIdAsync(contestId);
-        var existingRowsDict = existingRows.ToDictionary(rr => (rr.Handle, rr.ParticipantType));
+        var legacyRowsDict = existingRows
+            .GroupBy(rr => (rr.Handle, rr.ParticipantType))
+            .ToDictionary(group => group.Key, group => group.First());
 
         var existingRowGuids = existingRows.Select(rr => rr.Id).ToList();
         var existingProblemResults = await _unitOfWork.ProblemResults.GetByRanklistRowIdsAsync(existingRowGuids);
@@ -244,9 +247,9 @@ public class CodeforcesService : ICodeforcesService
             Guid ranklistRowId;
             RanklistRow ranklistRowEntity;
 
-            var rowKey = (handle, row.Party.ParticipantType);
+            var legacyKey = (handle, row.Party.ParticipantType);
 
-            if (existingRowsDict.TryGetValue(rowKey, out var existingRow))
+            if (legacyRowsDict.TryGetValue(legacyKey, out var existingRow))
             {
                 ranklistRowEntity = existingRow;
                 ranklistRowId = existingRow.Id;

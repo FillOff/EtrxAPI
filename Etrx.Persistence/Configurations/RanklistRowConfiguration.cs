@@ -16,7 +16,8 @@ public class RanklistRowConfiguration : IEntityTypeConfiguration<RanklistRow>
             .HasForeignKey(pr => new { pr.RanklistRowId });
 
         builder
-            .HasIndex(rr => new { rr.Handle, rr.ContestId, rr.ParticipantType })
-            .IsUnique();
+            .HasIndex(rr => new { rr.ContestId, rr.PartyId, rr.ParticipantType })
+            .IsUnique()
+            .HasFilter("party_id IS NOT NULL");
     }
 }

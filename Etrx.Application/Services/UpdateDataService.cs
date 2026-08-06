@@ -101,6 +101,10 @@ public class UpdateDataService : IUpdateDataService
             ?? throw new Exception("Contest not found");
 
         var response = await _codeforcesApiService.GetCodeforcesRanklistRowsAsync(await _usersService.GetHandlesAsync(), contestId, contest.Gym);
+        if (contest.Gym)
+        {
+            await _codeforcesService.PostProblemsFromCodeforcesAsync(response.Problems, [], Languages.Ru);
+        }
         await _codeforcesService.PostRanklistRowsFromCodeforcesAsync(response);
     }
 
