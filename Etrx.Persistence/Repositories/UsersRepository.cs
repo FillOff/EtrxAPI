@@ -16,15 +16,19 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
 
     public async Task<User?> GetByHandleAsync(string handle)
     {
+        var normalizedHandle = handle.ToLower();
+
         return await _dbSet
             .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Handle == handle);
+            .FirstOrDefaultAsync(u => u.Handle.ToLower() == normalizedHandle);
     }
 
     public async Task<bool> DeleteByHandleAsync(string handle)
     {
+        var normalizedHandle = handle.ToLower();
+
         return await _dbSet
-            .Where(u => u.Handle == handle)
+            .Where(u => u.Handle.ToLower() == normalizedHandle)
             .ExecuteDeleteAsync() > 0;
     }
 

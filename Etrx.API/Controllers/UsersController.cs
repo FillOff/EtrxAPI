@@ -8,6 +8,8 @@ namespace Etrx.API.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
+    private const string GetUserByHandleRouteName = "GetUserByHandle";
+
     private readonly IUsersService _usersService;
 
     public UsersController(IUsersService usersService)
@@ -20,7 +22,7 @@ public class UsersController : ControllerBase
     {
         var user = await _usersService.CreateUserAsync(dto);
 
-        return Ok();
+        return CreatedAtRoute(GetUserByHandleRouteName, new { handle = user.Handle }, user);
     }
 
     [HttpGet]
@@ -30,7 +32,7 @@ public class UsersController : ControllerBase
         return Ok(await _usersService.GetUsersWithSortAsync(dto));
     }
 
-    [HttpGet("{handle}")]
+    [HttpGet("{handle}", Name = GetUserByHandleRouteName)]
     public async Task<IActionResult> GetUserByHandleAsync(string handle)
     {
         return Ok(await _usersService.GetUserByHandleAsync(handle));
