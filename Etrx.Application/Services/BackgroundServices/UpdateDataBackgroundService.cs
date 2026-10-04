@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -7,7 +7,7 @@ namespace Etrx.Application.Services.BackgroundServices;
 public abstract class UpdateDataBackgroundService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger _logger;
+    protected readonly ILogger _logger;
 
     protected UpdateDataBackgroundService(
         IServiceScopeFactory serviceScopeFactory, 

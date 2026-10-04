@@ -1,4 +1,4 @@
-﻿namespace Etrx.Domain.Models;
+namespace Etrx.Domain.Models;
 
 public class Contest : Entity
 {
@@ -24,5 +24,6 @@ public class Contest : Entity
     public bool Gym { get; set; }
     public string Source { get; set; } = string.Empty;
     public bool IsContestLoaded { get; set; } = false;
+    public int SyncAttempts { get; set; } = 0;
     public string Division { get; set; } = string.Empty;
 }

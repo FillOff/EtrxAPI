@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Common;
@@ -109,6 +109,14 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
             .Where(contest => contest.ContestId == contestId)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(contest => contest.IsContestLoaded, true));
+    }
+
+    public async Task IncrementSyncAttemptsAsync(int contestId)
+    {
+        await _dbSet
+            .Where(contest => contest.ContestId == contestId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(contest => contest.SyncAttempts, contest => contest.SyncAttempts + 1));
     }
 
 }

@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Dtos.Common;
+using Etrx.Application.Dtos.Common;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Specifications;
 using Etrx.Domain.Models;
@@ -12,6 +12,7 @@ public interface IContestsRepository : IGenericRepository<Contest>
     Task<List<Contest>> GetLast10Async();
     Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds);
     Task MarkAsLoadedAsync(int contestId);
+    Task IncrementSyncAttemptsAsync(int contestId);
     Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Contest> spec, PaginationQueryParameters pagination, string lang);
     Task<List<string>> GetAllDivisionsAsync();
     }

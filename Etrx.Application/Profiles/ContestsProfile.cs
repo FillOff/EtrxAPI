@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Contests;
 using Etrx.Domain.Models;
@@ -31,6 +31,7 @@ public class ContestsProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Gym, opt => opt.Ignore())
             .ForMember(dest => dest.IsContestLoaded, opt => opt.Ignore())
+            .ForMember(dest => dest.SyncAttempts, opt => opt.Ignore())
             .ForMember(dest => dest.ContestTranslations, opt => opt.Ignore());
 
         CreateMap<CodeforcesContest, ContestTranslation>()

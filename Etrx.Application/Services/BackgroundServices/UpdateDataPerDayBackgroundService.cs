@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Constants;
 using Etrx.Application.Repositories.UnitOfWork;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +14,8 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
         : base(serviceScopeFactory, logger)
     { }
 
+    private const int MaxSyncAttempts = 5;
+
     protected override async Task ProcessAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
@@ -23,13 +25,31 @@ public class UpdateDataPerDayBackgroundService : UpdateDataBackgroundService
 
         foreach (var contest in last10Contests)
         {
-            if (contest.Source == Sources.Ioi)
+            try
             {
-                await updateDataService.UpdateIoiRanklistRowsByContestIdAsync(contest.ContestId);
+                if (contest.Source == Sources.Ioi)
+                {
+                    await updateDataService.UpdateIoiRanklistRowsByContestIdAsync(contest.ContestId);
+                }
+                else
+                {
+                    await updateDataService.UpdateRanklistRowsByContestIdAsync(contest.ContestId);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await updateDataService.UpdateRanklistRowsByContestIdAsync(contest.ContestId);
+                _logger.LogError(ex, "Failed to update contest {ContestId}, skipping it", contest.ContestId);
+
+                await unitOfWork.Contests.IncrementSyncAttemptsAsync(contest.ContestId);
+
+                if (contest.SyncAttempts + 1 > MaxSyncAttempts)
+                {
+                    _logger.LogWarning(
+                        "Contest {ContestId} failed {MaxSyncAttempts} times, marking it as loaded and never retrying it",
+                        contest.ContestId, MaxSyncAttempts);
+
+                    await unitOfWork.Contests.MarkAsLoadedAsync(contest.ContestId);
+                }
             }
 
             await Task.Delay(2000, cancellationToken);
