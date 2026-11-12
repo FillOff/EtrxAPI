@@ -9,26 +9,13 @@ var configuration = builder.Configuration;
 builder.Host.AddSerilog();
 
 builder.Services.ConfigureControllers();
-builder.Services.AddEtrxAuthentication(configuration, builder.Environment.IsDevelopment());
+builder.Services.AddEtrxAuthentication(builder.Environment.IsDevelopment());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowLocalFrontend", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
-
 builder.Services.AddServices();
-builder.Services.AddScoped<Etrx.API.Services.ProblemProgressService>();
-builder.Services.AddHttpClient<Etrx.API.Services.CodeforcesProgressClient>(client =>
+builder.Services.AddHttpClient<Etrx.Application.Interfaces.ICodeforcesProgressClient, Etrx.API.Services.CodeforcesProgressClient>(client =>
     client.Timeout = TimeSpan.FromSeconds(45));
 builder.Services.AddBackgroundServices();
 builder.Services.AddRepositories();
@@ -49,16 +36,8 @@ if (app.Environment.IsDevelopment())
 
 await app.ApplyMigrationsAsync();
 
-// Custom header + explicit CORS allowlist prevent cross-origin browser mutations.
-app.UseCors("AllowLocalFrontend");
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/api") &&
-        !HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method) &&
-        !HttpMethods.IsOptions(context.Request.Method) && context.Request.Headers["X-ETRX-Request"] != "1")
-    { context.Response.StatusCode = 400; return; }
-    await next(context);
-});
+app.UseFrontendCors();
+app.UseApiRequestHeader();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();

@@ -95,7 +95,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
 
     public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)
     {
-        if (identifiers == null || identifiers.Count == 0)
+        if (identifiers is null || identifiers.Count == 0)
         {
             return [];
         }
@@ -138,8 +138,15 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
 
     private IQueryable<Problem> ApplyProgressFilter(IQueryable<Problem> query, Guid? userId, string[]? statuses, bool hideSolved)
     {
-        if ((statuses == null || statuses.Length == 0) && !hideSolved) return query;
-        if (userId == null) return query.Where(p => false);
+        if ((statuses is null || statuses.Length == 0) && !hideSolved)
+        {
+            return query;
+        }
+
+        if (userId is null)
+        {
+            return query.Where(p => false);
+        }
         var progress = ProblemProgressQuery.ForUser(_context, userId.Value);
         // Filter before Count/Skip/Take so every page and the page count are correct.
         // A task with no submissions has no progress row and must remain visible.

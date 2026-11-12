@@ -14,13 +14,3 @@ public class UserProblemProgressConfiguration : IEntityTypeConfiguration<UserPro
     }
 }
 
-public class UserProblemSyncConfiguration : IEntityTypeConfiguration<UserProblemSync>
-{
-    public void Configure(EntityTypeBuilder<UserProblemSync> builder)
-    {
-        builder.ToTable("user_problem_sync");
-        builder.HasKey(p => p.UserId);
-        builder.HasOne<User>().WithOne().HasForeignKey<UserProblemSync>(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
-}

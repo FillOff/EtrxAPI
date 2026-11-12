@@ -21,6 +21,9 @@ public static class PersistenceExtensions
         services.AddScoped<IRanklistRowsRepository, RanklistRowsRepository>();
         services.AddScoped<IGenericRepository<ProblemResult>, GenericRepository<ProblemResult>>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IProblemProgressRepository, ProblemProgressRepository>();
+        services.AddScoped<IProblemPreferencesRepository, ProblemPreferencesRepository>();
+        services.AddScoped<IAuthRepository, AuthRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

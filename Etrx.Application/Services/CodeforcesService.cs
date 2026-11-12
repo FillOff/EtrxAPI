@@ -184,7 +184,7 @@ public class CodeforcesService : ICodeforcesService
 
     public async Task PostSubmissionsFromCodeforcesAsync(List<CodeforcesSubmission> submissions, string handle)
     {
-        if (submissions == null || submissions.Count == 0)
+        if (submissions is null || submissions.Count == 0)
         {
             return;
         }

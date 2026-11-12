@@ -1,32 +1,42 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Etrx.API.Services;
-using Etrx.Persistence.Databases;
+using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Dtos.Common;
+using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.API.Controllers;
 
 [ApiController, Authorize, Route("api/problems/progress")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public class ProblemProgressController(ProblemProgressService progress, EtrxDbContext db) : ControllerBase
+public class ProblemProgressController(IProblemProgressService progressService) : ControllerBase
 {
-    public record DeferredRequest(bool Deferred);
-
-    [HttpPut("{contestId:int}/{index}/deferred")]
+    [HttpPut("{contestId:int}/{index}/deferral")]
     public async Task<IActionResult> SetDeferred(int contestId, [StringLength(20, MinimumLength = 1)] string index,
-        DeferredRequest request, CancellationToken ct)
+        SetDeferredRequestDto request, CancellationToken ct)
     {
-        if (contestId <= 0) return BadRequest();
-        if (!await db.Problems.AnyAsync(p => p.ContestId == contestId && p.Index == index, ct)) return NotFound();
-        await progress.SetDeferredAsync(UserId, contestId, index, request.Deferred, ct);
+        if (contestId <= 0)
+        {
+            return BadRequest();
+        }
+
+        if (!string.Equals(User.Identity?.Name, request.ExpectedHandle, StringComparison.OrdinalIgnoreCase))
+        {
+            return Conflict(new MessageResponseDto("The account changed. The problem was not updated."));
+        }
+
+        if (!await progressService.SetDeferredAsync(UserId, contestId, index, request.Deferred, ct))
+        {
+            return NotFound();
+        }
+
         return NoContent();
     }
 
-    [HttpPost("sync")]
+    [HttpPost("synchronizations")]
     public async Task<IActionResult> Sync(CancellationToken ct) =>
-        Ok(await progress.SyncAsync(UserId, User.Identity!.Name!, ct));
+        Ok(await progressService.SyncAsync(UserId, User.Identity!.Name!, ct));
 
     private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

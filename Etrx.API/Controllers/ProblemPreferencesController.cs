@@ -1,10 +1,9 @@
-using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using System.Text.Json;
-using Etrx.Persistence.Databases;
+using Etrx.Application.Dtos.Common;
+using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.API.Controllers;
 
@@ -12,60 +11,34 @@ namespace Etrx.API.Controllers;
 [Authorize]
 [Route("api/problems/preferences")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public class ProblemPreferencesController(EtrxDbContext db) : ControllerBase
+public class ProblemPreferencesController(IProblemPreferencesService preferencesService) : ControllerBase
 {
-    private static readonly HashSet<string> AllowedKeys = new(StringComparer.Ordinal)
-    {
-        "tags", "indexes", "divisions", "ranks", "minRating", "maxRating",
-        "minPoints", "maxPoints", "minSolved", "maxSolved", "minDifficulty",
-        "maxDifficulty", "problemName", "isOnly", "sortField", "sortOrder",
-        "statuses", "hideSolved"
-    };
-
-    public record SaveRequest(
-        [Required] Dictionary<string, string>? Filters,
-        [Required, StringLength(100)] string ExpectedHandle);
-
     [HttpGet]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-            return Unauthorized();
-
-        var json = await db.UserProblemPreferences.AsNoTracking()
-            .Where(p => p.UserId == userId).Select(p => p.FiltersJson)
-            .SingleOrDefaultAsync(cancellationToken);
-        var filters = new Dictionary<string, string>();
-        if (json != null)
         {
-            try { filters = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? []; }
-            catch (JsonException) { /* Invalid legacy data must not block the problem list. */ }
+            return Unauthorized();
         }
-        return Ok(new { filters });
+
+        return Ok(await preferencesService.GetAsync(userId, cancellationToken));
     }
 
     [HttpPut]
     [RequestSizeLimit(32768)]
-    public async Task<IActionResult> Save(SaveRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Save(SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken)
     {
         if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
             return Unauthorized();
-        // A delayed request from another login must never write this account's settings.
-        if (!string.Equals(User.Identity?.Name, request.ExpectedHandle, StringComparison.OrdinalIgnoreCase))
-            return Conflict(new { message = "Аккаунт изменился. Фильтры не были сохранены." });
-        if (request.Filters == null || request.Filters.Count > AllowedKeys.Count ||
-            request.Filters.Any(p => !AllowedKeys.Contains(p.Key) || p.Value == null || p.Value.Length > 4096))
-            return BadRequest(new { message = "Некорректные фильтры." });
+        }
 
-        var filters = request.Filters.Where(p => !string.IsNullOrEmpty(p.Value))
-            .ToDictionary(p => p.Key, p => p.Value);
-        var json = JsonSerializer.Serialize(filters);
-        // One atomic upsert also handles simultaneous first saves from two tabs.
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO user_problem_preferences (user_id, filters_json)
-            VALUES ({userId}, {json})
-            ON CONFLICT (user_id) DO UPDATE SET filters_json = EXCLUDED.filters_json
-            """, cancellationToken);
-        return NoContent();
+        var result = await preferencesService.SaveAsync(userId, User.Identity?.Name, request, cancellationToken);
+        return result switch
+        {
+            PreferenceSaveStatus.Success => NoContent(),
+            PreferenceSaveStatus.AccountChanged => Conflict(new MessageResponseDto("The account changed. Filters were not saved.")),
+            _ => BadRequest(new MessageResponseDto("Invalid filters."))
+        };
     }
 }

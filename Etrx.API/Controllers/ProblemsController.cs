@@ -3,7 +3,6 @@ using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Etrx.API.Services;
 
 namespace Etrx.API.Controllers;
 
@@ -13,12 +12,12 @@ namespace Etrx.API.Controllers;
 public class ProblemsController : ControllerBase
 {
     private readonly IProblemsService _problemsService;
-    private readonly ProblemProgressService _progress;
+    private readonly IProblemProgressService _progressService;
 
-    public ProblemsController(IProblemsService problemsService, ProblemProgressService progress)
+    public ProblemsController(IProblemsService problemsService, IProblemProgressService progressService)
     {
         _problemsService = problemsService;
-        _progress = progress;
+        _progressService = progressService;
     }
 
     [HttpGet("{contestId:int}")]
@@ -34,10 +33,17 @@ public class ProblemsController : ControllerBase
         [FromQuery] GetSortProblemRequestDto dto)
     {
         dto.CurrentUserId = CurrentUserId();
-        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId == null) return Unauthorized();
+        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId is null)
+        {
+            return Unauthorized();
+        }
+
         var result = await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto);
         if (dto.CurrentUserId.HasValue)
-            await _progress.EnrichAsync(dto.CurrentUserId.Value, result.Problems, HttpContext.RequestAborted);
+        {
+            await _progressService.EnrichAsync(dto.CurrentUserId.Value, result.Problems, HttpContext.RequestAborted);
+        }
+
         return Ok(result);
     }
 
@@ -45,7 +51,11 @@ public class ProblemsController : ControllerBase
     public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto)
     {
         dto.CurrentUserId = CurrentUserId();
-        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId == null) return Unauthorized();
+        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId is null)
+        {
+            return Unauthorized();
+        }
+
         return Ok(await _problemsService.GetProblemFiltersAsync(dto));
     }
 

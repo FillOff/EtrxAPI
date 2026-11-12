@@ -27,6 +27,13 @@ public static class ApplicationExtensions
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<IHashService, HashService>();
+        services.AddScoped<IProblemProgressService, ProblemProgressService>();
+        services.AddScoped<IProblemPreferencesService, ProblemPreferencesService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuthPasswordService, Etrx.API.Services.AuthPasswordService>();
+        services.AddScoped<IAuthSession, Etrx.API.Services.AuthSession>();
+        services.AddHttpContextAccessor();
         services.AddHttpClient<IIoiCodeforcesApiService, IoiCodeforcesApiService>()
             .ConfigurePrimaryHttpMessageHandler(serviceProvider => new HttpClientHandler
             {
@@ -56,6 +63,7 @@ public static class ApplicationExtensions
     {
         services.Configure<CodeforcesOptions>(
             configuration.GetSection(CodeforcesOptions.SectionName));
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
 
         return services;
     }

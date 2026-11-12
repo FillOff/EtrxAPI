@@ -44,20 +44,17 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
 
     public async Task<List<GetUsersProtocolsResponseDto>> GetUsersProtocolAsync(long unixFrom, long unixTo, int? contestId)
     {
-        // Filter by unix time
         var query = _dbSet
             .AsNoTracking()
             .Where(s => 
                 s.CreationTimeSeconds >= unixFrom && 
                 s.CreationTimeSeconds <= unixTo);
 
-        // Filter by ContestId
-        if (contestId != null)
+        if (contestId is not null)
         {
             query = query.Where(s => s.ContestId == contestId);
         }
 
-        // Format data to GetUsersProtocolsResponseDto
         var groupedData = query
             .GroupBy(s => new { s.User.Handle, s.User.LastName, s.User.FirstName })
             .Select(g => new GetUsersProtocolsResponseDto
@@ -123,7 +120,7 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
 
     public async Task<List<Submission>> GetBySubmissionIdsAsync(List<ulong> submissionIds)
     {
-        if (submissionIds == null || submissionIds.Count == 0)
+        if (submissionIds is null || submissionIds.Count == 0)
         {
             return [];
         }

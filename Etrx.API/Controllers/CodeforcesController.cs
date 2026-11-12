@@ -1,11 +1,12 @@
 using Etrx.Application.Interfaces;
+using Etrx.Application.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
-[Authorize(Policy = "Admin")]
+[Authorize(Policy = AuthorizationPolicies.Admin)]
 [Route("api/codeforces")]
 public class CodeforcesController : ControllerBase
 {

@@ -11,8 +11,3 @@ public class CodeforcesResponse
     public string Comment { get; set; } = string.Empty;
 }
 
-public class CodeforcesResponse<T> : CodeforcesResponse
-{
-    [JsonProperty("result")]
-    public T? Result { get; set; }
-}

@@ -1,65 +1,63 @@
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 using Etrx.Application.Constants;
+using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Interfaces;
 
 namespace Etrx.API.Services;
 
-public sealed class CodeforcesProgressClient(HttpClient http)
+public sealed class CodeforcesProgressClient(HttpClient http) : ICodeforcesProgressClient
 {
     private static readonly SemaphoreSlim RequestGate = new(1, 1);
+    private static readonly TimeSpan RequestInterval = TimeSpan.FromMilliseconds(2100);
     private static DateTimeOffset nextRequestAt;
     public const int PageSize = 1000;
+    private const string UserStatusEndpoint = "https://codeforces.com/api/user.status";
 
     public async Task<Dictionary<(int ContestId, string Index), ProgressFacts>> GetHistoryAsync(
         string handle, CancellationToken ct)
     {
-        var facts = new Dictionary<(int, string), ProgressFacts>();
-        for (var from = 1; ; from += PageSize)
+        var progressByProblem = new Dictionary<(int, string), ProgressFacts>();
+        for (var firstSubmission = 1; ; firstSubmission += PageSize)
         {
             await RequestGate.WaitAsync(ct);
-            Response? response;
+            CodeforcesProgressResponse? response;
             try
             {
                 var delay = nextRequestAt - DateTimeOffset.UtcNow;
-                if (delay > TimeSpan.Zero) await Task.Delay(delay, ct);
-                var url = $"https://codeforces.com/api/user.status?handle={Uri.EscapeDataString(handle)}&from={from}&count={PageSize}";
-                response = await http.GetFromJsonAsync<Response>(url, ct);
+                if (delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(delay, ct);
+                }
+                var url = $"{UserStatusEndpoint}?handle={Uri.EscapeDataString(handle)}&from={firstSubmission}&count={PageSize}";
+                response = await http.GetFromJsonAsync<CodeforcesProgressResponse>(url, ct);
             }
             finally
             {
-                nextRequestAt = DateTimeOffset.UtcNow.AddMilliseconds(2100);
+                nextRequestAt = DateTimeOffset.UtcNow.Add(RequestInterval);
                 RequestGate.Release();
             }
-            if (response?.Status != "OK" || response.Result == null)
+            if (response?.Status != CodeforcesResponseStatuses.Ok || response.Result is null)
+            {
                 throw new HttpRequestException("Codeforces did not return a complete submission page.");
+            }
             foreach (var submission in response.Result)
             {
-                var p = submission.Problem;
-                if (p == null || p.ContestId <= 0 || string.IsNullOrEmpty(p.Index)) continue;
-                var key = (p.ContestId, p.Index);
-                facts.TryGetValue(key, out var old);
-                facts[key] = new ProgressFacts(old.IsSolved || submission.Verdict == "OK",
-                    old.HasFailedAttempt || ProblemStatuses.FailedVerdicts.Contains(submission.Verdict ?? ""));
+                var problem = submission.Problem;
+                if (problem is null || problem.ContestId <= 0 || string.IsNullOrEmpty(problem.Index))
+                {
+                    continue;
+                }
+                var problemKey = (problem.ContestId, problem.Index);
+                progressByProblem.TryGetValue(problemKey, out var previousProgress);
+                var isSolved = previousProgress.IsSolved || submission.Verdict == Verdicts.Ok;
+                var hasFailedAttempt = previousProgress.HasFailedAttempt ||
+                    ProblemStatuses.FailedVerdicts.Contains(submission.Verdict ?? string.Empty);
+                progressByProblem[problemKey] = new ProgressFacts(isSolved, hasFailedAttempt);
             }
-            // Do not stop at the first page: old accepted submissions matter too.
-            if (response.Result.Count < PageSize) return facts;
+            if (response.Result.Count < PageSize)
+            {
+                return progressByProblem;
+            }
         }
-    }
-
-    public readonly record struct ProgressFacts(bool IsSolved, bool HasFailedAttempt);
-    public sealed class Response
-    {
-        [JsonPropertyName("status")] public string? Status { get; set; }
-        [JsonPropertyName("result")] public List<Submission>? Result { get; set; }
-    }
-    public sealed class Submission
-    {
-        [JsonPropertyName("verdict")] public string? Verdict { get; set; }
-        [JsonPropertyName("problem")] public Problem? Problem { get; set; }
-    }
-    public sealed class Problem
-    {
-        [JsonPropertyName("contestId")] public int ContestId { get; set; }
-        [JsonPropertyName("index")] public string Index { get; set; } = "";
     }
 }
