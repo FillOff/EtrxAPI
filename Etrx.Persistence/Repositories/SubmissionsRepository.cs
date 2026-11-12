@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Constants;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Submissions;
 using Etrx.Application.Queries;
 using Etrx.Application.Repositories;
@@ -79,6 +79,44 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
             .OrderByDescending(res => res.LastTime);
 
         return await groupedData.ToListAsync();
+    }
+
+    public async Task<List<ProtocolResultFactDto>> GetResultFactsAsync(
+        long unixFrom, long unixUntil, int? contestId, CancellationToken cancellationToken = default)
+    {
+        // LEFT JOINs keep solved problems whose contest/rating has not been imported yet.
+        var accepted = _context.Submissions.AsNoTracking().Where(s =>
+            s.CreationTimeSeconds >= unixFrom && s.CreationTimeSeconds < unixUntil
+            && s.Verdict == Verdicts.Ok
+            && (s.ParticipantType == ParticipantTypes.Contestant
+                || s.ParticipantType == ParticipantTypes.Virtual
+                || s.ParticipantType == ParticipantTypes.OutOfCompetition
+                || s.ParticipantType == ParticipantTypes.Practice));
+        if (contestId.HasValue)
+            accepted = accepted.Where(s => s.ContestId == contestId.Value);
+
+        var query =
+            from submission in accepted
+            join user in _context.Users.AsNoTracking() on submission.UserId equals user.Id
+            join contest in _context.Contests.AsNoTracking()
+                on submission.ContestId equals contest.ContestId into contests
+            from contest in contests.DefaultIfEmpty()
+            join problem in _context.Problems.AsNoTracking()
+                on new { submission.ContestId, submission.Index }
+                equals new { problem.ContestId, problem.Index } into problems
+            from problem in problems.DefaultIfEmpty()
+            select new
+            {
+                user.Handle, user.FirstName, user.LastName, UserRating = user.Rating,
+                submission.ContestId, submission.Index, submission.ParticipantType,
+                Division = contest == null ? null : contest.Division,
+                ProblemRating = problem == null ? (int?)null : problem.Rating
+            };
+
+        // Deduplicate in PostgreSQL before materializing; failed/repeated sends are not loaded.
+        var rows = await query.Distinct().ToListAsync(cancellationToken);
+        return rows.Select(r => new ProtocolResultFactDto(r.Handle, r.FirstName, r.LastName,
+            r.UserRating, r.ContestId, r.Index, r.ParticipantType, r.Division, r.ProblemRating)).ToList();
     }
 
     public async Task<List<GetUserProtocolResponseDto>> GetUserProtocolAsync(string handle, long unixFrom, long unixTo)
