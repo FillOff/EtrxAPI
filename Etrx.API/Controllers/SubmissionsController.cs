@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Submissions;
 
@@ -20,6 +20,43 @@ public class SubmissionsController : ControllerBase
         [FromQuery] GetUsersProtocolRequestDto dto)
     {
         return Ok(await _submissionsService.GetUsersProtocolAsync(dto));
+    }
+
+    [HttpGet("results")]
+    public async Task<IActionResult> GetDivisionResultsAsync(
+        [FromQuery] GetDivisionResultsRequestDto dto, CancellationToken cancellationToken)
+    {
+        return Ok(await _submissionsService.GetDivisionResultsAsync(dto, cancellationToken));
+    }
+
+    [HttpGet("results-matrix")]
+    public async Task<IActionResult> GetResultsMatrixAsync(
+        [FromQuery] GetDivisionResultsRequestDto dto, CancellationToken cancellationToken)
+    {
+        return Ok(await _submissionsService.GetResultsMatrixAsync(dto, cancellationToken));
+    }
+
+    [HttpGet("results-by-type")]
+    public async Task<IActionResult> GetResultsByTypeAsync(
+        [FromQuery] GetDivisionResultsRequestDto dto, CancellationToken cancellationToken)
+    {
+        return Ok(await _submissionsService.GetResultsByTypeAsync(dto, cancellationToken));
+    }
+
+    [HttpGet("results-tasks/{handle}")]
+    public async Task<IActionResult> GetResultsTasksAsync(
+        [FromRoute] string handle,
+        [FromQuery] GetDivisionResultsRequestDto dto,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await _submissionsService.GetResultsTasksAsync(handle, dto, cancellationToken));
+    }
+
+    [HttpGet("results-summary")]
+    public async Task<IActionResult> GetResultsSummaryAsync(
+        [FromQuery] GetDivisionResultsRequestDto dto, CancellationToken cancellationToken)
+    {
+        return Ok(await _submissionsService.GetResultsSummaryAsync(dto, cancellationToken));
     }
 
     [HttpGet("{handle}")]
