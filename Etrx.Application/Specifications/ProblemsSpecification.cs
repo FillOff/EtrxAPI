@@ -21,7 +21,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
                 pt.Name.Contains(dto.ProblemName)));
         }
 
-        if (f.AvailableTags != null && f.AvailableTags.Any())
+        if (f.AvailableTags is not null && f.AvailableTags.Any())
         {
             if (dto.IsOnly)
             {
@@ -40,12 +40,12 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             }
         }
 
-        if (f.AvailableIndexes != null && f.AvailableIndexes.Any())
+        if (f.AvailableIndexes is not null && f.AvailableIndexes.Any())
         {
             predicate = predicate.And(p => f.AvailableIndexes.Contains(p.Index));
         }
 
-        if (f.AvailableDivisions != null && f.AvailableDivisions.Any())
+        if (f.AvailableDivisions is not null && f.AvailableDivisions.Any())
         {
             predicate = predicate.And(p =>
                 p.Contest != null &&
@@ -54,7 +54,7 @@ public class ProblemsSpecification : BaseSpecification<Problem>
             );
         }
 
-        if (f.AvailableRanks != null && f.AvailableRanks.Any())
+        if (f.AvailableRanks is not null && f.AvailableRanks.Any())
         {
             var rankPredicate = ProblemExpressions.GetPredicate(f.AvailableRanks.ToList());
             predicate = predicate.And(rankPredicate.Expand());

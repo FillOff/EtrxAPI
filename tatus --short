@@ -1,0 +1,206 @@
+warning: in the working copy of 'Etrx.API/Controllers/AuthController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Controllers/ContestsController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Controllers/ProblemsController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Controllers/RanklistRowsController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Controllers/SubmissionsController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Controllers/TagsController.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Dockerfile', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Etrx.API.csproj', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Extensions/ApplicationExtensions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Extensions/PersistenceExtensions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Extensions/PresentationExtensions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Middlewares/GlobalExceptionMiddleware.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Program.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/Properties/launchSettings.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.API/appsettings.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/ContestPhases.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/Languages.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/ParticipantTypes.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/ProblemTypes.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/SortOrders.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/Sources.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Constants/Verdicts.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Common/ErrorResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Common/PagedResultDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Common/PaginationDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Common/SortingDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Contests/ContestResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Contests/ContestWithPropsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Contests/GetSortContestRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/ProblemResults/GetProblemResultsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Problems/GetProblemFiltersResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Problems/GetSortProblemRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Problems/ProblemFiltersDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Problems/ProblemResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Problems/ProblemWithPropsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/RanklistRows/GetRanklistRowsRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/RanklistRows/GetRanklistRowsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/RanklistRows/GetRanklistRowsResponseWithPropsDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUserContestProtocolRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUserContestProtocolResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUserProtocolRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUserProtocolResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUsersProtocolRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/GetUsersProtocolsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Submissions/SubmissionsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Tags/TagsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Tags/UpdateTagRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Tags/UpdateTagsRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Users/CreateUserRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Users/GetSortUserRequestDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Users/UsersResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Dtos/Users/UsersWithPropsResponseDto.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Etrx.Application.csproj', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/Api/ApiException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/Api/CodeforcesApiException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/BadRequest/BadRequestException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/BadRequest/InvalidLanguageException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/BadRequest/UserAlreadyExistsException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Exceptions/NotFound/NotFoundException.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/Api/ICodeforcesApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/Api/IDlApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/Api/IIoiCodeforcesApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/ICodeforcesService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IContestsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IIoiCodeforcesService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IProblemsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IRanklistRowsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/ISubmissionsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/ITagService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IUpdateDataService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Interfaces/IUsersService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Options/CodeforcesOptions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/ContestsProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/ProblemsProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/RanklistsProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/SubmissionsProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/TagProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Profiles/UsersProfile.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Providers/SortingFieldsProvider.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Queries/Common/PaginationQueryParameters.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Queries/Common/SortingQueryParameters.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Queries/ContestQueryParameters.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Queries/ProblemQueryParameters.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Queries/RanklistQueryParameters.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IContestTranslationsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IContestsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IGenericRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IProblemResultsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IProblemTranslationsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IProblemsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IRanklistRowsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/ISubmissionsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/ITagRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/IUsersRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Repositories/UnitOfWork/IUnitOfWork.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/Api/ApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/Api/CodeforcesApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/Api/DlApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/Api/IoiCodeforcesApiService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/BackgroundServices/UpdateDataBackgroundService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/BackgroundServices/UpdateDataEvery30MinutesBackgroundService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/BackgroundServices/UpdateDataPerDayBackgroundService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/CodeforcesService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/ContestsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/IoiCodeforcesService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/ProblemsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/RanklistPartyFormatter.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/RanklistRowsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/SubmissionsService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/TagService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/UpdateDataService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Services/UsersService.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Specifications/BaseSpecification.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Specifications/ContestsSpecification.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Specifications/ProblemsSpecification.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/CreateUserRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetGroupSubmissionsProtocolRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetRanklistRowsRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetSortContestRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetSortProblemRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetSortUserRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Application/Validators/GetUserContestProtocolRequestDtoValidator.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Enums/RankEnum.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Etrx.Domain.csproj', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Expressions/ContestExpressions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Expressions/ProblemExpressions.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Contest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/ContestTranslation.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Entity.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesContest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesContestStanding.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesParty.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesProblem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesProblemResult.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesProblemSetResult.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesProblemStatistics.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesRanklistRow.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesResponse.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesSubmission.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesSubmissionMember.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesSubmissionProblem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Codeforces/CodeforcesUser.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/Dl/DlUser.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/IoiCodeforces/IoiCodeforcesContest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/IoiCodeforces/IoiCodeforcesParticipantRow.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/IoiCodeforces/IoiCodeforcesProblemResult.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Parsing models/IoiCodeforces/IoiCodeforcesStandings.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Problem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/ProblemResult.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/ProblemTranslation.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/RanklistRow.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Submission.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/Tag.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Domain/Models/User.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/ContestConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/ContestTranslationConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/ProblemConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/ProblemResultConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/ProblemTranslationConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/RanklistRowConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/SubmissionConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/TagConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Configurations/UserConfiguration.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Databases/EtrxDbContext.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Etrx.Persistence.csproj', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251107164032_Initial.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251107164032_Initial.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251107172329_AddContestNavigationPropertyInProblem.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251107172329_AddContestNavigationPropertyInProblem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251209174830_AddDivisionToProblem.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251209174830_AddDivisionToProblem.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251219004142_MoveDivisionToContest.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20251219004142_MoveDivisionToContest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260228155423_AddTags.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260228155423_AddTags.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260802150000_AddSourceToContest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260803130000_NormalizeContestSources.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260806114853_StoreCodeforcesParty.Designer.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260806114853_StoreCodeforcesParty.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/20260807120000_AddSyncAttemptsToContest.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Migrations/EtrxDbContextModelSnapshot.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/ContestTranslationsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/ContestsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/GenericRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/ProblemResultsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/ProblemTranslationsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/ProblemsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/RanklistRowsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/SubmissionsRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/TagRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/Repositories/UsersRepository.cs', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'Etrx.Persistence/UnitOfWork/UnitOfWork.cs', LF will be replaced by CRLF the next time Git touches it
+ Etrx.API/Controllers/AuthController.cs             |  3 [32m+[m[31m-[m
+ Etrx.API/Controllers/ProblemsController.cs         | 21 [32m++++++++[m[31m--[m
+ Etrx.API/Program.cs                                | 18 [32m+++++++[m[31m-[m
+ .../Dtos/Problems/GetSortProblemRequestDto.cs      |  8 [32m+++[m[31m-[m
+ .../Dtos/Problems/ProblemResponseDto.cs            |  2 [32m+[m
+ Etrx.Application/Profiles/ProblemsProfile.cs       |  2 [32m+[m
+ .../Repositories/IProblemsRepository.cs            |  4 [32m+[m[31m-[m
+ Etrx.Application/Services/ProblemsService.cs       |  4 [32m+[m[31m-[m
+ .../GetSortProblemRequestDtoValidator.cs           |  4 [32m+[m[31m-[m
+ .../Configurations/SubmissionConfiguration.cs      |  1 [32m+[m
+ Etrx.Persistence/Databases/EtrxDbContext.cs        |  3 [32m++[m
+ .../Migrations/EtrxDbContextModelSnapshot.cs       | 49 [32m++++++++++++++++++++[m[31m--[m
+ .../Repositories/ProblemsRepository.cs             | 26 [32m++++++++++[m[31m--[m
+ 13 files changed, 127 insertions(+), 18 deletions(-)

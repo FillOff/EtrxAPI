@@ -91,7 +91,7 @@ public class ContestsRepository : GenericRepository<Contest>, IContestsRepositor
 
     public async Task<List<Contest>> GetByContestIdsAsync(List<int> contestIds)
     {
-        if (contestIds == null || contestIds.Count == 0)
+        if (contestIds is null || contestIds.Count == 0)
         {
             return [];
         }

@@ -41,7 +41,6 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
            .Include(rr => rr.ProblemResults)
            .Where(rr => rr.ContestId == parameters.ContestId);
 
-        // Filter by participant type
         if (parameters.ParticipantType != ParticipantTypes.All)
         {
             query = query.Where(rr => rr.ParticipantType == parameters.ParticipantType);
@@ -91,7 +90,6 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
             };
         }).AsQueryable();
 
-        // Sorting
         string order = parameters.Sorting.SortOrder == true ? SortOrders.Asc : SortOrders.Desc;
         combinedQuery = combinedQuery.OrderBy($"{parameters.Sorting.SortField} {order}");
 

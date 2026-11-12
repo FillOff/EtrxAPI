@@ -140,7 +140,7 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
         var contests = new List<IoiCodeforcesContest>();
         var rows = doc.DocumentNode.SelectNodes("//tr[@data-contestid or @data-contestId]");
 
-        if (rows != null)
+        if (rows is not null)
         {
             foreach (var row in rows)
             {
@@ -152,7 +152,7 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
                 }
                 var durationNode = row.SelectSingleNode("./td[3]");
 
-                if (nameNode != null)
+                if (nameNode is not null)
                 {
                     string cleanName = CleanText(nameNode.InnerText);
 
@@ -191,7 +191,7 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
             .ToList() ?? [];
 
         var rows = doc.DocumentNode.SelectNodes("//tr[@participantid]");
-        if (rows != null)
+        if (rows is not null)
         {
             foreach (var row in rows)
             {
@@ -205,7 +205,7 @@ public class IoiCodeforcesApiService : ApiService, IIoiCodeforcesApiService
                 participant.TotalScore = ParseDouble(row.SelectSingleNode("./td[3]")?.InnerText);
 
                 var problemCells = row.SelectNodes("./td[@problemid]");
-                if (problemCells != null)
+                if (problemCells is not null)
                 {
                     for (var i = 0; i < problemCells.Count; i++)
                     {
