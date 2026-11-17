@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Dtos.Common;
+using Etrx.Application.Dtos.Common;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Specifications;
@@ -12,9 +12,8 @@ public interface IProblemsRepository : IGenericRepository<Problem>
     Task<Problem?> GetByContestIdAndIndexAsync(int contestId, string index);
     Task<List<Problem>> GetByContestIdAsync(int contestId);
     Task<List<string>> GetIndexesByContestIdAsync(int contestId);
-    Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Problem> spec, PaginationQueryParameters pagination, string lang);
+    Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(BaseSpecification<Problem> spec, PaginationQueryParameters pagination, string lang, Guid? userId = null, string[]? statuses = null, bool hideSolved = false, CancellationToken cancellationToken = default);
     Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers);
-    IQueryable<Problem> GetFilteredQuery(GetSortProblemRequestDto dto);
-    Task<ProblemFiltersDto> GetFiltersAsync(IQueryable<Problem> query);
+    Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto, CancellationToken cancellationToken = default);
     Task<ProblemFiltersDto> GetAbsoluteBoundsAsync();
 }

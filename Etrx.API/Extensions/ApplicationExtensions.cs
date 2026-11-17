@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Options;
 using Etrx.Application.Services;
@@ -27,6 +27,12 @@ public static class ApplicationExtensions
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
+        services.AddScoped<IProblemProgressService, ProblemProgressService>();
+        services.AddScoped<IProblemPreferencesService, ProblemPreferencesService>();
+        services.AddScoped<IAuthService, Etrx.API.Services.AuthService>();
+        services.AddScoped<Etrx.API.Services.JwtTokenService>();
+        services.AddScoped<IAuthSession, Etrx.API.Services.AuthSession>();
+        services.AddHttpContextAccessor();
         services.AddHttpClient<IIoiCodeforcesApiService, IoiCodeforcesApiService>()
             .ConfigurePrimaryHttpMessageHandler(serviceProvider => new HttpClientHandler
             {
@@ -56,6 +62,7 @@ public static class ApplicationExtensions
     {
         services.Configure<CodeforcesOptions>(
             configuration.GetSection(CodeforcesOptions.SectionName));
+        services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.SectionName));
 
         return services;
     }

@@ -1,11 +1,13 @@
-﻿using Etrx.Application.Constants;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/problems")]
 public class ProblemsController : ControllerBase
 {
@@ -26,14 +28,19 @@ public class ProblemsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetProblemsByPageWithSortAndFilterAsync(
-        [FromQuery] GetSortProblemRequestDto dto)
+        [FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
-        return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto));
+        dto.CurrentUserId = CurrentUserId();
+        return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto, cancellationToken));
     }
 
     [HttpGet("filters")]
-    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto)
+    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
-        return Ok(await _problemsService.GetProblemFiltersAsync(dto));
+        dto.CurrentUserId = CurrentUserId();
+        return Ok(await _problemsService.GetProblemFiltersAsync(dto, cancellationToken));
     }
+
+    private Guid? CurrentUserId() => User.Identity?.IsAuthenticated == true &&
+        Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
 }

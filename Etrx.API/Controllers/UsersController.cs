@@ -1,6 +1,9 @@
-﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Etrx.Application.Constants;
+using Etrx.Application.Dtos.Common;
 
 namespace Etrx.API.Controllers;
 
@@ -16,6 +19,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public async Task<IActionResult> CreateUserAsync([FromBody] CreateUserRequestDto dto)
     {
         var user = await _usersService.CreateUserAsync(dto);
@@ -37,6 +41,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete("{handle}")]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public async Task<IActionResult> DeleteUserByHandleAsync(string handle)
     {
         await _usersService.DeleteUserByHandleAsync(handle);
@@ -45,10 +50,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteAllUsersAsync()
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
+    public IActionResult DeleteAllUsersAsync()
     {
-        await _usersService.DeleteAllUsersAsync();
-
-        return Ok();
+        return StatusCode(403, new MessageResponseDto("Deleting all users is disabled."));
     }
 }

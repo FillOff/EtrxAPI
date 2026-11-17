@@ -6,6 +6,8 @@ using Etrx.Application.Queries.Common;
 using Etrx.Application.Providers;
 using Etrx.Application.Exceptions.BadRequest;
 using Etrx.Application.Exceptions.NotFound;
+using Etrx.Application.Options;
+using Microsoft.Extensions.Options;
 
 namespace Etrx.Application.Services;
 
@@ -13,13 +15,16 @@ public class UsersService : IUsersService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly AuthOptions _authOptions;
 
     public UsersService(
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        IOptions<AuthOptions> authOptions)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _authOptions = authOptions.Value;
     }
 
     public async Task<UsersResponseDto> CreateUserAsync(CreateUserRequestDto dto)
@@ -47,6 +52,11 @@ public class UsersService : IUsersService
 
     public async Task DeleteUserByHandleAsync(string handle)
     {
+        if (_authOptions.IsAdmin(handle))
+        {
+            throw new BadRequestException("The administrator cannot be deleted.");
+        }
+
         var deleted = await _unitOfWork.Users.DeleteByHandleAsync(handle);
 
         if (!deleted)
