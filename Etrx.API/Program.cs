@@ -1,7 +1,6 @@
 using Etrx.API.Extensions;
 using Etrx.API.Middlewares;
 using Serilog;
-using Etrx.API.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -12,7 +11,6 @@ builder.Services.ConfigureControllers();
 builder.Services.AddEtrxAuthentication(configuration, builder.Environment.IsDevelopment());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
-
 
 
 builder.Services.AddServices();

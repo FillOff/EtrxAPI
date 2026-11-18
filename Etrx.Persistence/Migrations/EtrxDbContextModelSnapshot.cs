@@ -23,55 +23,6 @@ namespace Etrx.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Etrx.Domain.Models.UserProblemPreferences", b =>
-            {
-                b.Property<Guid>("UserId").HasColumnType("uuid").HasColumnName("user_id");
-                b.Property<string>("FiltersJson").IsRequired().HasColumnType("text").HasColumnName("filters_json");
-                b.HasKey("UserId").HasName("pk_user_problem_preferences");
-                b.ToTable("user_problem_preferences");
-                b.HasOne("Etrx.Domain.Models.User", null).WithOne().HasForeignKey("Etrx.Domain.Models.UserProblemPreferences", "UserId")
-                    .OnDelete(DeleteBehavior.Cascade).IsRequired().HasConstraintName("fk_user_problem_preferences_users_user_id");
-            });
-
-            modelBuilder.Entity("Etrx.Domain.Models.UserProblemProgress", b =>
-            {
-                b.Property<Guid>("UserId").HasColumnType("uuid").HasColumnName("user_id");
-                b.Property<int>("ContestId").HasColumnType("integer").HasColumnName("contest_id");
-                b.Property<string>("Index").IsRequired().HasColumnType("text").HasColumnName("index");
-                b.Property<bool>("IsSolved").HasColumnType("boolean").HasColumnName("is_solved");
-                b.Property<bool>("HasFailedAttempt").HasColumnType("boolean").HasColumnName("has_failed_attempt");
-                b.Property<bool>("IsDeferred").HasColumnType("boolean").HasColumnName("is_deferred");
-                b.HasKey("UserId", "ContestId", "Index").HasName("pk_user_problem_progress");
-                b.ToTable("user_problem_progress");
-                b.HasOne("Etrx.Domain.Models.User", null).WithMany().HasForeignKey("UserId")
-                    .OnDelete(DeleteBehavior.Cascade).IsRequired().HasConstraintName("fk_user_problem_progress_users_user_id");
-            });
-
-            modelBuilder.Entity("Etrx.Domain.Models.UserProblemSync", b =>
-            {
-                b.Property<Guid>("UserId").HasColumnType("uuid").HasColumnName("user_id");
-                b.Property<DateTimeOffset?>("LastAttemptAt").HasColumnType("timestamp with time zone").HasColumnName("last_attempt_at");
-                b.Property<DateTimeOffset?>("LastSuccessAt").HasColumnType("timestamp with time zone").HasColumnName("last_success_at");
-                b.HasKey("UserId").HasName("pk_user_problem_sync");
-                b.ToTable("user_problem_sync");
-                b.HasOne("Etrx.Domain.Models.User", null).WithOne().HasForeignKey("Etrx.Domain.Models.UserProblemSync", "UserId")
-                    .OnDelete(DeleteBehavior.Cascade).IsRequired().HasConstraintName("fk_user_problem_sync_users_user_id");
-            });
-
-            modelBuilder.Entity("Etrx.Domain.Models.UserCredential", b =>
-            {
-                b.Property<Guid>("UserId").HasColumnType("uuid").HasColumnName("user_id");
-                b.Property<string>("PasswordHash").IsRequired().HasColumnType("text").HasColumnName("password_hash");
-                b.Property<string>("SecurityStamp").IsRequired().HasColumnType("text").HasColumnName("security_stamp");
-                b.Property<bool>("AdminActivated").HasColumnType("boolean").HasColumnName("admin_activated");
-                b.Property<int>("FailedAttempts").HasColumnType("integer").HasColumnName("failed_attempts");
-                b.Property<DateTimeOffset?>("LockedUntil").HasColumnType("timestamp with time zone").HasColumnName("locked_until");
-                b.HasKey("UserId").HasName("pk_user_credentials");
-                b.ToTable("user_credentials");
-                b.HasOne("Etrx.Domain.Models.User", null).WithOne().HasForeignKey("Etrx.Domain.Models.UserCredential", "UserId")
-                    .OnDelete(DeleteBehavior.Cascade).IsRequired().HasConstraintName("fk_user_credentials_users_user_id");
-            });
-
             modelBuilder.Entity("Etrx.Domain.Models.Contest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -402,10 +353,6 @@ namespace Etrx.Persistence.Migrations
                     b.Property<int>("UnsuccessfulHackCount")
                         .HasColumnType("integer")
                         .HasColumnName("unsuccessful_hack_count");
-
-                    b.Property<List<string>>("MemberHandles").IsRequired().HasColumnType("text[]").HasColumnName("member_handles");
-                    b.Property<int?>("PartyId").HasColumnType("integer").HasColumnName("party_id");
-                    b.Property<string>("TeamName").IsRequired().HasColumnType("text").HasColumnName("team_name");
 
                     b.HasKey("Id")
                         .HasName("pk_ranklist_rows");

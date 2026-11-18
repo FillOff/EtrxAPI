@@ -12,12 +12,10 @@ namespace Etrx.API.Controllers;
 public class ProblemsController : ControllerBase
 {
     private readonly IProblemsService _problemsService;
-    private readonly IProblemProgressService _progressService;
 
-    public ProblemsController(IProblemsService problemsService, IProblemProgressService progressService)
+    public ProblemsController(IProblemsService problemsService)
     {
         _problemsService = problemsService;
-        _progressService = progressService;
     }
 
     [HttpGet("{contestId:int}")]
