@@ -1,10 +1,11 @@
-﻿using Etrx.Domain.Enums;
+using Etrx.Domain.Enums;
+using Etrx.Application.Constants;
 
 namespace Etrx.Application.Dtos.Problems;
 
 public class ProblemResponseDto
 {
-    public string Status { get; set; } = "none";
+    public string Status { get; set; } = ProblemStatuses.None;
     public bool IsDeferred { get; set; }
     public int ContestId { get; set; }
     public string Index { get; set; } = string.Empty;

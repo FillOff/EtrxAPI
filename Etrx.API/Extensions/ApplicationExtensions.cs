@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Interfaces;
+using Etrx.Application.Interfaces;
 using Etrx.Application.Interfaces.Api;
 using Etrx.Application.Options;
 using Etrx.Application.Services;
@@ -27,11 +27,10 @@ public static class ApplicationExtensions
         services.AddScoped<IDlApiService, DlApiService>();
         services.AddScoped<IUpdateDataService, UpdateDataService>();
         services.AddScoped<ITagService, TagService>();
-        services.AddScoped<IHashService, HashService>();
         services.AddScoped<IProblemProgressService, ProblemProgressService>();
         services.AddScoped<IProblemPreferencesService, ProblemPreferencesService>();
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IAuthPasswordService, Etrx.API.Services.AuthPasswordService>();
+        services.AddScoped<IAuthService, Etrx.API.Services.AuthService>();
+        services.AddScoped<Etrx.API.Services.JwtTokenService>();
         services.AddScoped<IAuthSession, Etrx.API.Services.AuthSession>();
         services.AddHttpContextAccessor();
         services.AddHttpClient<IIoiCodeforcesApiService, IoiCodeforcesApiService>()

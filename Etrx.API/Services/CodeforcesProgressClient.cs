@@ -5,35 +5,42 @@ using Etrx.Application.Interfaces;
 
 namespace Etrx.API.Services;
 
-public sealed class CodeforcesProgressClient(HttpClient http) : ICodeforcesProgressClient
+public sealed class CodeforcesProgressClient : ICodeforcesProgressClient
 {
-    private static readonly SemaphoreSlim RequestGate = new(1, 1);
+    private readonly HttpClient _httpClient;
+
+    private static readonly SemaphoreSlim RequestGate = new SemaphoreSlim(1, 1);
     private static readonly TimeSpan RequestInterval = TimeSpan.FromMilliseconds(2100);
-    private static DateTimeOffset nextRequestAt;
+    private static DateTimeOffset _nextRequestAt;
     public const int PageSize = 1000;
     private const string UserStatusEndpoint = "https://codeforces.com/api/user.status";
 
+    public CodeforcesProgressClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
     public async Task<Dictionary<(int ContestId, string Index), ProgressFacts>> GetHistoryAsync(
-        string handle, CancellationToken ct)
+        string handle, CancellationToken cancellationToken)
     {
         var progressByProblem = new Dictionary<(int, string), ProgressFacts>();
         for (var firstSubmission = 1; ; firstSubmission += PageSize)
         {
-            await RequestGate.WaitAsync(ct);
+            await RequestGate.WaitAsync(cancellationToken);
             CodeforcesProgressResponse? response;
             try
             {
-                var delay = nextRequestAt - DateTimeOffset.UtcNow;
+                var delay = _nextRequestAt - DateTimeOffset.UtcNow;
                 if (delay > TimeSpan.Zero)
                 {
-                    await Task.Delay(delay, ct);
+                    await Task.Delay(delay, cancellationToken);
                 }
                 var url = $"{UserStatusEndpoint}?handle={Uri.EscapeDataString(handle)}&from={firstSubmission}&count={PageSize}";
-                response = await http.GetFromJsonAsync<CodeforcesProgressResponse>(url, ct);
+                response = await _httpClient.GetFromJsonAsync<CodeforcesProgressResponse>(url, cancellationToken);
             }
             finally
             {
-                nextRequestAt = DateTimeOffset.UtcNow.Add(RequestInterval);
+                _nextRequestAt = DateTimeOffset.UtcNow.Add(RequestInterval);
                 RequestGate.Release();
             }
             if (response?.Status != CodeforcesResponseStatuses.Ok || response.Result is null)

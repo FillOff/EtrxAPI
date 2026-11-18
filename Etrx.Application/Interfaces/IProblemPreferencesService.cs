@@ -4,6 +4,6 @@ namespace Etrx.Application.Interfaces;
 
 public interface IProblemPreferencesService
 {
-    Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken ct);
-    Task<PreferenceSaveStatus> SaveAsync(Guid userId, string? currentHandle, SaveProblemPreferencesRequestDto request, CancellationToken ct);
+    Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken cancellationToken);
+    Task SaveAsync(Guid userId, string? currentHandle, SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken);
 }

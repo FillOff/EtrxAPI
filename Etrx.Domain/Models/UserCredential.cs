@@ -1,6 +1,6 @@
 namespace Etrx.Domain.Models;
 
-// Separate from imported profiles: synchronization must never replace passwords.
+// Legacy migration archive only. New credentials are managed by ASP.NET Core Identity.
 public class UserCredential
 {
     public Guid UserId { get; set; }

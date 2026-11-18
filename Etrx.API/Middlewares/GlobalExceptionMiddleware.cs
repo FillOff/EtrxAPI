@@ -1,22 +1,17 @@
-﻿using Etrx.Application.Dtos.Common;
+using Etrx.Application.Exceptions;
 using Etrx.Application.Exceptions.Api;
 using Etrx.Application.Exceptions.BadRequest;
 using Etrx.Application.Exceptions.NotFound;
-using System.Net;
-using System.Text.Json;
+using FluentValidation;
 
 namespace Etrx.API.Middlewares;
 
 public class GlobalExceptionMiddleware
 {
-    public const string CONTENT_TYPE = "application/json";
-
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
 
-    public GlobalExceptionMiddleware(
-        RequestDelegate next, 
-        ILogger<GlobalExceptionMiddleware> logger)
+    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -28,64 +23,39 @@ public class GlobalExceptionMiddleware
         {
             await _next(context);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {
-            _logger.LogError(ex, "Unhandled exception while processing {Method} {Path}", context.Request.Method, context.Request.Path);
-            await HandleExceptionAsync(context, ex);
+            // The caller disconnected; do not turn cancellation into a server error.
         }
-    }
-
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        context.Response.ContentType = CONTENT_TYPE;
-        
-        int statusCode;
-        string jsonResponse;
-
-        switch (exception)
+        catch (Exception exception) when (!context.Response.HasStarted)
         {
-            case BadRequestException badRequestEx:
-                statusCode = (int)HttpStatusCode.BadRequest;
+            var statusCode = exception switch
+            {
+                BadRequestException or ValidationException => StatusCodes.Status400BadRequest,
+                UnauthorizedException => StatusCodes.Status401Unauthorized,
+                ForbiddenException => StatusCodes.Status403Forbidden,
+                NotFoundException => StatusCodes.Status404NotFound,
+                ConflictException => StatusCodes.Status409Conflict,
+                TooManyRequestsException => StatusCodes.Status429TooManyRequests,
+                _ => StatusCodes.Status500InternalServerError
+            };
+            if (statusCode >= StatusCodes.Status500InternalServerError)
+            {
+                _logger.LogError(exception, "Unhandled exception while processing {Method} {Path}",
+                    context.Request.Method, context.Request.Path);
+            }
+            else
+            {
+                _logger.LogWarning("Request rejected with {StatusCode}: {Message}", statusCode, exception.Message);
+            }
 
-                var inLangResponse = new ErrorResponseDto<string>(
-                    badRequestEx.Message,
-                    statusCode);
-
-                jsonResponse = JsonSerializer.Serialize(inLangResponse);
-                break;
-
-            case NotFoundException notFoundEx:
-                statusCode = (int)HttpStatusCode.NotFound;
-
-                var notFoundResponse = new ErrorResponseDto<string>(
-                    notFoundEx.Message,
-                    statusCode);
-
-                jsonResponse = JsonSerializer.Serialize(notFoundResponse);
-                break;
-
-            case CodeforcesApiException cfApiEx:
-                statusCode = (int)HttpStatusCode.InternalServerError;
-
-                var cfApiResponse = new ErrorResponseDto<string>(
-                    cfApiEx.Message,
-                    statusCode);
-
-                jsonResponse = JsonSerializer.Serialize(cfApiResponse);
-                break;
-
-            default:
-                statusCode = (int)HttpStatusCode.InternalServerError;
-
-                var internalErrorResponse = new ErrorResponseDto<string>(
-                    "An internal server error has occurred",
-                    statusCode);
-
-                jsonResponse = JsonSerializer.Serialize(internalErrorResponse);
-                break;
+            var message = exception is RequestException or ValidationException or CodeforcesApiException
+                ? exception.Message : "An internal server error has occurred";
+            context.Response.StatusCode = statusCode;
+            // Preserve the existing Errors/StatusCode contract and the message read by auth clients.
+            await context.Response.WriteAsJsonAsync(new { Errors = message, StatusCode = statusCode, message },
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null },
+                context.RequestAborted);
         }
-
-        context.Response.StatusCode = statusCode;
-        await context.Response.WriteAsync(jsonResponse);
     }
 }

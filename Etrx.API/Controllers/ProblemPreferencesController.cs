@@ -1,6 +1,6 @@
-using System.Security.Claims;
-using Etrx.Application.Dtos.Common;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
+using Etrx.Application.Exceptions;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,34 +11,29 @@ namespace Etrx.API.Controllers;
 [Authorize]
 [Route("api/problems/preferences")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public class ProblemPreferencesController(IProblemPreferencesService preferencesService) : ControllerBase
+public class ProblemPreferencesController : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken)
-    {
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-        {
-            return Unauthorized();
-        }
+    private readonly IProblemPreferencesService _preferencesService;
+    private readonly IAuthSession _session;
+    private Guid UserId => _session.UserId ?? throw new UnauthorizedException("Authentication is required.");
 
-        return Ok(await preferencesService.GetAsync(userId, cancellationToken));
+    public ProblemPreferencesController(IProblemPreferencesService preferencesService, IAuthSession session)
+    {
+        _preferencesService = preferencesService;
+        _session = session;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAsync(CancellationToken cancellationToken)
+    {
+        return Ok(await _preferencesService.GetAsync(UserId, cancellationToken));
     }
 
     [HttpPut]
-    [RequestSizeLimit(32768)]
-    public async Task<IActionResult> Save(SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken)
+    [RequestSizeLimit(RequestLimits.PreferencesBodyBytes)]
+    public async Task<IActionResult> SaveAsync(SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-        {
-            return Unauthorized();
-        }
-
-        var result = await preferencesService.SaveAsync(userId, User.Identity?.Name, request, cancellationToken);
-        return result switch
-        {
-            PreferenceSaveStatus.Success => NoContent(),
-            PreferenceSaveStatus.AccountChanged => Conflict(new MessageResponseDto("The account changed. Filters were not saved.")),
-            _ => BadRequest(new MessageResponseDto("Invalid filters."))
-        };
+        await _preferencesService.SaveAsync(UserId, _session.Current.Handle, request, cancellationToken);
+        return NoContent();
     }
 }

@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Constants;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -30,33 +30,17 @@ public class ProblemsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetProblemsByPageWithSortAndFilterAsync(
-        [FromQuery] GetSortProblemRequestDto dto)
+        [FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
         dto.CurrentUserId = CurrentUserId();
-        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId is null)
-        {
-            return Unauthorized();
-        }
-
-        var result = await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto);
-        if (dto.CurrentUserId.HasValue)
-        {
-            await _progressService.EnrichAsync(dto.CurrentUserId.Value, result.Problems, HttpContext.RequestAborted);
-        }
-
-        return Ok(result);
+        return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto, cancellationToken));
     }
 
     [HttpGet("filters")]
-    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto)
+    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
         dto.CurrentUserId = CurrentUserId();
-        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId is null)
-        {
-            return Unauthorized();
-        }
-
-        return Ok(await _problemsService.GetProblemFiltersAsync(dto));
+        return Ok(await _problemsService.GetProblemFiltersAsync(dto, cancellationToken));
     }
 
     private Guid? CurrentUserId() => User.Identity?.IsAuthenticated == true &&

@@ -2,15 +2,24 @@ using System.Text.Json;
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
+using Etrx.Application.Exceptions;
+using Etrx.Application.Exceptions.BadRequest;
 using Etrx.Application.Repositories;
 
 namespace Etrx.Application.Services;
 
-public sealed class ProblemPreferencesService(IProblemPreferencesRepository repository) : IProblemPreferencesService
+public sealed class ProblemPreferencesService : IProblemPreferencesService
 {
-    public async Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken ct)
+    private readonly IProblemPreferencesRepository _repository;
+
+    public ProblemPreferencesService(IProblemPreferencesRepository repository)
     {
-        var json = await repository.GetAsync(userId, ct);
+        _repository = repository;
+    }
+
+    public async Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var json = await _repository.GetAsync(userId, cancellationToken);
         if (json is null)
         {
             return new ProblemPreferencesResponseDto(new Dictionary<string, string>());
@@ -21,26 +30,29 @@ public sealed class ProblemPreferencesService(IProblemPreferencesRepository repo
         return new ProblemPreferencesResponseDto(filters);
     }
 
-    public async Task<PreferenceSaveStatus> SaveAsync(Guid userId, string? currentHandle,
-        SaveProblemPreferencesRequestDto request, CancellationToken ct)
+    public async Task SaveAsync(Guid userId, string? currentHandle,
+        SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken)
     {
-        if (!string.Equals(currentHandle, request.ExpectedHandle, StringComparison.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(request.ExpectedHandle) || request.ExpectedHandle.Length > RequestLimits.MaxHandleLength)
         {
-            return PreferenceSaveStatus.AccountChanged;
+            throw new BadRequestException("Invalid expected handle.");
         }
 
-        const int maxFilterValueLength = 4096;
+        if (!string.Equals(currentHandle, request.ExpectedHandle, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ConflictException("The account changed. Filters were not saved.");
+        }
+
         var filters = request.Filters;
         if (filters is null || filters.Count > ProblemPreferenceKeys.Allowed.Count ||
             filters.Any(filter => !ProblemPreferenceKeys.Allowed.Contains(filter.Key) ||
-                filter.Value is null || filter.Value.Length > maxFilterValueLength))
+                filter.Value is null || filter.Value.Length > RequestLimits.MaxFilterValueLength))
         {
-            return PreferenceSaveStatus.InvalidFilters;
+            throw new BadRequestException("Invalid filters.");
         }
 
         var nonEmptyFilters = filters.Where(filter => !string.IsNullOrEmpty(filter.Value))
             .ToDictionary(filter => filter.Key, filter => filter.Value);
-        await repository.SaveAsync(userId, JsonSerializer.Serialize(nonEmptyFilters), ct);
-        return PreferenceSaveStatus.Success;
+        await _repository.SaveAsync(userId, JsonSerializer.Serialize(nonEmptyFilters), cancellationToken);
     }
 }

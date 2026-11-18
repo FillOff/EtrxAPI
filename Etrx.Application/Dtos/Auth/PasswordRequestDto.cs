@@ -1,9 +1,10 @@
+using Etrx.Application.Constants;
 using System.ComponentModel.DataAnnotations;
 
 namespace Etrx.Application.Dtos.Auth;
 
 public record PasswordRequestDto(
-    [Required, StringLength(100)] string Handle,
-    [Required, StringLength(128, MinimumLength = 10)] string Password,
+    [Required, StringLength(RequestLimits.MaxHandleLength)] string Handle,
+    [Required, StringLength(RequestLimits.MaxPasswordLength, MinimumLength = RequestLimits.MinPasswordLength)] string Password,
     bool Confirmed = false,
-    [StringLength(512)] string? ActivationCode = null);
+    [StringLength(RequestLimits.MaxActivationCodeLength)] string? ActivationCode = null);

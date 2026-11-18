@@ -1,7 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
 using Etrx.Application.Dtos.Problems;
-using Etrx.Application.Dtos.Common;
+using Etrx.Application.Exceptions;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,33 +8,29 @@ namespace Etrx.API.Controllers;
 
 [ApiController, Authorize, Route("api/problems/progress")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public class ProblemProgressController(IProblemProgressService progressService) : ControllerBase
+public class ProblemProgressController : ControllerBase
 {
-    [HttpPut("{contestId:int}/{index}/deferral")]
-    public async Task<IActionResult> SetDeferred(int contestId, [StringLength(20, MinimumLength = 1)] string index,
-        SetDeferredRequestDto request, CancellationToken ct)
+    private readonly IProblemProgressService _progressService;
+    private readonly IAuthSession _session;
+    private Guid UserId => _session.UserId ?? throw new UnauthorizedException("Authentication is required.");
+
+    public ProblemProgressController(IProblemProgressService progressService, IAuthSession session)
     {
-        if (contestId <= 0)
-        {
-            return BadRequest();
-        }
+        _progressService = progressService;
+        _session = session;
+    }
 
-        if (!string.Equals(User.Identity?.Name, request.ExpectedHandle, StringComparison.OrdinalIgnoreCase))
-        {
-            return Conflict(new MessageResponseDto("The account changed. The problem was not updated."));
-        }
-
-        if (!await progressService.SetDeferredAsync(UserId, contestId, index, request.Deferred, ct))
-        {
-            return NotFound();
-        }
-
+    [HttpPut("{contestId:int}/{index}/deferral")]
+    public async Task<IActionResult> SetDeferredAsync(int contestId, string index,
+        SetDeferredRequestDto request, CancellationToken cancellationToken)
+    {
+        await _progressService.SetDeferredAsync(UserId, _session.Current.Handle, contestId, index, request, cancellationToken);
         return NoContent();
     }
 
     [HttpPost("synchronizations")]
-    public async Task<IActionResult> Sync(CancellationToken ct) =>
-        Ok(await progressService.SyncAsync(UserId, User.Identity!.Name!, ct));
-
-    private Guid UserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    public async Task<IActionResult> SyncAsync(CancellationToken cancellationToken)
+    {
+        return Ok(await _progressService.SyncAsync(UserId, _session.Current.Handle!, cancellationToken));
+    }
 }

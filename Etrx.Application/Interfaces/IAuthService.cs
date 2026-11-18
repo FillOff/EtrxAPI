@@ -4,9 +4,10 @@ namespace Etrx.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task<AuthResult<AuthLookupResponseDto>> LookupAsync(HandleRequestDto request);
-    Task<AuthResult<SessionResponseDto>> SetupAsync(PasswordRequestDto request);
-    Task<AuthResult<SessionResponseDto>> LoginAsync(PasswordRequestDto request);
-    SessionResponseDto CurrentSession();
-    Task LogoutAsync();
+    Task<AuthLookupResponseDto> LookupAsync(HandleRequestDto request, CancellationToken cancellationToken = default);
+    Task<SessionResponseDto> SetupAsync(PasswordRequestDto request, CancellationToken cancellationToken = default);
+    Task<SessionResponseDto> LoginAsync(PasswordRequestDto request, CancellationToken cancellationToken = default);
+    Task<SessionResponseDto> RefreshAsync(CancellationToken cancellationToken = default);
+    SessionResponseDto GetSession();
+    Task LogoutAsync(CancellationToken cancellationToken = default);
 }

@@ -1,24 +1,24 @@
 using System.Security.Claims;
-using Etrx.API.Security;
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Auth;
 using Etrx.Application.Interfaces;
-using Etrx.Application.Options;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.Extensions.Options;
 
 namespace Etrx.API.Services;
 
-public sealed class AuthSession(IHttpContextAccessor accessor, IOptions<AuthOptions> options) : IAuthSession
+public sealed class AuthSession : IAuthSession
 {
-    private HttpContext Context => accessor.HttpContext ?? throw new InvalidOperationException("No active HTTP context.");
-    public Guid? UserId => Guid.TryParse(Context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
-    public SessionResponseDto Current => new(Context.User.Identity?.IsAuthenticated == true,
-        Context.User.Identity?.Name, Context.User.IsInRole(AuthorizationPolicies.Admin));
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public Task SignInAsync(AuthenticatedUser user) => Context.SignInAsync(AuthSecurity.Scheme,
-        AuthSecurity.CreatePrincipal(user.User, user.Credential, options.Value),
-        new AuthenticationProperties { IsPersistent = true });
+    private ClaimsPrincipal Principal => _httpContextAccessor.HttpContext?.User ?? new ClaimsPrincipal();
 
-    public Task SignOutAsync() => Context.SignOutAsync(AuthSecurity.Scheme);
+    public Guid? UserId => Principal.Identity?.IsAuthenticated == true &&
+        Guid.TryParse(Principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : null;
+
+    public SessionResponseDto Current => new SessionResponseDto(Principal.Identity?.IsAuthenticated == true,
+        Principal.Identity?.Name, Principal.IsInRole(AuthorizationPolicies.Admin));
+
+    public AuthSession(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
 }

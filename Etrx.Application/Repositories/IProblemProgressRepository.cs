@@ -5,11 +5,11 @@ namespace Etrx.Application.Repositories;
 
 public interface IProblemProgressRepository
 {
-    Task<List<ProblemProgressRowDto>> GetProgressAsync(Guid userId, int[] contestIds, CancellationToken ct);
-    Task<bool> ProblemExistsAsync(int contestId, string index, CancellationToken ct);
-    Task SetDeferredAsync(Guid userId, int contestId, string index, bool deferred, CancellationToken ct);
-    Task<bool> TryStartSyncAsync(Guid userId, DateTimeOffset now, CancellationToken ct);
-    Task<UserProblemSync?> GetSyncAsync(Guid userId, CancellationToken ct);
+    Task<List<ProblemProgressRowDto>> GetProgressAsync(Guid userId, int[] contestIds, CancellationToken cancellationToken);
+    Task<bool> ProblemExistsAsync(int contestId, string index, CancellationToken cancellationToken);
+    Task SetDeferredAsync(Guid userId, int contestId, string index, bool deferred, CancellationToken cancellationToken);
+    Task<bool> TryStartSyncAsync(Guid userId, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<UserProblemSync?> GetSyncAsync(Guid userId, CancellationToken cancellationToken);
     Task<DateTimeOffset> MergeProgressAsync(Guid userId, DateTimeOffset attempt,
-        IReadOnlyDictionary<(int ContestId, string Index), ProgressFacts> history, CancellationToken ct);
+        IReadOnlyDictionary<(int ContestId, string Index), ProgressFacts> history, CancellationToken cancellationToken);
 }

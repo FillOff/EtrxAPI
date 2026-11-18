@@ -53,7 +53,7 @@ public class RanklistRowsRepository : GenericRepository<RanklistRow>, IRanklistR
                 : [ranklistRow.Handle])
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-        var users = await _context.Users
+        var users = await _context.Profiles
             .AsNoTracking()
             .Where(user => memberHandles.Contains(user.Handle))
             .ToListAsync();
