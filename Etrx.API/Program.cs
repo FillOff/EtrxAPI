@@ -37,5 +37,5 @@ app.UseApiRequestHeader();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
-app.MapControllers().RequireAuthorization();
+app.MapControllers();
 app.Run();
