@@ -29,6 +29,8 @@ public static class RequestSecurityExtensions
         });
     }
 
+    // A cross-origin browser request with this custom header must pass the frontend CORS preflight.
+    // This protects cookie-backed actions such as refresh and logout from cross-site form submissions.
     public static IApplicationBuilder UseApiRequestHeader(this IApplicationBuilder app) => app.Use(async (context, next) =>
     {
         if (context.Request.Path.StartsWithSegments(ApiPath) && !HttpMethods.IsGet(context.Request.Method) &&

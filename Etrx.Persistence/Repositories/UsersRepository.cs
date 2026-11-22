@@ -56,9 +56,4 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
             .OrderBy($"{parameters.SortField} {order}")
             .ToListAsync();
     }
-
-    public async Task DeleteAllAsync()
-    {
-        await _dbSet.ExecuteDeleteAsync();
-    }
 }

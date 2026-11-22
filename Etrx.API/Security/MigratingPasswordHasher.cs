@@ -4,20 +4,22 @@ using Microsoft.Extensions.Options;
 
 namespace Etrx.API.Security;
 
-// UserManager owns password operations. This Identity extension preserves the required BCrypt format.
+// After a successful login, UserManager migrates Identity PBKDF2 hashes and upgrades outdated BCrypt hashes.
 public sealed class MigratingPasswordHasher : IPasswordHasher<ApplicationUser>
 {
     private const string HashPrefix = "{bcrypt-sha384}";
     private readonly PasswordHasher<ApplicationUser> _legacyHasher;
+    private readonly int _workFactor;
 
-    public MigratingPasswordHasher(IOptions<PasswordHasherOptions> options)
+    public MigratingPasswordHasher(IOptions<PasswordHasherOptions> options, AuthenticationLimits limits)
     {
         _legacyHasher = new PasswordHasher<ApplicationUser>(options);
+        _workFactor = limits.PasswordWorkFactor;
     }
 
     public string HashPassword(ApplicationUser user, string password)
     {
-        return HashPrefix + BCrypt.Net.BCrypt.EnhancedHashPassword(password, AuthenticationLimits.PasswordWorkFactor);
+        return HashPrefix + BCrypt.Net.BCrypt.EnhancedHashPassword(password, _workFactor);
     }
 
     public PasswordVerificationResult VerifyHashedPassword(ApplicationUser user, string hashedPassword, string providedPassword)
@@ -31,7 +33,7 @@ public sealed class MigratingPasswordHasher : IPasswordHasher<ApplicationUser>
                 {
                     return PasswordVerificationResult.Failed;
                 }
-                return BCrypt.Net.BCrypt.PasswordNeedsRehash(bcryptHash, AuthenticationLimits.PasswordWorkFactor)
+                return BCrypt.Net.BCrypt.PasswordNeedsRehash(bcryptHash, _workFactor)
                     ? PasswordVerificationResult.SuccessRehashNeeded : PasswordVerificationResult.Success;
             }
             var legacyResult = _legacyHasher.VerifyHashedPassword(user, hashedPassword, providedPassword);

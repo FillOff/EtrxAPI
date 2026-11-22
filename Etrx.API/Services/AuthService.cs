@@ -47,10 +47,12 @@ public sealed class AuthService : IAuthService
     public async Task<AuthLookupResponseDto> LookupAsync(HandleRequestDto request, CancellationToken cancellationToken = default)
     {
         _handleValidator.ValidateAndThrow(request);
+
         var profile = await _usersRepository.FindByHandleAsync(request.Handle, cancellationToken)
             ?? throw new NotFoundException("User not found.");
         var account = await _userManager.FindByIdAsync(profile.Id.ToString());
         var hasPassword = account is not null && await _userManager.HasPasswordAsync(account);
+
         return new AuthLookupResponseDto(profile.Handle, hasPassword, hasPassword ? null : profile.FirstName,
             hasPassword ? null : profile.LastName, hasPassword ? null : profile.Grade,
             _authOptions.IsAdmin(profile.Handle) && account?.AdminActivated != true);
@@ -59,25 +61,31 @@ public sealed class AuthService : IAuthService
     public async Task<SessionResponseDto> SetupAsync(PasswordRequestDto request, CancellationToken cancellationToken = default)
     {
         _passwordValidator.ValidateAndThrow(request);
+
         var profile = await _usersRepository.FindByHandleAsync(request.Handle, cancellationToken)
             ?? throw new NotFoundException("User not found.");
+
         if (!request.Confirmed)
         {
             throw new BadRequestException("Confirm your details first.");
         }
+
         if (await _userManager.FindByIdAsync(profile.Id.ToString()) is not null)
         {
             throw new ConflictException("Password already exists. Sign in.");
         }
+
         var isAdmin = _authOptions.IsAdmin(profile.Handle);
-        if (isAdmin && !ValidActivationCode(request.ActivationCode))
+        if (isAdmin && !IsActivationCodeValid(request.ActivationCode))
         {
             throw new ForbiddenException("The administrator activation code is invalid or not configured.");
         }
+
         var account = new ApplicationUser
         {
             Id = profile.Id, UserName = profile.Handle, AdminActivated = isAdmin, LockoutEnabled = true
         };
+
         var issuedTokens = await _transactionExecutor.ExecuteAsync(async () =>
         {
             var result = await _userManager.CreateAsync(account, request.Password);
@@ -87,26 +95,33 @@ public sealed class AuthService : IAuthService
                 {
                     throw new ConflictException("Password already exists. Sign in.");
                 }
+
                 throw new BadRequestException(string.Join(" ", result.Errors.Select(error => error.Description)));
             }
+
             if (isAdmin)
             {
                 IdentityRoleInitializer.EnsureSuccess(await _userManager.AddToRoleAsync(account, AuthorizationPolicies.Admin));
             }
+
             return await _tokenService.CreateAsync(account, cancellationToken);
         }, cancellationToken);
+
         return _tokenService.CompleteSignIn(issuedTokens);
     }
 
     public async Task<SessionResponseDto> LoginAsync(PasswordRequestDto request, CancellationToken cancellationToken = default)
     {
         _passwordValidator.ValidateAndThrow(request);
+
         var profile = await _usersRepository.FindByHandleAsync(request.Handle, cancellationToken);
         var account = profile is null ? null : await _userManager.FindByIdAsync(profile.Id.ToString());
+
         if (account is null || profile is null)
         {
             throw new UnauthorizedException("Invalid handle or password.");
         }
+
         var result = await _signInManager.CheckPasswordSignInAsync(account, request.Password, lockoutOnFailure: true);
         if (result.IsLockedOut)
         {
@@ -116,28 +131,34 @@ public sealed class AuthService : IAuthService
         {
             throw new UnauthorizedException("Invalid handle or password.");
         }
+
         if (await _userManager.GetTwoFactorEnabledAsync(account))
         {
             throw new ForbiddenException("Two-factor authentication is required.");
         }
+
         var issuedTokens = await _transactionExecutor.ExecuteAsync(async () =>
         {
             if (_authOptions.IsAdmin(profile.Handle) && !account.AdminActivated)
             {
-                if (!ValidActivationCode(request.ActivationCode))
+                if (!IsActivationCodeValid(request.ActivationCode))
                 {
                     throw new ForbiddenException("Invalid administrator activation code.");
                 }
+
                 account.AdminActivated = true;
                 IdentityRoleInitializer.EnsureSuccess(await _userManager.UpdateAsync(account));
                 IdentityRoleInitializer.EnsureSuccess(await _userManager.AddToRoleAsync(account, AuthorizationPolicies.Admin));
             }
+
             if (!string.Equals(account.UserName, profile.Handle, StringComparison.Ordinal))
             {
                 IdentityRoleInitializer.EnsureSuccess(await _userManager.SetUserNameAsync(account, profile.Handle));
             }
+
             return await _tokenService.CreateAsync(account, cancellationToken);
         }, cancellationToken);
+
         return _tokenService.CompleteSignIn(issuedTokens);
     }
 
@@ -149,9 +170,10 @@ public sealed class AuthService : IAuthService
     public Task LogoutAsync(CancellationToken cancellationToken = default) =>
         _tokenService.RevokeAsync(_session.UserId, cancellationToken);
 
-    private bool ValidActivationCode(string? code)
+    private bool IsActivationCodeValid(string? code)
     {
         var expectedCode = _authOptions.AdminActivationCode;
+
         return !string.IsNullOrWhiteSpace(expectedCode) && expectedCode.Length >= RequestLimits.MinActivationCodeLength &&
             CryptographicOperations.FixedTimeEquals(SHA256.HashData(Encoding.UTF8.GetBytes(expectedCode)),
                 SHA256.HashData(Encoding.UTF8.GetBytes(code ?? string.Empty)));

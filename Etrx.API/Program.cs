@@ -12,10 +12,7 @@ builder.Services.AddEtrxAuthentication(configuration, builder.Environment.IsDeve
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerDocumentation();
 
-
 builder.Services.AddServices();
-builder.Services.AddHttpClient<Etrx.Application.Interfaces.ICodeforcesProgressClient, Etrx.API.Services.CodeforcesProgressClient>(client =>
-    client.Timeout = TimeSpan.FromSeconds(45));
 builder.Services.AddBackgroundServices();
 builder.Services.AddRepositories();
 builder.Services.ConfigureOptions(configuration);

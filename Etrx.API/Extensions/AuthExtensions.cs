@@ -19,17 +19,25 @@ public static class AuthExtensions
     public static IServiceCollection AddEtrxAuthentication(this IServiceCollection services,
         IConfiguration configuration, bool development)
     {
+        var limits = configuration.GetRequiredSection(nameof(AuthenticationLimits)).Get<AuthenticationLimits>()!;
+        limits.Validate();
+        services.AddSingleton(limits);
+
         var jwt = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+
         if (development && string.IsNullOrWhiteSpace(jwt.SigningKey))
         {
-            jwt.SigningKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(AuthenticationLimits.RandomTokenBytes));
+            jwt.SigningKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(Math.Max(limits.MinimumSigningKeyBytes, limits.RandomTokenBytes)));
         }
-        if (string.IsNullOrWhiteSpace(jwt.SigningKey) || Encoding.UTF8.GetByteCount(jwt.SigningKey) < AuthenticationLimits.MinimumSigningKeyBytes || string.IsNullOrWhiteSpace(jwt.Issuer) ||
-            string.IsNullOrWhiteSpace(jwt.Audience) || jwt.AccessTokenMinutes is < AuthenticationLimits.MinimumAccessTokenMinutes or > AuthenticationLimits.MaximumAccessTokenMinutes ||
-            jwt.RefreshTokenHours is < AuthenticationLimits.MinimumRefreshTokenHours or > AuthenticationLimits.MaximumRefreshTokenHours)
+
+        if (string.IsNullOrWhiteSpace(jwt.SigningKey) || Encoding.UTF8.GetByteCount(jwt.SigningKey) < limits.MinimumSigningKeyBytes ||
+            string.IsNullOrWhiteSpace(jwt.Issuer) || string.IsNullOrWhiteSpace(jwt.Audience) ||
+            jwt.AccessTokenMinutes < limits.MinimumAccessTokenMinutes || jwt.AccessTokenMinutes > limits.MaximumAccessTokenMinutes ||
+            jwt.RefreshTokenHours < limits.MinimumRefreshTokenHours || jwt.RefreshTokenHours > limits.MaximumRefreshTokenHours)
         {
-            throw new InvalidOperationException("Configure Jwt:SigningKey (at least 32 random bytes), Issuer, Audience and valid token lifetimes.");
+            throw new InvalidOperationException($"Configure Jwt:SigningKey (at least {limits.MinimumSigningKeyBytes} bytes), Issuer, Audience and valid token lifetimes.");
         }
+
         services.AddSingleton<IOptions<JwtOptions>>(Options.Create(jwt));
         services.AddIdentityCore<ApplicationUser>(options =>
         {
@@ -59,7 +67,7 @@ public static class AuthExtensions
                 ValidateIssuerSigningKey = true, RequireSignedTokens = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
                 ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
-                ClockSkew = TimeSpan.FromSeconds(AuthenticationLimits.JwtClockSkewSeconds),
+                ClockSkew = TimeSpan.FromSeconds(limits.JwtClockSkewSeconds),
                 NameClaimType = ClaimTypes.Name, RoleClaimType = ClaimTypes.Role
             };
             options.Events = new JwtBearerEvents
@@ -76,7 +84,7 @@ public static class AuthExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.AddPolicy(RateLimitPolicies.Auth, context => RateLimitPartition.GetFixedWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
-                { PermitLimit = AuthenticationLimits.AuthRequestsPerWindow, Window = TimeSpan.FromMinutes(AuthenticationLimits.RateLimitWindowMinutes), QueueLimit = 0 }));
+                { PermitLimit = limits.AuthRequestsPerWindow, Window = TimeSpan.FromMinutes(limits.RateLimitWindowMinutes), QueueLimit = 0 }));
         });
         return services;
     }

@@ -88,9 +88,4 @@ public class UsersService : IUsersService
     {
         return await _unitOfWork.Users.GetHandlesAsync();
     }
-
-    public async Task DeleteAllUsersAsync()
-    {
-        await _unitOfWork.Users.DeleteAllAsync();
-    }
 }

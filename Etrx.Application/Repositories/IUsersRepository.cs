@@ -11,5 +11,4 @@ public interface IUsersRepository : IGenericRepository<User>
     Task<bool> DeleteByHandleAsync(string handle);
     Task<List<string>> GetHandlesAsync();
     Task<List<User>> GetWithSortAsync(SortingQueryParameters parameters);
-    Task DeleteAllAsync();
 }

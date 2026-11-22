@@ -42,6 +42,8 @@ public static class ApplicationExtensions
                 AutomaticDecompression = DecompressionMethods.All
             });
 
+        services.AddHttpClient<ICodeforcesProgressClient, CodeforcesProgressClient>(client =>
+            client.Timeout = TimeSpan.FromSeconds(45));
         services.AddHttpClient<ApiService>();
 
         services.AddValidatorsFromAssemblyContaining<GetSortUserRequestDtoValidator>();

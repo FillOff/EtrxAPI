@@ -24,6 +24,7 @@ public sealed class JwtTokenService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JwtOptions _jwtOptions;
+    private readonly AuthenticationLimits _limits;
     private readonly IHostEnvironment _environment;
 
     private HttpContext Context => _httpContextAccessor.HttpContext
@@ -31,7 +32,8 @@ public sealed class JwtTokenService
 
     public JwtTokenService(IRefreshTokenRepository refreshTokenRepository, IUsersRepository usersRepository,
         UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
-        IHttpContextAccessor httpContextAccessor, IOptions<JwtOptions> jwtOptions, IHostEnvironment environment)
+        IHttpContextAccessor httpContextAccessor, IOptions<JwtOptions> jwtOptions, IHostEnvironment environment,
+        AuthenticationLimits limits)
     {
         _refreshTokenRepository = refreshTokenRepository;
         _usersRepository = usersRepository;
@@ -39,6 +41,7 @@ public sealed class JwtTokenService
         _signInManager = signInManager;
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions.Value;
+        _limits = limits;
         _environment = environment;
     }
 
@@ -129,7 +132,7 @@ public sealed class JwtTokenService
             .Append(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")));
         var token = new JwtSecurityToken(_jwtOptions.Issuer, _jwtOptions.Audience, claims, DateTime.UtcNow, expiresAt.UtcDateTime,
             new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.SigningKey)), SecurityAlgorithms.HmacSha256));
-        var secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(AuthenticationLimits.RandomTokenBytes));
+        var secret = Convert.ToBase64String(RandomNumberGenerator.GetBytes(_limits.RandomTokenBytes));
         var stored = new RefreshToken
         {
             TokenHash = Hash(secret), UserId = user.Id, SecurityStamp = await _userManager.GetSecurityStampAsync(user),
@@ -157,7 +160,7 @@ public sealed class JwtTokenService
     private Task<RefreshToken?> ReadCookieAsync(CancellationToken cancellationToken)
     {
         var secret = Context.Request.Cookies[RefreshCookieName];
-        return string.IsNullOrWhiteSpace(secret) || secret.Length > AuthenticationLimits.MaximumRefreshTokenLength
+        return string.IsNullOrWhiteSpace(secret) || secret.Length > _limits.MaximumRefreshTokenLength
             ? Task.FromResult<RefreshToken?>(null) : _refreshTokenRepository.FindAsync(Hash(secret), cancellationToken);
     }
 
