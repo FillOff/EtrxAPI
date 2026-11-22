@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Submissions;
 
@@ -16,6 +17,7 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUsersProtocolAsync(
         [FromQuery] GetUsersProtocolRequestDto dto)
     {
@@ -23,6 +25,7 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet("{handle}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserContestProtocolAsync(
         [FromRoute] string handle,
         [FromQuery] GetUserContestProtocolRequestDto dto)
@@ -31,6 +34,7 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet("{handle}/{contestId:int}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserContestProtocolAsync(
         [FromRoute] string handle,
         [FromRoute] int contestId,

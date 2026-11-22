@@ -1,5 +1,6 @@
 ﻿using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.RanklistRows;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
@@ -16,6 +17,7 @@ public class RanklistRowsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetRanklistRowsByContestIdWithSortAsync(
         [FromRoute] int contestId,
         [FromQuery] GetRanklistRowsRequestDto dto)
