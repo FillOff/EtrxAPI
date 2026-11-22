@@ -1,11 +1,13 @@
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/problems")]
 public class ProblemsController : ControllerBase

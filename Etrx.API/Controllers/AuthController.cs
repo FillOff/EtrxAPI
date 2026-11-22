@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
@@ -18,38 +19,38 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
-    [HttpPost("user-queries"), AllowAnonymous, EnableRateLimiting(RateLimitPolicies.Auth)]
+    [HttpPost("user-queries"), EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> LookupAsync(HandleRequestDto request, CancellationToken cancellationToken)
     {
         return Ok(await _authService.LookupAsync(request, cancellationToken));
     }
 
-    [HttpPost("credentials"), AllowAnonymous, EnableRateLimiting(RateLimitPolicies.Auth)]
+    [HttpPost("credentials"), EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> SetupAsync(PasswordRequestDto request, CancellationToken cancellationToken)
     {
         return Ok(await _authService.SetupAsync(request, cancellationToken));
     }
 
-    [HttpPost("sessions"), AllowAnonymous, EnableRateLimiting(RateLimitPolicies.Auth)]
+    [HttpPost("sessions"), EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> LoginAsync(PasswordRequestDto request, CancellationToken cancellationToken)
     {
         return Ok(await _authService.LoginAsync(request, cancellationToken));
     }
 
-    [HttpGet("session"), AllowAnonymous]
+    [HttpGet("session")]
     public IActionResult GetSession()
     {
         Response.Headers.CacheControl = "no-store";
         return Ok(_authService.GetSession());
     }
 
-    [HttpPost("tokens/refresh"), AllowAnonymous, EnableRateLimiting(RateLimitPolicies.Auth)]
+    [HttpPost("tokens/refresh"), EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> RefreshAsync(CancellationToken cancellationToken)
     {
         return Ok(await _authService.RefreshAsync(cancellationToken));
     }
 
-    [HttpDelete("session"), AllowAnonymous]
+    [HttpDelete("session")]
     public async Task<IActionResult> LogoutAsync(CancellationToken cancellationToken)
     {
         await _authService.LogoutAsync(cancellationToken);

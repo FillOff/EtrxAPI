@@ -1,5 +1,7 @@
-﻿using Etrx.Application.Dtos.Tags;
+﻿using Etrx.Application.Constants;
+using Etrx.Application.Dtos.Tags;
 using Etrx.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
@@ -16,6 +18,7 @@ public class TagsController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetTagsAsync()
     {
         var response = await _tagService.GetTagsAsync();
@@ -24,6 +27,7 @@ public class TagsController : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Policy = AuthorizationPolicies.Admin)]
     public async Task<IActionResult> UpdateTagsAsync([FromBody] UpdateTagsRequestDto dto)
     {
         await _tagService.UpdateTagsAsync(dto);

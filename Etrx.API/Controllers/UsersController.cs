@@ -27,6 +27,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUsersWithSortAsync(
         [FromQuery] GetSortUserRequestDto dto)
     {
@@ -34,6 +35,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{handle}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetUserByHandleAsync(string handle)
     {
         return Ok(await _usersService.GetUserByHandleAsync(handle));
