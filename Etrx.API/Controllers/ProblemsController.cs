@@ -1,4 +1,4 @@
-﻿using Etrx.Application.Constants;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -6,14 +6,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/problems")]
 public class ProblemsController : ControllerBase
 {
     private readonly IProblemsService _problemsService;
+    private readonly IAuthSession _authSession;
 
-    public ProblemsController(IProblemsService problemsService)
+    public ProblemsController(IProblemsService problemsService, IAuthSession authSession)
     {
         _problemsService = problemsService;
+        _authSession = authSession;
     }
 
     [HttpGet("{contestId:int}")]
@@ -26,14 +29,18 @@ public class ProblemsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetProblemsByPageWithSortAndFilterAsync(
-        [FromQuery] GetSortProblemRequestDto dto)
+        [FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
-        return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto));
+        dto.CurrentUserId = _authSession.UserId;
+
+        return Ok(await _problemsService.GetProblemsByPageWithSortAndFilterAsync(dto, cancellationToken));
     }
 
     [HttpGet("filters")]
-    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto)
+    public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
-        return Ok(await _problemsService.GetProblemFiltersAsync(dto));
+        dto.CurrentUserId = _authSession.UserId;
+
+        return Ok(await _problemsService.GetProblemFiltersAsync(dto, cancellationToken));
     }
 }

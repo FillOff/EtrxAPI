@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Etrx.Application.Dtos.Common;
+using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories;
@@ -9,6 +10,7 @@ using Etrx.Domain.Enums;
 using Etrx.Domain.Expressions;
 using Etrx.Domain.Models;
 using Etrx.Persistence.Databases;
+using Etrx.Persistence.Queries;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
@@ -67,20 +69,21 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
     public async Task<PagedResultDto<TResult>> GetPagedAsync<TResult>(
         BaseSpecification<Problem> spec,
         PaginationQueryParameters pagination,
-        string lang)
+        string lang, Guid? userId = null, string[]? statuses = null, bool hideSolved = false, CancellationToken cancellationToken = default)
     {
         var query = _dbSet.AsNoTracking().AsExpandable();
 
         query = ApplySpecification(spec, query);
+        query = ApplyProgressFilter(query, userId, statuses, hideSolved);
 
         var projectedQuery = query.ProjectTo<TResult>(_mapper.ConfigurationProvider, new { lang });
 
-        var totalCount = await projectedQuery.CountAsync();
+        var totalCount = await projectedQuery.CountAsync(cancellationToken);
 
         var items = await projectedQuery
             .Skip((pagination.Page - 1) * pagination.PageSize)
             .Take(pagination.PageSize)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return new PagedResultDto<TResult>
         {
@@ -92,7 +95,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
 
     public async Task<List<Problem>> GetByContestAndIndexAsync(List<(int ContestId, string Index)> identifiers)
     {
-        if (identifiers == null || identifiers.Count == 0)
+        if (identifiers is null || identifiers.Count == 0)
         {
             return [];
         }
@@ -122,17 +125,41 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         return await GetFiltersAsync(query);
     }
 
-    public IQueryable<Problem> GetFilteredQuery(GetSortProblemRequestDto dto)
+    private IQueryable<Problem> GetFilteredQuery(GetSortProblemRequestDto dto)
     {
         var spec = new ProblemsSpecification(dto);
 
-        return _context.Problems
+        var query = _context.Problems
             .AsNoTracking()
             .AsExpandable()
             .Where(spec.FilterCondition!);
+        return ApplyProgressFilter(query, dto.CurrentUserId, dto.Statuses, dto.HideSolved);
     }
 
-    public async Task<ProblemFiltersDto> GetFiltersAsync(IQueryable<Problem> query)
+    private IQueryable<Problem> ApplyProgressFilter(IQueryable<Problem> query, Guid? userId, string[]? statuses, bool hideSolved)
+    {
+        if ((statuses is null || statuses.Length == 0) && !hideSolved)
+        {
+            return query;
+        }
+
+        if (userId is null)
+        {
+            return query.Where(p => false);
+        }
+        var progress = ProblemProgressQuery.ForUser(_context, userId.Value);
+        // Filter before Count/Skip/Take so every page and the page count are correct.
+        // A task with no submissions has no progress row and must remain visible.
+        if (hideSolved)
+            query = query.Where(p => !progress.Any(s => s.ContestId == p.ContestId && s.Index == p.Index
+                && s.Status == ProblemStatuses.Solved));
+        if (statuses is { Length: > 0 })
+            query = query.Where(p => progress.Any(s => s.ContestId == p.ContestId && s.Index == p.Index
+                && statuses.Contains(s.Status)));
+        return query;
+    }
+
+    private async Task<ProblemFiltersDto> GetFiltersAsync(IQueryable<Problem> query, CancellationToken cancellationToken = default)
     {
         var diffExpr = ProblemExpressions.DifficultyExpression;
 
@@ -146,7 +173,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
                 MaxS = g.Max(p => p.SolvedCount),
                 MinD = g.Min(p => diffExpr.Invoke(p)),
                 MaxD = g.Max(p => diffExpr.Invoke(p))
-            }).FirstOrDefaultAsync();
+            }).FirstOrDefaultAsync(cancellationToken);
 
         var availableRanks = await query
             .Select(p => p.Rating >= (int)RankEnum.Rank1 ? (int)RankEnum.Rank1 :
@@ -155,7 +182,7 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
                 (int)RankEnum.Rank4)
             .Distinct()
             .Select(r => (RankEnum)r)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         var tags = await query
             .SelectMany(p => p.Tags)
@@ -168,9 +195,9 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
             .OrderByDescending(x => x.Priority)
             .ThenBy(x => x.Name)
             .Select(x => x.Name)
-            .ToListAsync();
-        var indexes = await query.Select(p => p.Index).Distinct().OrderBy(x => x).ToListAsync();
-        var divisions = await query.Where(p => p.Contest != null).Select(p => p.Contest.Division).Distinct().ToListAsync();
+            .ToListAsync(cancellationToken);
+        var indexes = await query.Select(p => p.Index).Distinct().OrderBy(x => x).ToListAsync(cancellationToken);
+        var divisions = await query.Where(p => p.Contest != null).Select(p => p.Contest.Division).Distinct().ToListAsync(cancellationToken);
 
         var filters = new ProblemFiltersDto
         {
@@ -189,5 +216,83 @@ public class ProblemsRepository : GenericRepository<Problem>, IProblemsRepositor
         };
 
         return filters;
+    }
+
+    public async Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto, CancellationToken cancellationToken = default)
+    {
+        var emptyDto = new GetSortProblemRequestDto { Filters = new ProblemFiltersDto() };
+        var totalBounds = await GetFiltersAsync(GetFilteredQuery(emptyDto), cancellationToken);
+
+        var availableTags = await GetFilteredQuery(dto)
+            .SelectMany(p => p.Tags)
+            .GroupBy(t => t.Name)
+            .Select(g => new
+            {
+                Name = g.Key,
+                Priority = g.Max(t => t.Priority) 
+            })
+            .OrderByDescending(x => x.Priority) 
+            .ThenBy(x => x.Name)
+            .Select(x => x.Name)
+            .ToListAsync(cancellationToken);
+
+        var idxQueryDto = dto with { Filters = dto.Filters with { AvailableIndexes = [] } };
+        var availableIndexes = await GetFilteredQuery(idxQueryDto)
+            .Select(p => p.Index)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var divQueryDto = dto with { Filters = dto.Filters with { AvailableDivisions = [] } };
+        var availableDivisions = await GetFilteredQuery(divQueryDto)
+            .Where(p => p.Contest != null && !string.IsNullOrEmpty(p.Contest.Division))
+            .Select(p => p.Contest.Division)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var ranksQueryDto = dto with { Filters = dto.Filters with { AvailableRanks = [] } };
+        var rawRatingsForRanks = await GetFilteredQuery(ranksQueryDto)
+            .Select(p => p.Rating)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+        var availableRanks = rawRatingsForRanks.Select(r => ProblemExpressions.GetRank(r)).Distinct().ToList();
+
+        var numericBoundsDto = dto with
+        {
+            Filters = dto.Filters with
+            {
+                MinRating = null,
+                MaxRating = null,
+                MinPoints = null,
+                MaxPoints = null,
+                MinSolved = null,
+                MaxSolved = null,
+                MinDifficulty = null,
+                MaxDifficulty = null
+            }
+        };
+
+        var shrunkenBounds = await GetFiltersAsync(GetFilteredQuery(numericBoundsDto), cancellationToken);
+
+        var userCurrent = shrunkenBounds with
+        {
+            AvailableTags = availableTags,
+            AvailableIndexes = availableIndexes,
+            AvailableDivisions = availableDivisions,
+            AvailableRanks = availableRanks,
+            MinRating = shrunkenBounds.MinRating,
+            MaxRating = shrunkenBounds.MaxRating,
+            MinPoints = shrunkenBounds.MinPoints,
+            MaxPoints = shrunkenBounds.MaxPoints,
+            MinSolved = shrunkenBounds.MinSolved,
+            MaxSolved = shrunkenBounds.MaxSolved,
+            MinDifficulty = shrunkenBounds.MinDifficulty,
+            MaxDifficulty = shrunkenBounds.MaxDifficulty
+        };
+
+        return new GetProblemFiltersResponseDto
+        {
+            TotalBounds = totalBounds,
+            CurrentFilters = userCurrent
+        };
     }
 }

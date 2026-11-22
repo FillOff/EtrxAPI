@@ -9,5 +9,4 @@ public interface IUsersService
     Task<UsersResponseDto?> GetUserByHandleAsync(string handle);
     Task<UsersWithPropsResponseDto> GetUsersWithSortAsync(GetSortUserRequestDto dto);
     Task<List<string>> GetHandlesAsync();
-    Task DeleteAllUsersAsync();
 }
