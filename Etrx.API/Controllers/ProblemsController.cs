@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [Route("api/problems")]
 public class ProblemsController : ControllerBase
@@ -21,7 +22,6 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetProblemsByContestIdAsync(
         [FromRoute] int contestId,
         [FromQuery] string lang = Languages.Ru)
@@ -30,7 +30,6 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetProblemsByPageWithSortAndFilterAsync(
         [FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
@@ -40,7 +39,6 @@ public class ProblemsController : ControllerBase
     }
 
     [HttpGet("filters")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetProblemFiltersAsync([FromQuery] GetSortProblemRequestDto dto, CancellationToken cancellationToken)
     {
         dto.CurrentUserId = _authSession.UserId;

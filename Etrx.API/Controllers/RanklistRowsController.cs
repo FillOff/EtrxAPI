@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/ranklistRows")]
 public class RanklistRowsController : ControllerBase
 {
@@ -17,7 +18,6 @@ public class RanklistRowsController : ControllerBase
     }
 
     [HttpGet("{contestId:int}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetRanklistRowsByContestIdWithSortAsync(
         [FromRoute] int contestId,
         [FromQuery] GetRanklistRowsRequestDto dto)

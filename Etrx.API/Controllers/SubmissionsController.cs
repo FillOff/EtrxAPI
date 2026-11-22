@@ -6,6 +6,7 @@ using Etrx.Application.Dtos.Submissions;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/submissions")]
 public class SubmissionsController : ControllerBase
 {
@@ -17,7 +18,6 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetUsersProtocolAsync(
         [FromQuery] GetUsersProtocolRequestDto dto)
     {
@@ -25,7 +25,6 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet("{handle}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetUserContestProtocolAsync(
         [FromRoute] string handle,
         [FromQuery] GetUserContestProtocolRequestDto dto)
@@ -34,7 +33,6 @@ public class SubmissionsController : ControllerBase
     }
 
     [HttpGet("{handle}/{contestId:int}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetUserContestProtocolAsync(
         [FromRoute] string handle,
         [FromRoute] int contestId,

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/contests")]
 public class ContestsController : ControllerBase
 {
@@ -18,7 +19,6 @@ public class ContestsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [AllowAnonymous]
     public async Task<IActionResult> GetContestByIdAsync(
         [FromRoute] int id,
         [FromQuery] string lang = Languages.Ru)
@@ -27,7 +27,6 @@ public class ContestsController : ControllerBase
     }
 
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetContestsByPageWithSortAsync(
         [FromQuery] GetSortContestRequestDto dto)
     {
