@@ -94,7 +94,7 @@ public class SubmissionsRepository : GenericRepository<Submission>, ISubmissions
 
         var query =
             from submission in accepted
-            join user in _context.Users.AsNoTracking() on submission.UserId equals user.Id
+            join user in _context.Profiles.AsNoTracking() on submission.UserId equals user.Id
             join contest in _context.Contests.AsNoTracking()
                 on submission.ContestId equals contest.ContestId into contests
             from contest in contests.DefaultIfEmpty()
