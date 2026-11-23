@@ -13,7 +13,7 @@ public class ProblemResultsRepository : GenericRepository<ProblemResult>, IProbl
 
     public async Task<List<ProblemResult>> GetByRanklistRowIdsAsync(List<Guid> ranklistRowIds)
     {
-        if (ranklistRowIds == null || ranklistRowIds.Count == 0)
+        if (ranklistRowIds is null || ranklistRowIds.Count == 0)
         {
             return [];
         }

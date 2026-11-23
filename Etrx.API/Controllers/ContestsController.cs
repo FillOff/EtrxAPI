@@ -1,11 +1,13 @@
 ﻿using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Contests;
 using Etrx.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/contests")]
 public class ContestsController : ControllerBase
 {

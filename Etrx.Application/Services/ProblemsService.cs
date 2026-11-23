@@ -1,14 +1,14 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Etrx.Application.Constants;
 using Etrx.Application.Dtos.Problems;
 using Etrx.Application.Exceptions.BadRequest;
+using Etrx.Application.Exceptions;
+using FluentValidation;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Providers;
 using Etrx.Application.Queries.Common;
 using Etrx.Application.Repositories.UnitOfWork;
 using Etrx.Application.Specifications;
-using Etrx.Domain.Expressions;
-using Microsoft.EntityFrameworkCore;
 
 namespace Etrx.Application.Services;
 
@@ -16,13 +16,19 @@ public class ProblemsService : IProblemsService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IProblemProgressService _progressService;
+    private readonly IValidator<GetSortProblemRequestDto> _validator;
 
     public ProblemsService(
         IUnitOfWork unitOfWork,
-        IMapper mapper)
+        IMapper mapper,
+        IProblemProgressService progressService,
+        IValidator<GetSortProblemRequestDto> validator)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _progressService = progressService;
+        _validator = validator;
     }
     
     public async Task<List<ProblemResponseDto>> GetProblemsByContestIdAsync(int contestId, string lang)
@@ -41,106 +47,43 @@ public class ProblemsService : IProblemsService
         return response;
     }
 
-    public async Task<ProblemWithPropsResponseDto> GetProblemsByPageWithSortAndFilterAsync(GetSortProblemRequestDto dto)
+    public async Task<ProblemWithPropsResponseDto> GetProblemsByPageWithSortAndFilterAsync(GetSortProblemRequestDto dto,
+        CancellationToken cancellationToken = default)
     {
+        ValidatePersonalFilters(dto);
         var spec = new ProblemsSpecification(dto);
 
         var pagedResult = await _unitOfWork.Problems.GetPagedAsync<ProblemResponseDto>(
             spec,
             new PaginationQueryParameters(dto.Pagination.Page, dto.Pagination.PageSize),
-            dto.Lang);
+            dto.Lang, dto.CurrentUserId, dto.Statuses, dto.HideSolved, cancellationToken);
+
+        if (dto.CurrentUserId is Guid userId)
+        {
+            await _progressService.EnrichAsync(userId, pagedResult.Items, cancellationToken);
+        }
 
         return new ProblemWithPropsResponseDto
         (
-            Problems: _mapper.Map<List<ProblemResponseDto>>(pagedResult.Items), 
+            Problems: pagedResult.Items, 
             Properties: SortingFieldsProvider.GetSortFields<ProblemResponseDto>(),
             PageCount: pagedResult.TotalPagesCount
         );
     }
 
-    public async Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto)
+    public Task<GetProblemFiltersResponseDto> GetProblemFiltersAsync(GetSortProblemRequestDto dto,
+        CancellationToken cancellationToken = default)
     {
-        var emptyDto = new GetSortProblemRequestDto { Filters = new ProblemFiltersDto() };
-        var totalBounds = await _unitOfWork.Problems.GetFiltersAsync(_unitOfWork.Problems.GetFilteredQuery(emptyDto));
+        ValidatePersonalFilters(dto);
+        return _unitOfWork.Problems.GetProblemFiltersAsync(dto, cancellationToken);
+    }
 
-        var contextFilters = dto.Filters with
+    private void ValidatePersonalFilters(GetSortProblemRequestDto dto)
+    {
+        _validator.ValidateAndThrow(dto);
+        if ((dto.Statuses.Length > 0 || dto.HideSolved) && dto.CurrentUserId is null)
         {
-            AvailableTags = [],
-            AvailableIndexes = [],
-            AvailableDivisions = [],
-            AvailableRanks = []
-        };
-
-        var availableTags = await _unitOfWork.Problems.GetFilteredQuery(dto)
-            .SelectMany(p => p.Tags)
-            .GroupBy(t => t.Name)
-            .Select(g => new
-            {
-                Name = g.Key,
-                Priority = g.Max(t => t.Priority) 
-            })
-            .OrderByDescending(x => x.Priority) 
-            .ThenBy(x => x.Name)
-            .Select(x => x.Name)
-            .ToListAsync();
-
-        var idxQueryDto = dto with { Filters = dto.Filters with { AvailableIndexes = [] } };
-        var availableIndexes = await _unitOfWork.Problems.GetFilteredQuery(idxQueryDto)
-            .Select(p => p.Index)
-            .Distinct()
-            .ToListAsync();
-
-        var divQueryDto = dto with { Filters = dto.Filters with { AvailableDivisions = [] } };
-        var availableDivisions = await _unitOfWork.Problems.GetFilteredQuery(divQueryDto)
-            .Where(p => p.Contest != null && !string.IsNullOrEmpty(p.Contest.Division))
-            .Select(p => p.Contest.Division)
-            .Distinct()
-            .ToListAsync();
-
-        var ranksQueryDto = dto with { Filters = dto.Filters with { AvailableRanks = [] } };
-        var rawRatingsForRanks = await _unitOfWork.Problems.GetFilteredQuery(ranksQueryDto)
-            .Select(p => p.Rating)
-            .Distinct()
-            .ToListAsync();
-        var availableRanks = rawRatingsForRanks.Select(r => ProblemExpressions.GetRank(r)).Distinct().ToList();
-
-        var numericBoundsDto = dto with
-        {
-            Filters = dto.Filters with
-            {
-                MinRating = null,
-                MaxRating = null,
-                MinPoints = null,
-                MaxPoints = null,
-                MinSolved = null,
-                MaxSolved = null,
-                MinDifficulty = null,
-                MaxDifficulty = null
-            }
-        };
-
-        var shrunkenBounds = await _unitOfWork.Problems.GetFiltersAsync(_unitOfWork.Problems.GetFilteredQuery(numericBoundsDto));
-
-        var userCurrent = shrunkenBounds with
-        {
-            AvailableTags = availableTags,
-            AvailableIndexes = availableIndexes,
-            AvailableDivisions = availableDivisions,
-            AvailableRanks = availableRanks,
-            MinRating = shrunkenBounds.MinRating,
-            MaxRating = shrunkenBounds.MaxRating,
-            MinPoints = shrunkenBounds.MinPoints,
-            MaxPoints = shrunkenBounds.MaxPoints,
-            MinSolved = shrunkenBounds.MinSolved,
-            MaxSolved = shrunkenBounds.MaxSolved,
-            MinDifficulty = shrunkenBounds.MinDifficulty,
-            MaxDifficulty = shrunkenBounds.MaxDifficulty
-        };
-
-        return new GetProblemFiltersResponseDto
-        {
-            TotalBounds = totalBounds,
-            CurrentFilters = userCurrent
-        };
+            throw new UnauthorizedException("Sign in to filter problems by personal progress.");
+        }
     }
 }

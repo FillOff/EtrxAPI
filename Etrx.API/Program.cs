@@ -8,8 +8,9 @@ var configuration = builder.Configuration;
 builder.Host.AddSerilog();
 
 builder.Services.ConfigureControllers();
+builder.Services.AddEtrxAuthentication(configuration, builder.Environment.IsDevelopment());
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerDocumentation();
 
 builder.Services.AddServices();
 builder.Services.AddBackgroundServices();
@@ -31,14 +32,10 @@ if (app.Environment.IsDevelopment())
 
 await app.ApplyMigrationsAsync();
 
+app.UseFrontendCors();
+app.UseApiRequestHeader();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
-
-app.UseCors(options =>
-{
-    options.WithHeaders().AllowAnyHeader();
-    options.WithOrigins().AllowAnyOrigin();
-    options.WithMethods().AllowAnyMethod();
-});
-
 app.Run();

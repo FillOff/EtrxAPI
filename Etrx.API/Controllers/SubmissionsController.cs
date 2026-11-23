@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.Submissions;
@@ -5,6 +6,7 @@ using Etrx.Application.Dtos.Submissions;
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/submissions")]
 public class SubmissionsController : ControllerBase
 {

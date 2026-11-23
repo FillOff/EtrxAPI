@@ -13,7 +13,7 @@ public class ProblemTranslationsRepository : GenericRepository<ProblemTranslatio
 
     public async Task<List<ProblemTranslation>> GetByProblemIdsAndLanguageAsync(List<Guid> problemIds, string languageCode)
     {
-        if (problemIds == null || problemIds.Count == 0)
+        if (problemIds is null || problemIds.Count == 0)
         {
             return [];
         }

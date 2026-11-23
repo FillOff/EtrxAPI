@@ -1,10 +1,12 @@
 ﻿using Etrx.Application.Interfaces;
 using Etrx.Application.Dtos.RanklistRows;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Etrx.API.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/ranklistRows")]
 public class RanklistRowsController : ControllerBase
 {

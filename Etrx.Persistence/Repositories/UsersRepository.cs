@@ -28,6 +28,17 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
             .ExecuteDeleteAsync() > 0;
     }
 
+    public Task<User?> FindByHandleAsync(string handle, CancellationToken cancellationToken)
+    {
+        var normalizedHandle = handle.Trim().ToLowerInvariant();
+        return _dbSet.AsNoTracking().SingleOrDefaultAsync(user => user.Handle.ToLower() == normalizedHandle, cancellationToken);
+    }
+
+    public Task<User?> FindByIdAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return _dbSet.AsNoTracking().SingleOrDefaultAsync(user => user.Id == userId, cancellationToken);
+    }
+
     public async Task<List<string>> GetHandlesAsync()
     {
         return await _dbSet
@@ -44,10 +55,5 @@ public class UsersRepository : GenericRepository<User>, IUsersRepository
             .AsNoTracking()
             .OrderBy($"{parameters.SortField} {order}")
             .ToListAsync();
-    }
-
-    public async Task DeleteAllAsync()
-    {
-        await _dbSet.ExecuteDeleteAsync();
     }
 }

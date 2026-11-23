@@ -21,6 +21,10 @@ public static class PersistenceExtensions
         services.AddScoped<IRanklistRowsRepository, RanklistRowsRepository>();
         services.AddScoped<IGenericRepository<ProblemResult>, GenericRepository<ProblemResult>>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IProblemProgressRepository, ProblemProgressRepository>();
+        services.AddScoped<IProblemPreferencesRepository, ProblemPreferencesRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<ITransactionExecutor, TransactionExecutor>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -49,6 +53,9 @@ public static class PersistenceExtensions
         {
             var dbContext = serviceProvider.GetRequiredService<EtrxDbContext>();
             await dbContext.Database.MigrateAsync(cancellationToken);
+            await Etrx.API.Services.IdentityRoleInitializer.InitializeAsync(serviceProvider);
+            var now = DateTimeOffset.UtcNow;
+            await dbContext.RefreshTokens.Where(token => token.ExpiresAt < now).ExecuteDeleteAsync(cancellationToken);
 
             logger.LogInformation("Database migrations applied successfully");
         }

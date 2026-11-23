@@ -58,16 +58,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity>
 
     protected static IQueryable<TEntity> ApplySpecification(BaseSpecification<TEntity> spec, IQueryable<TEntity> query)
     {
-        if (spec.FilterCondition != null)
+        if (spec.FilterCondition is not null)
         {
             query = query.Where(spec.FilterCondition);
         }
 
-        if (spec.OrderBy != null)
+        if (spec.OrderBy is not null)
         {
             query = query.OrderBy(spec.OrderBy);
         }
-        else if (spec.OrderByDescending != null)
+        else if (spec.OrderByDescending is not null)
         {
             query = query.OrderByDescending(spec.OrderByDescending);
         }

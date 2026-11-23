@@ -13,7 +13,7 @@ public class ContestTranslationsRepository : GenericRepository<ContestTranslatio
 
     public async Task<List<ContestTranslation>> GetByContestIdsAndLanguageAsync(List<Guid> contestIds, string languageCode)
     {
-        if (contestIds == null || contestIds.Count == 0)
+        if (contestIds is null || contestIds.Count == 0)
         {
             return [];
         }
