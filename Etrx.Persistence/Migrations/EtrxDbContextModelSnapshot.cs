@@ -618,6 +618,11 @@ namespace Etrx.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("filters_json");
 
+                    b.Property<string>("LadderFiltersJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ladder_filters_json");
+
                     b.HasKey("UserId")
                         .HasName("pk_user_problem_preferences");
 

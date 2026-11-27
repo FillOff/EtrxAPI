@@ -9,6 +9,7 @@ public class UserProblemPreferencesConfiguration : IEntityTypeConfiguration<User
     public void Configure(EntityTypeBuilder<UserProblemPreferences> builder)
     {
         builder.HasKey(p => p.UserId);
+        builder.Property(p => p.LadderFiltersJson).IsRequired();
         builder.Property(p => p.FiltersJson).IsRequired();
         builder.HasOne<User>().WithOne().HasForeignKey<UserProblemPreferences>(p => p.UserId)
             .OnDelete(DeleteBehavior.Cascade);

@@ -15,18 +15,23 @@ public sealed class ProblemPreferencesRepository : IProblemPreferencesRepository
         _db = db;
     }
 
-    public Task<string?> GetAsync(Guid userId, CancellationToken cancellationToken) => _db.UserProblemPreferences.AsNoTracking()
-        .Where(p => p.UserId == userId).Select(p => p.FiltersJson).SingleOrDefaultAsync(cancellationToken);
+    public Task<string?> GetAsync(Guid userId, CancellationToken cancellationToken, bool ladder = false) => _db.UserProblemPreferences.AsNoTracking()
+        .Where(p => p.UserId == userId).Select(p => ladder ? p.LadderFiltersJson : p.FiltersJson).SingleOrDefaultAsync(cancellationToken);
 
-    public async Task SaveAsync(Guid userId, string json, CancellationToken cancellationToken)
+    public async Task SaveAsync(Guid userId, string json, CancellationToken cancellationToken, bool ladder = false)
     {
         var query = _db.UserProblemPreferences.Where(p => p.UserId == userId);
-        if (await query.ExecuteUpdateAsync(set => set.SetProperty(p => p.FiltersJson, json), cancellationToken) != 0)
+        Task<int> UpdateAsync() => ladder
+            ? query.ExecuteUpdateAsync(set => set.SetProperty(p => p.LadderFiltersJson, json), cancellationToken)
+            : query.ExecuteUpdateAsync(set => set.SetProperty(p => p.FiltersJson, json), cancellationToken);
+        if (await UpdateAsync() != 0)
         {
             return;
         }
 
-        var preference = new UserProblemPreferences { UserId = userId, FiltersJson = json };
+        var preference = new UserProblemPreferences { UserId = userId };
+        if (ladder) preference.LadderFiltersJson = json;
+        else preference.FiltersJson = json;
         _db.UserProblemPreferences.Add(preference);
         try
         {
@@ -35,7 +40,7 @@ public sealed class ProblemPreferencesRepository : IProblemPreferencesRepository
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
         {
             _db.Entry(preference).State = EntityState.Detached;
-            await query.ExecuteUpdateAsync(set => set.SetProperty(p => p.FiltersJson, json), cancellationToken);
+            await UpdateAsync();
         }
     }
 }

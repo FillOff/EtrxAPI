@@ -13,6 +13,7 @@ public static class PersistenceExtensions
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IProblemsRepository, ProblemsRepository>();
+        services.AddScoped<ILadderRepository, LadderRepository>();
         services.AddScoped<IUsersRepository, UsersRepository>();
         services.AddScoped<IContestsRepository, ContestsRepository>();
         services.AddScoped<IContestTranslationsRepository, ContestTranslationsRepository>();
