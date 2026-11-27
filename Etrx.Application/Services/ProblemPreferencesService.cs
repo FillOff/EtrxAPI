@@ -17,9 +17,9 @@ public sealed class ProblemPreferencesService : IProblemPreferencesService
         _repository = repository;
     }
 
-    public async Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken cancellationToken)
+    public async Task<ProblemPreferencesResponseDto> GetAsync(Guid userId, CancellationToken cancellationToken, bool ladder = false)
     {
-        var json = await _repository.GetAsync(userId, cancellationToken);
+        var json = await _repository.GetAsync(userId, cancellationToken, ladder);
         if (json is null)
         {
             return new ProblemPreferencesResponseDto(new Dictionary<string, string>());
@@ -31,7 +31,7 @@ public sealed class ProblemPreferencesService : IProblemPreferencesService
     }
 
     public async Task SaveAsync(Guid userId, string? currentHandle,
-        SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken)
+        SaveProblemPreferencesRequestDto request, CancellationToken cancellationToken, bool ladder = false)
     {
         if (string.IsNullOrWhiteSpace(request.ExpectedHandle) || request.ExpectedHandle.Length > RequestLimits.MaxHandleLength)
         {
@@ -43,9 +43,10 @@ public sealed class ProblemPreferencesService : IProblemPreferencesService
             throw new ConflictException("The account changed. Filters were not saved.");
         }
 
+        var allowed = ladder ? LadderPreferenceKeys.Allowed : ProblemPreferenceKeys.Allowed;
         var filters = request.Filters;
-        if (filters is null || filters.Count > ProblemPreferenceKeys.Allowed.Count ||
-            filters.Any(filter => !ProblemPreferenceKeys.Allowed.Contains(filter.Key) ||
+        if (filters is null || filters.Count > allowed.Count ||
+            filters.Any(filter => !allowed.Contains(filter.Key) ||
                 filter.Value is null || filter.Value.Length > RequestLimits.MaxFilterValueLength))
         {
             throw new BadRequestException("Invalid filters.");
@@ -53,6 +54,6 @@ public sealed class ProblemPreferencesService : IProblemPreferencesService
 
         var nonEmptyFilters = filters.Where(filter => !string.IsNullOrEmpty(filter.Value))
             .ToDictionary(filter => filter.Key, filter => filter.Value);
-        await _repository.SaveAsync(userId, JsonSerializer.Serialize(nonEmptyFilters), cancellationToken);
+        await _repository.SaveAsync(userId, JsonSerializer.Serialize(nonEmptyFilters), cancellationToken, ladder);
     }
 }

@@ -48,7 +48,9 @@ public class CodeforcesApiService : ApiService, ICodeforcesApiService
     public async Task<List<CodeforcesSubmission>> GetCodeforcesSubmissionsAsync(string handle)
     {
         var parameters = new Dictionary<string, string> { { "handle", handle } };
-        var url = BuildUrl("user.status", parameters);
+        var url = string.IsNullOrWhiteSpace(_codeforcesOptions.Key) || string.IsNullOrWhiteSpace(_codeforcesOptions.Secret)
+            ? $"https://codeforces.com/api/user.status?handle={Uri.EscapeDataString(handle)}"
+            : BuildUrl("user.status", parameters);
         var result = await HandleRequestAsync<List<CodeforcesSubmission>>(url);
 
         return result;

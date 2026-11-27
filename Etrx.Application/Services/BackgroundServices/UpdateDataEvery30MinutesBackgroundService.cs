@@ -16,11 +16,19 @@ public class UpdateDataEvery30MinutesBackgroundService : UpdateDataBackgroundSer
     {
         var updateDataService = serviceProvider.GetRequiredService<IUpdateDataService>();
 
-        await updateDataService.UpdateContestsAsync();
-        await updateDataService.UpdateIoiContestsAsync();
-        await updateDataService.UpdateProblemsAsync();
-        await updateDataService.UpdateUsersAsync();
-        await updateDataService.UpdateSubmissionsAsync();
+        try
+        {
+            await updateDataService.UpdateContestsAsync();
+            await updateDataService.UpdateIoiContestsAsync();
+            await updateDataService.UpdateProblemsAsync();
+            await updateDataService.UpdateUsersAsync();
+        }
+        finally
+        {
+            // Existing participants can still practice when the DL roster is unavailable.
+            if (!cancellationToken.IsCancellationRequested)
+                await updateDataService.UpdateSubmissionsAsync(cancellationToken);
+        }
     }
 
     protected override TimeSpan CalculateNextDelay(bool executionSucceeded)

@@ -5,7 +5,7 @@ public interface IUpdateDataService
     Task UpdateContestsAsync();
     Task UpdateProblemsAsync();
     Task UpdateUsersAsync();
-    Task UpdateSubmissionsAsync();
+    Task UpdateSubmissionsAsync(CancellationToken cancellationToken = default);
     Task UpdateSubmissionsByContestIdAsync(int contestId);
     Task UpdateRanklistRowsByContestIdAsync(int contestId);
     Task UpdateIoiContestsAsync();
